@@ -1,6 +1,6 @@
 {
-  "name": "fifarand",
-  "version": "0.0.1",
+  "name": "fifalog",
+  "version": "1.0.0",
   "license": "MIT",
   "private": true,
   "scripts": {

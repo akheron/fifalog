@@ -1,0 +1,24 @@
+{
+  "name": "fifarand",
+  "version": "0.0.1",
+  "licence": "MIT",
+  "scripts": {
+    "start:dev": "webpack -dw"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@grammarly/focal": "^0.8.0-alpha.0",
+    "@types/react": "^16.9.2",
+    "@types/react-dom": "^16.9.0",
+    "babel-loader": "^8.0.6",
+    "prettier": "^1.18.2",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "rxjs": "^6.5.2",
+    "ts-loader": "^6.0.4",
+    "typescript": "^3.5.3",
+    "webpack": "^4.39.2",
+    "webpack-cli": "^3.3.7"
+  }
+}

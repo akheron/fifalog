@@ -1,9 +1,13 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "dist/backend/",
     "target": "es5",
     "module": "commonjs",
     "strict": true,
-    "jsx": "react"
-  }
+    "jsx": "react",
+    "preserveWatchOutput": true
+  },
+  "files": [
+    "backend/main.ts"
+  ]
 }

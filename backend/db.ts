@@ -23,16 +23,17 @@ FROM league
 LEFT JOIN team ON (team.league_id = league.id)
 ORDER BY league.name, team.name
 `)
-      return R.groupWith((a, b) => a.name === b.name, result.rows).map(
-        rows => ({
-          id: rows[0]['league_id'],
-          name: rows[0]['league_name'],
-          teams: rows.map(row => ({
-            id: row['team_id'],
-            name: row['team_name'],
-          })),
-        })
-      )
+      return R.groupWith(
+        (a, b) => a.league_name === b.league_name,
+        result.rows
+      ).map(rows => ({
+        id: rows[0]['league_id'],
+        name: rows[0]['league_name'],
+        teams: rows.map(row => ({
+          id: row['team_id'],
+          name: row['team_name'],
+        })),
+      }))
     },
 
     async latestFinishedMatches(count = 10) {

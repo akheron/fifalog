@@ -3,12 +3,15 @@ import { PathReporter } from 'io-ts/lib/PathReporter'
 import { IntFromString } from 'io-ts-types/lib/IntFromString'
 import { isLeft } from 'fp-ts/lib/Either'
 
-const codec = t.partial({
-  BIND_HOST: t.string,
-  PORT: IntFromString,
-  USERNAME: t.string,
-  PASSWORD: t.string,
-})
+const codec = t.intersection([
+  t.type({ DATABASE_URL: t.string }),
+  t.partial({
+    BIND_HOST: t.string,
+    PORT: IntFromString,
+    USERNAME: t.string,
+    PASSWORD: t.string,
+  }),
+])
 
 interface Config {
   bindHost: string
@@ -17,6 +20,7 @@ interface Config {
     name: string
     pass: string
   } | null
+  databaseUrl: string
 }
 
 function configFromEnv(env: t.TypeOf<typeof codec>): Config {
@@ -30,6 +34,7 @@ function configFromEnv(env: t.TypeOf<typeof codec>): Config {
             pass: env.PASSWORD,
           }
         : null,
+    databaseUrl: env.DATABASE_URL,
   }
 }
 

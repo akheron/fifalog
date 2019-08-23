@@ -1,22 +1,26 @@
 import * as React from 'react'
 import { Atom } from '@grammarly/focal'
 import RandomizeButton from './RandomizeButton'
-import SelectedTeams from './SelectedTeams'
-import { Team } from '../types'
+import RandomMatch from './RandomMatch'
+import { Match } from '../../common/types'
 import { modifyAtom } from '../utils'
-import { BUCKETS } from '../constants'
-import { getRandomTeams } from '../teams'
+import { LEAGUES } from '../constants'
+import { getRandomMatch } from '../teams'
 import './App.scss'
 
-type State = [Team, Team] | null
+type State = {
+  randomMatch: Match | null
+}
 
-const state: Atom<State> = Atom.create(null)
+const state: Atom<State> = Atom.create({ randomMatch: null })
+
+const randomMatch = state.lens('randomMatch')
 
 export default () => (
   <div>
     <RandomizeButton
-      onClick={modifyAtom(state, () => getRandomTeams(BUCKETS))}
+      onClick={modifyAtom(randomMatch, () => getRandomMatch(LEAGUES))}
     />
-    <SelectedTeams teams={state} />
+    <RandomMatch match={randomMatch} />
   </div>
 )

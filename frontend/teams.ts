@@ -1,6 +1,9 @@
-import { Bucket, Team } from './types'
+import { League, Team, Match } from '../common/types'
 
 const swap = <A, B>([a, b]: [A, B]): [B, A] => [b, a]
+
+const randomlySwap = <A>(arr: [A, A]): [A, A] =>
+  Math.random() < 0.5 ? swap(arr) : arr
 
 const factorial = (n: number): number => {
   let result = 1
@@ -14,17 +17,21 @@ const nCk = (n: number, k: number): number => {
 
 const sum = (arr: number[]): number => arr.reduce((acc, n) => acc + n, 0)
 
-const numTeamPairs = (buckets: Bucket[]) =>
-  sum(buckets.map(({ teams }) => nCk(teams.length, 2)))
+const numTeamPairs = (leagues: League[]) =>
+  sum(leagues.map(({ teams }) => nCk(teams.length, 2)))
 
-const nthTeamPair = (buckets: Bucket[], pairIndex: number): [Team, Team] => {
+const nthTeamPairAndLeague = (
+  leagues: League[],
+  pairIndex: number
+): [League, [Team, Team]] => {
   let currentIndex = -1
-  for (const { teams } of buckets) {
+  for (const league of leagues) {
+    const teams = league.teams
     for (let t1 = 0; t1 < teams.length - 1; t1++) {
       for (let t2 = t1 + 1; t2 < teams.length; t2++) {
         currentIndex++
         if (currentIndex === pairIndex) {
-          return [teams[t1], teams[t2]]
+          return [league, [teams[t1], teams[t2]]]
         }
       }
     }
@@ -32,9 +39,9 @@ const nthTeamPair = (buckets: Bucket[], pairIndex: number): [Team, Team] => {
   throw new Error('No teams defined')
 }
 
-export const getRandomTeams = (buckets: Bucket[]): [Team, Team] => {
-  const targetIndex = Math.floor(Math.random() * numTeamPairs(buckets))
-  const pair = nthTeamPair(buckets, targetIndex)
-  if (Math.random() < 0.5) return swap(pair)
-  return pair
+export const getRandomMatch = (leagues: League[]): Match => {
+  const targetIndex = Math.floor(Math.random() * numTeamPairs(leagues))
+  const [league, pair] = nthTeamPairAndLeague(leagues, targetIndex)
+  const [home, away] = randomlySwap(pair)
+  return { leagueName: league.name, leagueId: league.id, home, away }
 }

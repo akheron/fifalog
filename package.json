@@ -7,7 +7,7 @@
     "node": "11.15.0"
   },
   "scripts": {
-    "build": "concurrently 'NODE_ENV=production webpack -p' 'tsc'",
+    "build": "concurrently 'NODE_ENV=production webpack -p' 'tsc -p backend'",
     "start": "node dist/backend/main.js",
     "start:dev": "concurrently 'webpack -dw' 'nodemon -w backend -w common -e ts -x ts-node backend/main.ts'"
   },

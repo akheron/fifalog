@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "license": "MIT",
   "private": true,
+  "engines": {
+    "node": "11.15.0"
+  },
   "scripts": {
     "build": "concurrently 'NODE_ENV=production webpack -p' 'tsc'",
     "start": "node dist/backend/main.js",
@@ -53,6 +56,6 @@
     "koa-static": "^5.0.0",
     "pg": "^7.12.1",
     "ramda": "^0.26.1",
-    "typera-koa": "^0.2.0"
+    "typera-koa": "^0.3.0"
   }
 }

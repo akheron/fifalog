@@ -2431,12 +2431,7 @@ form-data@~2.3.2:
     combined-stream "^1.0.6"
     mime-types "^2.1.12"
 
-fp-ts@^1.0.0, fp-ts@^1.18.2:
-  version "1.19.5"
-  resolved "https://registry.yarnpkg.com/fp-ts/-/fp-ts-1.19.5.tgz#3da865e585dfa1fdfd51785417357ac50afc520a"
-  integrity sha512-wDNqTimnzs8QqpldiId9OavWK2NptormjXnRJTQecNjzwfyp6P/8s/zG8e4h3ja3oqkKaY72UlTjQYt/1yXf9A==
-
-fp-ts@^2.0.5:
+fp-ts@^2.0.0, fp-ts@^2.0.5:
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/fp-ts/-/fp-ts-2.0.5.tgz#9560d8a6a4f53cbda9f9b31ed8d1458e41939e07"
   integrity sha512-opI5r+rVlpZE7Rhk0YtqsrmxGkbIw0dRNqGca8FEAMMnjomXotG+R9QkLQg20onx7R8qhepAn4CCOP8usma/Xw==
@@ -2952,14 +2947,7 @@ io-ts-types@^0.5.0:
   resolved "https://registry.yarnpkg.com/io-ts-types/-/io-ts-types-0.5.0.tgz#f69be9131362c31bbc6b5044f1d95892604f8f23"
   integrity sha512-+v88rlA76FmlQQcTImFq5iigoPA3OKO+BIdrpsfXlhWUdiVvOnDDiLKCsiIAW9eRj+OJgG31Sctebr77bqKhzw==
 
-io-ts@^1.8.6:
-  version "1.10.4"
-  resolved "https://registry.yarnpkg.com/io-ts/-/io-ts-1.10.4.tgz#cd5401b138de88e4f920adbcb7026e2d1967e6e2"
-  integrity sha512-b23PteSnYXSONJ6JQXRAlvJhuw8KOtkqa87W4wDtvMrud/DTJd5X+NpOOI+O/zZwVq6v0VLAaJ+1EDViKEuN9g==
-  dependencies:
-    fp-ts "^1.0.0"
-
-io-ts@^2.0.1:
+io-ts@^2.0.0, io-ts@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/io-ts/-/io-ts-2.0.1.tgz#1261c12f915c2f48d16393a36966636b48a45aa1"
   integrity sha512-RezD+WcCfW4VkMkEcQWL/Nmy/nqsWTvTYg7oUmTGzglvSSV2P9h2z1PVeREPFf0GWNzruYleAt1XCMQZSg1xxQ==
@@ -5693,24 +5681,24 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typera-common@0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/typera-common/-/typera-common-0.2.0.tgz#7b5ed8babd5af95eb71f0e242a147b6d710fa63e"
-  integrity sha512-J6ysdhs1/rQc9IQ89PqKFpzAOx0XDq6eniBrdhVqe4TcSsa/C2irkUhJ0IDavcC1+xcxer0nxfa3E8RPMf35Jg==
+typera-common@0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/typera-common/-/typera-common-0.3.0.tgz#93b55ab183e14c1fc7533b79fd40528710801c85"
+  integrity sha512-drSsSVqnMATJ+4p43vsbep19oNGEDQjpzzp9VMtmre3YAzk0+lzmKMXW2kdxCDQqXBMW/bhXoekTXK72QKr7Gw==
   dependencies:
-    fp-ts "^1.18.2"
-    io-ts "^1.8.6"
+    fp-ts "^2.0.0"
+    io-ts "^2.0.0"
 
-typera-koa@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/typera-koa/-/typera-koa-0.2.0.tgz#23c0c54629ecb39fa84e777a90db45f1f7044d70"
-  integrity sha512-6zk6Ps40G0jyS/cDTcqIfO9/jISy+jTA/Kq64VbH55j0GKDViMzKzqxVTu9tOPfBV8EpKYvjLTZ4jZiiBnyvmQ==
+typera-koa@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/typera-koa/-/typera-koa-0.3.0.tgz#410ab0cbbb12419d30da4fd200f9ff989875c2c6"
+  integrity sha512-YaXNd//xCvJ1aYn3kuPdzvkiXVj2zCBbGhuFrwsEivFcTvHxbagHbBWfCWkhHmTIJ9TVqajlVSA2vso5xanLfA==
   dependencies:
     "@types/koa" "^2.0.48"
     "@types/koa-bodyparser" "^4.2.2"
     koa "^2.7.0"
     koa-bodyparser "^4.2.1"
-    typera-common "0.2.0"
+    typera-common "0.3.0"
 
 typescript@^3.5.3:
   version "3.5.3"

@@ -6,8 +6,5 @@
     "strict": true,
     "jsx": "react",
     "preserveWatchOutput": true
-  },
-  "files": [
-    "backend/main.ts"
-  ]
+  }
 }

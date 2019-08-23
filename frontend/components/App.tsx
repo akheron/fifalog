@@ -6,6 +6,7 @@ import { Team } from '../types'
 import { modifyAtom } from '../utils'
 import { BUCKETS } from '../constants'
 import { getRandomTeams } from '../teams'
+import './App.scss'
 
 type State = [Team, Team] | null
 

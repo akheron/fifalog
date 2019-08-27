@@ -1,4 +1,5 @@
 import * as t from 'io-ts'
+import { IntFromString } from 'io-ts-types/lib/IntFromString'
 import * as Router from 'koa-router'
 import { RouteHandler, Parser, Response, routeHandler, run } from 'typera-koa'
 
@@ -24,6 +25,17 @@ export default (db: DBClient) => {
       return Response.ok(await db.latestMatches(20))
     }
   )
+
+  const id = t.type({ id: IntFromString })
+
+  const deleteMatch: RouteHandler<
+    Response.NoContent | Response.BadRequest<string> | Response.NotFound
+  > = routeHandler(Parser.routeParams(id))(async req => {
+    const result = await db.deleteMatch(req.routeParams.id)
+
+    if (result) return Response.noContent()
+    return Response.badRequest('This match cannot be deleted')
+  })
 
   const randomMatchPairBody = t.type({ userIds: t.tuple([t.number, t.number]) })
 
@@ -57,6 +69,7 @@ export default (db: DBClient) => {
   router.get('/users', run(users))
   router.get('/leagues', run(leagues))
   router.get('/matches', run(matches))
+  router.delete('/matches/:id', run(deleteMatch))
   router.post('/matches/random_pair', run(createRandomMatchPair))
 
   return router

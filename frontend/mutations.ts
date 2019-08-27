@@ -26,6 +26,17 @@ export async function fetchLatestMatches(
   return api.latestMatches().then(matches => latestMatches.set(matches))
 }
 
+export async function deleteMatch(
+  latestMatches: Atom<SavedMatch[] | null>,
+  id: number
+) {
+  if (api.deleteMatch(id)) {
+    latestMatches.modify(
+      matches => matches && matches.filter(match => match.id !== id)
+    )
+  }
+}
+
 export async function createRandomMatchPair(
   latestMatches: Atom<SavedMatch[] | null>,
   userIds: [number, number]

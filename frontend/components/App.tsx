@@ -23,7 +23,7 @@ export default ({ state }: Props) => (
             state={state.lens('createRandomMatchPair')}
           />
 
-          <MatchList matches={latestMatches} />
+          <MatchList matches={state.lens('latestMatches')} />
         </>
       )
     )}

@@ -1,18 +1,23 @@
 import * as React from 'react'
+import { Atom, F } from '@grammarly/focal'
 import { SavedMatch } from '../../common/types'
-import FinishedMatch from './FinishedMatch'
-import FutureMatch from './FutureMatch'
+import { deleteMatch } from '../mutations'
+import Match from './Match'
 
-const MatchList = (props: { matches: SavedMatch[] }) => (
-  <div>
-    {props.matches.map(match =>
-      match.result ? (
-        <FinishedMatch key={match.id} match={match} result={match.result} />
-      ) : (
-        <FutureMatch key={match.id} match={match} />
-      )
+const MatchList = (props: { matches: Atom<SavedMatch[] | null> }) => (
+  <F.div>
+    {props.matches.view(
+      matches =>
+        matches &&
+        matches.map(match => (
+          <Match
+            key={match.id}
+            match={match}
+            onRemove={() => deleteMatch(props.matches, match.id)}
+          />
+        ))
     )}
-  </div>
+  </F.div>
 )
 
 export default MatchList

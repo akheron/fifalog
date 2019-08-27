@@ -6,7 +6,8 @@ import { onIntegrityError } from './db-utils'
 export type DBClient = {
   users(): Promise<User[]>
   leagues(): Promise<League[]>
-  match(id: number): Promise<SavedMatch | null>
+  match(id: number): Promise<SavedMatch | null> // null -> no such match
+  deleteMatch(id: number): Promise<boolean> // true -> was actually removed
   latestMatches(count: number): Promise<SavedMatch[]>
   createMatch(matchData: {
     leagueId: number
@@ -92,6 +93,19 @@ WHERE match.id = $1
       return null
     },
 
+    async deleteMatch(id: number) {
+      const result = await client.query(
+        `
+DELETE FROM match
+WHERE id = $1
+AND finished_type IS NULL
+`,
+        [id]
+      )
+      console.log('delete result', result)
+      return true
+    },
+
     async latestMatches(count = 10) {
       const { rows } = await client.query(
         `
@@ -119,6 +133,7 @@ JOIN team AS home ON (home.id = home_id)
 JOIN team AS away ON (away.id = away_id)
 JOIN "user" AS home_user ON (home_user.id = home_user_id)
 JOIN "user" AS away_user ON (away_user.id = away_user_id)
+ORDER BY match.id DESC
 LIMIT $1
 `,
         [count]

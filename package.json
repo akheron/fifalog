@@ -7,9 +7,9 @@
     "node": "11.15.0"
   },
   "scripts": {
-    "build": "concurrently 'NODE_ENV=production webpack -p' 'tsc -p backend'",
+    "build": "concurrently -n frontend,backend 'NODE_ENV=production webpack -p' 'tsc -p backend'",
     "start": "node dist/backend/main.js",
-    "start:dev": "concurrently 'webpack -dw' 'nodemon -w backend -w common -e ts -x ts-node backend/main.ts'"
+    "start:dev": "concurrently -n frontend,backend 'webpack -dw' 'nodemon -w backend -w common -e ts -x ts-node backend/main.ts'"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",

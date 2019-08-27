@@ -1,4 +1,4 @@
-import { League, Team, Match } from '../common/types'
+import { League, Team } from '../common/types'
 
 const swap = <A, B>([a, b]: [A, B]): [B, A] => [b, a]
 
@@ -39,9 +39,15 @@ const nthTeamPairAndLeague = (
   throw new Error('No teams defined')
 }
 
-export const getRandomMatch = (leagues: League[]): Match => {
+export type RandomMatch = {
+  leagueId: number
+  homeId: number
+  awayId: number
+}
+
+export const getRandomMatch = (leagues: League[]): RandomMatch => {
   const targetIndex = Math.floor(Math.random() * numTeamPairs(leagues))
   const [league, pair] = nthTeamPairAndLeague(leagues, targetIndex)
   const [home, away] = randomlySwap(pair)
-  return { leagueName: league.name, leagueId: league.id, home, away }
+  return { leagueId: league.id, homeId: home.id, awayId: away.id }
 }

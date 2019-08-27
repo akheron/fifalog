@@ -2,27 +2,28 @@ import * as React from 'react'
 import { Atom, F } from '@grammarly/focal'
 
 import { State } from '../state'
-import { getRandomMatch } from '../teams'
-import { modifyAtom } from '../utils'
-import RandomizeButton from './RandomizeButton'
-import RandomMatch from './RandomMatch'
+import { createRandomMatchPair } from '../mutations'
+import CreateRandomMatchPair from './CreateRandomMatchPair'
+import MatchList from './MatchList'
 import './App.scss'
 
 type Props = { state: Atom<State> }
 
 export default ({ state }: Props) => (
   <F.div>
-    {state.view(({ leagues }) =>
-      leagues == null ? (
+    {state.view(({ latestMatches, users }) =>
+      latestMatches == null || users == null ? (
         'Loading...'
       ) : (
         <>
-          <RandomizeButton
-            onClick={modifyAtom(state.lens('randomMatch'), () =>
-              getRandomMatch(leagues)
-            )}
+          <h2>Latest matches</h2>
+          <CreateRandomMatchPair
+            users={users}
+            latestMatches={state.lens('latestMatches')}
+            state={state.lens('createRandomMatchPair')}
           />
-          <RandomMatch match={state.lens('randomMatch')} />
+
+          <MatchList matches={latestMatches} />
         </>
       )
     )}

@@ -1,11 +1,19 @@
-import { League, Match } from '../common/types'
+import { Match, SavedMatch, User } from '../common/types'
+
+export type CreateRandomMatchPairState = {
+  userIds: [number, number]
+}
 
 export type State = {
-  leagues: League[] | null
-  randomMatch: Match | null
+  users: User[] | null
+  latestMatches: SavedMatch[] | null
+  createRandomMatchPair: CreateRandomMatchPairState
 }
 
 export const initialState: State = {
-  leagues: null,
-  randomMatch: null,
+  users: null,
+  latestMatches: null,
+  createRandomMatchPair: {
+    userIds: [0, 0],
+  },
 }

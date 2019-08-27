@@ -16,7 +16,32 @@ export type Match = {
   away: Team
 }
 
-export type FinishedMatch = Match & {
+export type SavedMatch = Match & {
   id: number
-  timestamp: number
+  homeUser: User
+  awayUser: User
+  result: MatchResult | null // null -> not finished
+}
+
+export type MatchResult = {
+  finishedTime: number
+  homeScore: number
+  awayScore: number
+  finishedType: MatchResult.FinishedType
+}
+
+export namespace MatchResult {
+  export type FullTime = { kind: 'fullTime' }
+  export type ExtraTime = { kind: 'extraTime' }
+  export type Penalties = {
+    kind: 'penalties'
+    homeGoals: number
+    awayGoals: number
+  }
+  export type FinishedType = FullTime | ExtraTime | Penalties
+}
+
+export type User = {
+  id: number
+  name: string
 }

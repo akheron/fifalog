@@ -4,6 +4,7 @@
     "outDir": "../dist"
   },
   "include": [
-    "main.ts"
+    "../common/*.ts",
+    "*.ts"
   ]
 }

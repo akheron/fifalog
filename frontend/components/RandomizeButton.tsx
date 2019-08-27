@@ -1,9 +1,9 @@
 import * as React from 'react'
 
-type Props = { onClick: () => void }
-
-export default ({ onClick }: Props) => (
-  <button type="button" onClick={onClick}>
-    Get random teams!
+const RandomizeButton = (props: { onClick: () => void; title: string }) => (
+  <button type="button" onClick={props.onClick}>
+    {props.title}
   </button>
 )
+
+export default RandomizeButton

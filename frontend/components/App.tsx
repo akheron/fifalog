@@ -16,10 +16,10 @@ export default (props: { state: Atom<State> }) => (
             <h2>Latest matches</h2>
             <CreateRandomMatchPair
               users={users}
-              latestMatches={state.lens('latestMatches')}
+              latestMatches={state.lens('matches')}
               state={state.lens('createRandomMatchPair')}
             />
-            <MatchList matches={state.lens('latestMatches')} />
+            <MatchList matches={state.lens('matches')} />
           </>
         ))}
       </F.Fragment>

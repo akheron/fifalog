@@ -8,14 +8,14 @@ export type CreateRandomMatchPairState = {
 
 export type State = Option<{
   users: User[]
-  latestMatches: Match[]
+  matches: Match[]
   createRandomMatchPair: Option<CreateRandomMatchPairState>
 }>
 
-export function initialState(users: User[], latestMatches: Match[]): State {
+export function initialState(users: User[], matches: Match[]): State {
   return {
     users,
-    latestMatches,
+    matches,
     createRandomMatchPair: initCreateRandomMatchPair(users),
   }
 }

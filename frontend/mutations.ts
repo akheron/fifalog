@@ -1,18 +1,15 @@
 import { Atom } from '@grammarly/focal'
-import { SavedMatch } from '../common/types'
+import { Match } from '../common/types'
 import * as api from './api'
 
-export async function deleteMatch(
-  latestMatches: Atom<SavedMatch[]>,
-  id: number
-) {
+export async function deleteMatch(latestMatches: Atom<Match[]>, id: number) {
   if (api.deleteMatch(id)) {
     latestMatches.modify(matches => matches.filter(match => match.id !== id))
   }
 }
 
 export async function createRandomMatchPair(
-  latestMatches: Atom<SavedMatch[]>,
+  latestMatches: Atom<Match[]>,
   userIds: [number, number]
 ) {
   return api

@@ -10,14 +10,11 @@ export type Team = {
 }
 
 export type Match = {
+  id: number
   leagueId: number
   leagueName: string
   home: Team
   away: Team
-}
-
-export type SavedMatch = Match & {
-  id: number
   homeUser: User
   awayUser: User
   result: MatchResult | null // null -> not finished

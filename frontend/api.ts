@@ -1,10 +1,10 @@
-import { SavedMatch, User } from '../common/types'
+import { Match, User } from '../common/types'
 
 export async function users(): Promise<User[]> {
   return fetch('/api/users').then(l => l.json())
 }
 
-export async function latestMatches(): Promise<SavedMatch[]> {
+export async function latestMatches(): Promise<Match[]> {
   return fetch('/api/matches').then(l => l.json())
 }
 
@@ -19,7 +19,7 @@ export async function deleteMatch(id: number): Promise<boolean> {
 
 export async function addRandomMatchPair(
   userIds: [number, number]
-): Promise<[SavedMatch, SavedMatch]> {
+): Promise<[Match, Match]> {
   return fetch('/api/matches/random_pair', {
     method: 'POST',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },

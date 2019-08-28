@@ -4,7 +4,7 @@ import * as Router from 'koa-router'
 import { RouteHandler, Parser, Response, routeHandler, run } from 'typera-koa'
 
 import { DBClient } from './db'
-import { League, SavedMatch, User } from '../common/types'
+import { League, Match, User } from '../common/types'
 import { getRandomMatch } from './teams'
 
 export default (db: DBClient) => {
@@ -20,7 +20,7 @@ export default (db: DBClient) => {
     }
   )
 
-  const matches: RouteHandler<Response.Ok<SavedMatch[]>> = routeHandler()(
+  const matches: RouteHandler<Response.Ok<Match[]>> = routeHandler()(
     async () => {
       return Response.ok(await db.latestMatches(20))
     }
@@ -40,7 +40,7 @@ export default (db: DBClient) => {
   const randomMatchPairBody = t.type({ userIds: t.tuple([t.number, t.number]) })
 
   const createRandomMatchPair: RouteHandler<
-    Response.Ok<[SavedMatch, SavedMatch]> | Response.BadRequest<string>
+    Response.Ok<[Match, Match]> | Response.BadRequest<string>
   > = routeHandler(Parser.body(randomMatchPairBody))(async req => {
     const userIds = req.body.userIds
     if (userIds[0] === userIds[1])
@@ -63,7 +63,7 @@ export default (db: DBClient) => {
         'At least one of the supplied user ids does not exist'
       )
     }
-    return Response.ok<[SavedMatch, SavedMatch]>([match1, match2])
+    return Response.ok<[Match, Match]>([match1, match2])
   })
 
   router.get('/users', run(users))

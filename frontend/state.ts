@@ -1,5 +1,5 @@
 import { Option } from '@grammarly/focal'
-import { SavedMatch, User } from '../common/types'
+import { Match, User } from '../common/types'
 
 export type CreateRandomMatchPairState = {
   user1: number
@@ -8,14 +8,11 @@ export type CreateRandomMatchPairState = {
 
 export type State = Option<{
   users: User[]
-  latestMatches: SavedMatch[]
+  latestMatches: Match[]
   createRandomMatchPair: Option<CreateRandomMatchPairState>
 }>
 
-export function initialState(
-  users: User[],
-  latestMatches: SavedMatch[]
-): State {
+export function initialState(users: User[], latestMatches: Match[]): State {
   return {
     users,
     latestMatches,

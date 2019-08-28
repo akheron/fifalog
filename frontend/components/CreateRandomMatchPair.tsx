@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { F, Atom, Option } from '@grammarly/focal'
-import { SavedMatch, User } from '../../common/types'
+import { Match, User } from '../../common/types'
 import { CreateRandomMatchPairState } from '../state'
 import { requireAtom } from '../utils'
 import { createRandomMatchPair } from '../mutations'
@@ -9,7 +9,7 @@ import UserSelect from './UserSelect'
 
 const CreateRandomMatchPair = (props: {
   users: User[]
-  latestMatches: Atom<SavedMatch[]>
+  latestMatches: Atom<Match[]>
   state: Atom<Option<CreateRandomMatchPairState>>
 }) => (
   <F.Fragment>

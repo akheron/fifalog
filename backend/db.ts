@@ -1,21 +1,21 @@
 import * as R from 'ramda'
-import { League, SavedMatch, User } from '../common/types'
+import { League, Match, User } from '../common/types'
 import { Pool } from 'pg'
 import { onIntegrityError } from './db-utils'
 
 export type DBClient = {
   users(): Promise<User[]>
   leagues(): Promise<League[]>
-  match(id: number): Promise<SavedMatch | null> // null -> no such match
+  match(id: number): Promise<Match | null> // null -> no such match
   deleteMatch(id: number): Promise<boolean> // true -> was actually removed
-  latestMatches(count: number): Promise<SavedMatch[]>
+  latestMatches(count: number): Promise<Match[]>
   createMatch(matchData: {
     leagueId: number
     homeId: number
     awayId: number
     homeUserId: number
     awayUserId: number
-  }): Promise<SavedMatch | null>
+  }): Promise<Match | null>
 }
 
 export const connect = async (databaseUrl: string): Promise<DBClient> => {
@@ -155,14 +155,14 @@ RETURNING id
       if (result == null) return null
 
       const id: number = result.rows[0]['id']
-      return (await this.match(id)) as SavedMatch
+      return (await this.match(id)) as Match
     },
   }
 
   return dbClient
 }
 
-const matchFromRow = (r: any): SavedMatch => ({
+const matchFromRow = (r: any): Match => ({
   id: r['match_id'],
   leagueId: r['league_id'],
   leagueName: r['league_name'],

@@ -1,16 +1,16 @@
 import * as React from 'react'
 import { Atom, F } from '@grammarly/focal'
-import { SavedMatch } from '../../common/types'
+import { Match } from '../../common/types'
 import { deleteMatch } from '../mutations'
-import Match from './Match'
+import MatchRow from './MatchRow'
 
-const MatchList = (props: { matches: Atom<SavedMatch[]> }) => (
+const MatchList = (props: { matches: Atom<Match[]> }) => (
   <F.div>
     {props.matches.view(
       matches =>
         matches &&
         matches.map(match => (
-          <Match
+          <MatchRow
             key={match.id}
             match={match}
             onRemove={() => deleteMatch(props.matches, match.id)}

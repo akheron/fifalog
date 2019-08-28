@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { SavedMatch, MatchResult } from '../../common/types'
-import * as styles from './Match.scss'
+import { Match, MatchResult } from '../../common/types'
+import * as styles from './MatchRow.scss'
 
 const hiliteWinner = (
   result: MatchResult | null,
@@ -30,7 +30,7 @@ const finishedTypeString = (finishedType: MatchResult.FinishedType) => {
   }
 }
 
-const Match = (props: { match: SavedMatch; onRemove: () => {} }) => {
+const MatchRow = (props: { match: Match; onRemove: () => {} }) => {
   const { home, away, homeUser, awayUser, result } = props.match
   return (
     <div className={styles.match}>
@@ -56,4 +56,4 @@ const Match = (props: { match: SavedMatch; onRemove: () => {} }) => {
   )
 }
 
-export default Match
+export default MatchRow

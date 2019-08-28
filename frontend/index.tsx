@@ -2,13 +2,14 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Atom } from '@grammarly/focal'
 
-import { fetchUsers, fetchLatestMatches } from './mutations'
-import { initialState } from './state'
+import * as api from './api'
+import { State, initialState } from './state'
 import App from './components/App'
 
-const state = Atom.create(initialState)
+const state: Atom<State> = Atom.create(undefined)
 
-fetchUsers(state.lens('users'), state.lens('createRandomMatchPair'))
-fetchLatestMatches(state.lens('latestMatches'))
+Promise.all([api.users(), api.latestMatches()]).then(([users, matches]) =>
+  state.set(initialState(users, matches))
+)
 
 ReactDOM.render(<App state={state} />, document.getElementById('app'))

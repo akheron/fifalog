@@ -1,7 +1,11 @@
 import * as React from 'react'
 
-const RandomizeButton = (props: { onClick: () => void; title: string }) => (
-  <button type="button" onClick={props.onClick}>
+const RandomizeButton = (props: {
+  disabled?: boolean
+  onClick: () => void
+  title: string
+}) => (
+  <button type="button" disabled={props.disabled} onClick={props.onClick}>
     {props.title}
   </button>
 )

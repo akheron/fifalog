@@ -4,7 +4,7 @@ import { SavedMatch } from '../../common/types'
 import { deleteMatch } from '../mutations'
 import Match from './Match'
 
-const MatchList = (props: { matches: Atom<SavedMatch[] | null> }) => (
+const MatchList = (props: { matches: Atom<SavedMatch[]> }) => (
   <F.div>
     {props.matches.view(
       matches =>

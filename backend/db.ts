@@ -102,8 +102,7 @@ AND finished_type IS NULL
 `,
         [id]
       )
-      console.log('delete result', result)
-      return true
+      return result.rowCount === 1
     },
 
     async latestMatches(count = 10) {

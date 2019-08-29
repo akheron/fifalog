@@ -57,7 +57,13 @@ const hiliteWinner = (
   text: string
 ) => {
   const winner =
-    result && (result.homeScore > result.awayScore ? 'home' : 'away')
+    !result ||
+    result.homeScore == result.awayScore ||
+    result.finishedType.kind == 'penalties'
+      ? null
+      : result.homeScore > result.awayScore
+      ? 'home'
+      : 'away'
   if (winner === which) return <em>{text}</em>
   return text
 }

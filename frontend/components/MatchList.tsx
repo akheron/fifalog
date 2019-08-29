@@ -1,19 +1,22 @@
 import * as React from 'react'
 import { Atom, F } from '@grammarly/focal'
-import { Match } from '../../common/types'
 import { deleteMatch } from '../mutations'
+import { State } from '../state'
+import { indexLens } from '../utils'
 import MatchRow from './MatchRow'
 
-const MatchList = (props: { matches: Atom<Match[]> }) => (
+const MatchList = (props: { rows: Atom<State.MatchRow[]> }) => (
   <F.div>
-    {props.matches.view(
-      matches =>
-        matches &&
-        matches.map(match => (
+    {props.rows.view(
+      rows =>
+        rows &&
+        rows.map((row, i) => (
           <MatchRow
-            key={match.id}
-            match={match}
-            onRemove={() => deleteMatch(props.matches, match.id)}
+            key={row.match.id}
+            row={props.rows.lens(indexLens<State.MatchRow>(i))}
+            onRemove={() =>
+              confirm('Really?') && deleteMatch(props.rows, row.match.id)
+            }
           />
         ))
     )}

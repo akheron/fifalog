@@ -1,0 +1,10 @@
+.buttons {
+  button {
+    font-size: 13px;
+    padding: 0 2px;
+
+    &:last-child {
+      margin-left: 5px;
+    }
+  }
+}

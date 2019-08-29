@@ -1,6 +1,55 @@
 import * as React from 'react'
-import { Match, MatchResult } from '../../common/types'
+import { Atom, F } from '@grammarly/focal'
+import { MatchResult } from '../../common/types'
+import { finishMatch } from '../mutations'
+import { State } from '../state'
+import { requireAtom } from '../utils'
+import MatchRowButtons from './MatchRowButtons'
+import EditMatch from './EditMatch'
 import * as styles from './MatchRow.scss'
+
+const MatchRow = (props: { row: Atom<State.MatchRow>; onRemove: () => {} }) => (
+  <F.Fragment>
+    {props.row.view(row => {
+      const { home, away, homeUser, awayUser, result } = row.match
+
+      return (
+        <div className={styles.match}>
+          <div className={styles.matchInfo}>
+            <strong>{home.name}</strong> (
+            {hiliteWinner(result, 'home', homeUser.name)}) -{' '}
+            <strong>{away.name}</strong> (
+            {hiliteWinner(result, 'away', awayUser.name)})
+          </div>
+          {result != null && (
+            <div className={styles.result}>
+              <strong>{result.homeScore}</strong> -{' '}
+              <strong>{result.awayScore}</strong>
+              {finishedTypeString(result.finishedType)}
+            </div>
+          )}
+          {result == null && (
+            <F.Fragment>
+              <MatchRowButtons
+                edit={props.row.lens('edit')}
+                onRemove={props.onRemove}
+              />
+              {requireAtom(props.row.lens('edit'), null, edit => (
+                <EditMatch
+                  key="edit"
+                  edit={edit}
+                  onSave={result => finishMatch(props.row, result)}
+                />
+              ))}
+            </F.Fragment>
+          )}
+        </div>
+      )
+    })}
+  </F.Fragment>
+)
+
+export default MatchRow
 
 const hiliteWinner = (
   result: MatchResult | null,
@@ -17,43 +66,15 @@ const finishedTypeString = (finishedType: MatchResult.FinishedType) => {
   switch (finishedType.kind) {
     case 'fullTime':
       return null
-    case 'extraTime':
-      return <small className={styles.finishedType}>(ET)</small>
+    case 'overTime':
+      return <div className={styles.small}>(OT)</div>
     case 'penalties': {
       const { homeGoals, awayGoals } = finishedType
       return (
-        <small className={styles.finishedType}>
-          (PEN {homeGoals} - {awayGoals})
-        </small>
+        <div className={styles.small}>
+          ({homeGoals} - {awayGoals} P)
+        </div>
       )
     }
   }
 }
-
-const MatchRow = (props: { match: Match; onRemove: () => {} }) => {
-  const { home, away, homeUser, awayUser, result } = props.match
-  return (
-    <div className={styles.match}>
-      <div className={styles.matchInfo}>
-        <strong>{home.name}</strong> (
-        {hiliteWinner(result, 'home', homeUser.name)}) -{' '}
-        <strong>{away.name}</strong> (
-        {hiliteWinner(result, 'away', awayUser.name)})
-      </div>
-      {result != null && (
-        <div className={styles.result}>
-          <strong>{result.homeScore}</strong> -{' '}
-          <strong>{result.awayScore}</strong>
-          {finishedTypeString(result.finishedType)}
-        </div>
-      )}
-      {result == null && (
-        <div>
-          <button onClick={props.onRemove}>x</button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-export default MatchRow

@@ -1,4 +1,5 @@
 import { Match, User } from '../common/types'
+import { MatchResultBody } from '../common/types'
 
 export async function users(): Promise<User[]> {
   return fetch('/api/users').then(l => l.json())
@@ -24,5 +25,16 @@ export async function addRandomMatchPair(
     method: 'POST',
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify({ userIds }),
+  }).then(l => l.json())
+}
+
+export async function finishMatch(
+  id: number,
+  matchResult: MatchResultBody
+): Promise<Match> {
+  return fetch(`/api/matches/${id}/finish`, {
+    method: 'PUT',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(matchResult),
   }).then(l => l.json())
 }

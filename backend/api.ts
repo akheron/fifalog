@@ -4,6 +4,7 @@ import * as Router from 'koa-router'
 import { RouteHandler, Parser, Response, routeHandler, run } from 'typera-koa'
 
 import { DBClient } from './db'
+import { matchResultBody } from '../common/codecs'
 import { League, Match, User } from '../common/types'
 import { getRandomMatch } from './teams'
 
@@ -37,6 +38,16 @@ export default (db: DBClient) => {
     return Response.badRequest('This match cannot be deleted')
   })
 
+  const finishMatch: RouteHandler<
+    Response.Ok<Match> | Response.BadRequest<string> | Response.NotFound
+  > = routeHandler(Parser.routeParams(id), Parser.body(matchResultBody))(
+    async req => {
+      const match = await db.finishMatch(req.routeParams.id, req.body)
+      if (!match) return Response.notFound()
+      return Response.ok(match)
+    }
+  )
+
   const randomMatchPairBody = t.type({ userIds: t.tuple([t.number, t.number]) })
 
   const createRandomMatchPair: RouteHandler<
@@ -63,13 +74,14 @@ export default (db: DBClient) => {
         'At least one of the supplied user ids does not exist'
       )
     }
-    return Response.ok<[Match, Match]>([match1, match2])
+    return Response.ok<[Match, Match]>([match2, match1])
   })
 
   router.get('/users', run(users))
   router.get('/leagues', run(leagues))
   router.get('/matches', run(matches))
   router.delete('/matches/:id', run(deleteMatch))
+  router.put('/matches/:id/finish', run(finishMatch))
   router.post('/matches/random_pair', run(createRandomMatchPair))
 
   return router

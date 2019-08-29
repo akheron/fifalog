@@ -8,7 +8,7 @@ import MatchList from './MatchList'
 import './App.scss'
 
 export default (props: { state: Atom<State> }) => (
-  <F.div>
+  <F.main>
     {requireAtom(props.state, 'Loading...', state => (
       <F.Fragment>
         {state.view(({ users }) => (
@@ -16,13 +16,13 @@ export default (props: { state: Atom<State> }) => (
             <h2>Latest matches</h2>
             <CreateRandomMatchPair
               users={users}
-              latestMatches={state.lens('matches')}
-              state={state.lens('createRandomMatchPair')}
+              matches={state.lens('matches')}
+              state={state.lens('create')}
             />
-            <MatchList matches={state.lens('matches')} />
+            <MatchList rows={state.lens('matches')} />
           </>
         ))}
       </F.Fragment>
     ))}
-  </F.div>
+  </F.main>
 )

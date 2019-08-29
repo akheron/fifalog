@@ -1,6 +1,7 @@
 import * as R from 'ramda'
 import { League, Match, User } from '../common/types'
 import { Pool } from 'pg'
+import { MatchResultBody } from '../common/types'
 import { onIntegrityError } from './db-utils'
 
 export type DBClient = {
@@ -8,6 +9,7 @@ export type DBClient = {
   leagues(): Promise<League[]>
   match(id: number): Promise<Match | null> // null -> no such match
   deleteMatch(id: number): Promise<boolean> // true -> was actually removed
+  finishMatch(id: number, result: MatchResultBody): Promise<Match | null> // null -> no such match
   latestMatches(count: number): Promise<Match[]>
   createMatch(matchData: {
     leagueId: number
@@ -105,6 +107,35 @@ AND finished_type IS NULL
       return result.rowCount === 1
     },
 
+    async finishMatch(id: number, result: MatchResultBody) {
+      const { rowCount } = await client.query(
+        `
+UPDATE match
+SET
+    finished_time = now(),
+    home_score = $2,
+    away_score = $3,
+    finished_type = $4,
+    home_penalty_goals = $5,
+    away_penalty_goals = $6
+WHERE
+    id = $1
+`,
+        [
+          id,
+          result.homeScore,
+          result.awayScore,
+          result.finishedType.kind,
+          ...(result.finishedType.kind === 'penalties'
+            ? [result.finishedType.homeGoals, result.finishedType.awayGoals]
+            : [null, null]),
+        ]
+      )
+      if (rowCount == 0) return null
+
+      return this.match(id)
+    },
+
     async latestMatches(count = 10) {
       const { rows } = await client.query(
         `
@@ -177,8 +208,8 @@ const matchFromRow = (r: any): Match => ({
     finishedType:
       r['finished_type'] === 'fullTime'
         ? { kind: 'fullTime' }
-        : r['finished_type'] === 'extraTime'
-        ? { kind: 'extraTime' }
+        : r['finished_type'] === 'overTime'
+        ? { kind: 'overTime' }
         : {
             kind: 'penalties',
             homeGoals: r['home_penalty_goals'],

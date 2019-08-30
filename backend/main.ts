@@ -4,6 +4,7 @@ dotenv.config()
 import * as Koa from 'koa'
 import * as koaStatic from 'koa-static'
 import * as koaBodyParser from 'koa-bodyparser'
+import * as koaCompress from 'koa-compress'
 import basicAuth = require('koa-basic-auth')
 
 import * as db from './db'
@@ -14,6 +15,7 @@ const app = new Koa()
 if (config.basicAuth) {
   app.use(basicAuth(config.basicAuth))
 }
+app.use(koaCompress())
 app.use(koaBodyParser())
 app.use(koaStatic('static/'))
 app.use(koaStatic('dist/frontend/'))

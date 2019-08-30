@@ -1,5 +1,5 @@
 import { Atom } from '@grammarly/focal'
-import { MatchResultBody, Stats } from '../common/types'
+import { MatchResultBody, Stats } from '../../common/types'
 import * as api from './api'
 import { State } from './state'
 

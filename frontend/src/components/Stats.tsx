@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Stats } from '../../common/types'
+import { Stats } from '../../../common/types'
 import * as styles from './Stats.scss'
 
 const Stats = (props: { stats: Stats[] }) => (

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Atom, F } from '@grammarly/focal'
-import { MatchResult, Stats } from '../../common/types'
+import { MatchResult, Stats } from '../../../common/types'
 import { finishMatch } from '../mutations'
 import { State } from '../state'
 import { requireAtom } from '../utils'

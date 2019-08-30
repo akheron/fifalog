@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as R from 'ramda'
 import { Atom, F } from '@grammarly/focal'
-import { Stats } from '../../common/types'
+import { Stats } from '../../../common/types'
 import { deleteMatch } from '../mutations'
 import { State } from '../state'
 import { indexLens, NonNullAtom } from '../utils'

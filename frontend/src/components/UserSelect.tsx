@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Atom, F } from '@grammarly/focal'
-import { User } from '../../common/types'
+import { User } from '../../../common/types'
 
 const UserSelect = (props: { users: User[]; selectedUser: Atom<number> }) => (
   <F.select

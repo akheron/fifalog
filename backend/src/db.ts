@@ -1,7 +1,7 @@
 import * as R from 'ramda'
-import { League, Match, User } from '../common/types'
+import { League, Match, User } from '../../common/types'
 import { Pool } from 'pg'
-import { MatchResultBody } from '../common/types'
+import { MatchResultBody } from '../../common/types'
 import { onIntegrityError } from './db-utils'
 
 type MonthUserStats = {

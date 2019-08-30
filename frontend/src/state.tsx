@@ -1,5 +1,5 @@
 import { Option } from '@grammarly/focal'
-import { Match, MatchResult, User, Stats } from '../common/types'
+import { Match, MatchResult, User, Stats } from '../../common/types'
 
 export type State = Option<{
   users: User[]

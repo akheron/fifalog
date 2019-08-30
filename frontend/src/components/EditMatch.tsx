@@ -5,8 +5,8 @@ import { Atom, Lens, F, bind } from '@grammarly/focal'
 import {
   MatchResult as BackendMatchResult,
   MatchResultBody,
-} from '../../common/types'
-import { makeMatchResultBodyCodec } from '../../common/codecs'
+} from '../../../common/types'
+import { makeMatchResultBodyCodec } from '../../../common/codecs'
 import { State } from '../state'
 import * as styles from './EditMatch.scss'
 

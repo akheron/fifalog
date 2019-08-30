@@ -1,4 +1,4 @@
-import { League, Team } from '../common/types'
+import { League, Team } from '../../common/types'
 
 const swap = <A, B>([a, b]: [A, B]): [B, A] => [b, a]
 

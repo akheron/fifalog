@@ -2,7 +2,7 @@ const path = require('path')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 module.exports = {
-  entry: './frontend/index.tsx',
+  entry: path.resolve(__dirname, 'src/index.tsx'),
   plugins: [
     new MiniCssExtractPlugin({
       filename: 'index.css',
@@ -32,7 +32,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    path: path.resolve(__dirname, 'dist/frontend/'),
+    path: path.resolve(__dirname, '../dist/frontend/'),
     filename: 'index.js',
   },
 }

@@ -5,8 +5,8 @@ import { RouteHandler, Parser, Response, routeHandler, run } from 'typera-koa'
 import * as R from 'ramda'
 
 import { DBClient } from './db'
-import { matchResultBody } from '../common/codecs'
-import { League, Match, User, Stats } from '../common/types'
+import { matchResultBody } from '../../common/codecs'
+import { League, Match, User, Stats } from '../../common/types'
 import { getRandomMatch } from './teams'
 
 export default (db: DBClient) => {

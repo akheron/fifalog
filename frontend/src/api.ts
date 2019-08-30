@@ -1,5 +1,5 @@
-import { Match, User, Stats } from '../common/types'
-import { MatchResultBody } from '../common/types'
+import { Match, User, Stats } from '../../common/types'
+import { MatchResultBody } from '../../common/types'
 
 export async function users(): Promise<User[]> {
   return fetch('/api/users').then(l => l.json())

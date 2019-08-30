@@ -1,8 +1,9 @@
 import { Option } from '@grammarly/focal'
-import { Match, MatchResult, User } from '../common/types'
+import { Match, MatchResult, User, Stats } from '../common/types'
 
 export type State = Option<{
   users: User[]
+  stats: Stats[]
   matches: State.MatchRow[]
   create: Option<State.Create>
 }>
@@ -30,9 +31,14 @@ export namespace State {
   })
 }
 
-export function initialState(users: User[], matches: Match[]): State {
+export function initialState(
+  users: User[],
+  matches: Match[],
+  stats: Stats[]
+): State {
   return {
     users,
+    stats,
     matches: matches.map(State.rowFromMatch),
     create: initCreate(users),
   }

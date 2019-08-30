@@ -1,5 +1,5 @@
 import { Atom } from '@grammarly/focal'
-import { MatchResultBody } from '../common/types'
+import { MatchResultBody, Stats } from '../common/types'
 import * as api from './api'
 import { State } from './state'
 
@@ -21,10 +21,15 @@ export async function createRandomMatchPair(
 }
 
 export async function finishMatch(
+  stats: Atom<Stats[]>,
   row: Atom<State.MatchRow>,
   result: MatchResultBody
 ) {
-  return api.finishMatch(row.get().match.id, result).then(match => {
-    row.set({ match: match, edit: null })
-  })
+  return api
+    .finishMatch(row.get().match.id, result)
+    .then(match => api.stats().then(newStats => ({ match, newStats })))
+    .then(({ match, newStats }) => {
+      row.set({ match: match, edit: null })
+      stats.set(newStats)
+    })
 }

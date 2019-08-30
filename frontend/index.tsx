@@ -8,8 +8,8 @@ import App from './components/App'
 
 const state: Atom<State> = Atom.create(undefined)
 
-Promise.all([api.users(), api.latestMatches()]).then(([users, matches]) =>
-  state.set(initialState(users, matches))
+Promise.all([api.users(), api.latestMatches(), api.stats()]).then(
+  ([users, matches, stats]) => state.set(initialState(users, matches, stats))
 )
 
 ReactDOM.render(<App state={state} />, document.getElementById('app'))

@@ -2,10 +2,11 @@ import * as t from 'io-ts'
 import { IntFromString } from 'io-ts-types/lib/IntFromString'
 import * as Router from 'koa-router'
 import { RouteHandler, Parser, Response, routeHandler, run } from 'typera-koa'
+import * as R from 'ramda'
 
 import { DBClient } from './db'
 import { matchResultBody } from '../common/codecs'
-import { League, Match, User } from '../common/types'
+import { League, Match, User, Stats } from '../common/types'
 import { getRandomMatch } from './teams'
 
 export default (db: DBClient) => {
@@ -77,12 +78,31 @@ export default (db: DBClient) => {
     return Response.ok<[Match, Match]>([match2, match1])
   })
 
+  const stats: RouteHandler<Response.Ok<Stats[]>> = routeHandler()(async () => {
+    const userStats = R.groupWith(R.eqProps('month'), await db.userStats())
+    const totalStats = await db.totalStats()
+
+    return Response.ok(
+      R.zip(userStats, totalStats).map(([users, total]) => ({
+        month: total.month,
+        ties: total.ties,
+        matches: total.matches,
+        userStats: users.map(({ user, wins, overTimeWins }) => ({
+          user,
+          wins,
+          overTimeWins,
+        })),
+      }))
+    )
+  })
+
   router.get('/users', run(users))
   router.get('/leagues', run(leagues))
   router.get('/matches', run(matches))
   router.delete('/matches/:id', run(deleteMatch))
   router.put('/matches/:id/finish', run(finishMatch))
   router.post('/matches/random_pair', run(createRandomMatchPair))
+  router.get('/stats', run(stats))
 
   return router
 }

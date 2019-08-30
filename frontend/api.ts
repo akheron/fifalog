@@ -1,4 +1,4 @@
-import { Match, User } from '../common/types'
+import { Match, User, Stats } from '../common/types'
 import { MatchResultBody } from '../common/types'
 
 export async function users(): Promise<User[]> {
@@ -37,4 +37,8 @@ export async function finishMatch(
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify(matchResult),
   }).then(l => l.json())
+}
+
+export async function stats(): Promise<Stats[]> {
+  return fetch('/api/stats').then(l => l.json())
 }

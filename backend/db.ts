@@ -4,6 +4,19 @@ import { Pool } from 'pg'
 import { MatchResultBody } from '../common/types'
 import { onIntegrityError } from './db-utils'
 
+type MonthUserStats = {
+  month: string
+  user: User
+  wins: number
+  overTimeWins: number
+}
+
+type TotalStats = {
+  month: string
+  matches: number
+  ties: number
+}
+
 export type DBClient = {
   users(): Promise<User[]>
   leagues(): Promise<League[]>
@@ -18,6 +31,8 @@ export type DBClient = {
     homeUserId: number
     awayUserId: number
   }): Promise<Match | null>
+  userStats(): Promise<MonthUserStats[]>
+  totalStats(): Promise<TotalStats[]>
 }
 
 export const connect = async (databaseUrl: string): Promise<DBClient> => {
@@ -80,7 +95,7 @@ SELECT
     finished_type,
     home_penalty_goals,
     away_penalty_goals,
-    finished_time
+    to_char(finished_time, 'Day YYYY-MM-DD') AS finished_date
 FROM match
 JOIN league ON (league.id = league_id)
 JOIN team AS home ON (home.id = home_id)
@@ -156,7 +171,7 @@ SELECT
     finished_type,
     home_penalty_goals,
     away_penalty_goals,
-    finished_time
+    to_char(finished_time, 'Day YYYY-MM-DD') AS finished_date
 FROM match
 JOIN league ON (league.id = league_id)
 JOIN team AS home ON (home.id = home_id)
@@ -188,6 +203,71 @@ RETURNING id
       const id: number = result.rows[0]['id']
       return (await this.match(id)) as Match
     },
+
+    async userStats() {
+      const { rows } = await client.query(`
+SELECT
+    to_char(match.finished_time, 'YYYY-MM') as month,
+    "user".id AS user_id,
+    "user".name AS user_name,
+    sum(((
+        match.home_user_id = "user".id AND
+        match.finished_type <> 'penalties' AND
+        match.home_score > match.away_score
+    ) OR (
+        match.away_user_id = "user".id AND
+        match.finished_type <> 'penalties' AND
+        match.away_score > match.home_score
+    )) :: int) AS win_count,
+    sum(((
+        match.home_user_id = "user".id AND
+        match.finished_type = 'overTime' AND
+        match.home_score > match.away_score
+    ) OR (
+        match.away_user_id = "user".id AND
+        match.finished_type = 'overTime' AND
+        match.away_score > match.home_score
+    )) :: int) AS overtime_win_count
+FROM "user"
+JOIN match ON (match.home_user_id = "user".id or match.away_user_id = "user".id)
+JOIN team AS home_team ON (home_team.id = match.home_id)
+JOIN team AS away_team ON (away_team.id = match.away_id)
+WHERE match.finished_type IS NOT NULL
+GROUP BY month, user_id, user_name
+ORDER BY month DESC, win_count ASC
+`)
+      return rows.map((r: any) => ({
+        month: r.month,
+        user: {
+          id: r.user_id,
+          name: r.user_name,
+        },
+        wins: r.win_count,
+        overTimeWins: r.overtime_win_count,
+      }))
+    },
+
+    async totalStats() {
+      const { rows } = await client.query(
+        `
+SELECT
+    to_char(match.finished_time, 'YYYY-MM') as month,
+    count(*) as match_count,
+    sum((
+        match.home_score = match.away_score OR
+        match.finished_type = 'penalties'
+    ) :: int) AS tie_count
+FROM match
+GROUP BY month
+ORDER BY month DESC
+`
+      )
+      return rows.map((r: any) => ({
+        month: r.month,
+        matches: r.match_count,
+        ties: r.tie_count,
+      }))
+    },
   }
 
   return dbClient
@@ -202,7 +282,7 @@ const matchFromRow = (r: any): Match => ({
   homeUser: { id: r['home_user_id'], name: r['home_user_name'] },
   awayUser: { id: r['away_user_id'], name: r['away_user_name'] },
   result: r['finished_type'] && {
-    finishedTime: r['finished_time'],
+    finishedDate: r['finished_date'],
     homeScore: r['home_score'],
     awayScore: r['away_score'],
     finishedType:

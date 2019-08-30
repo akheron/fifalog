@@ -24,7 +24,7 @@ export type Match = {
 }
 
 export type MatchResult = {
-  finishedTime: string
+  finishedDate: string
   homeScore: number
   awayScore: number
   finishedType: MatchResult.FinishedType
@@ -47,4 +47,19 @@ export type MatchResultBody = t.TypeOf<typeof matchResultBody>
 export type User = {
   id: number
   name: string
+}
+
+export type Stats = {
+  month: string
+  userStats: Stats.UserStats[]
+  ties: number
+  matches: number
+}
+
+export namespace Stats {
+  export type UserStats = {
+    user: User
+    wins: number
+    overTimeWins: number
+  }
 }

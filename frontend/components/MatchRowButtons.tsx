@@ -13,8 +13,8 @@ const MatchRowButtons = (props: {
         <button onClick={() => props.edit.modify(cancelEdit)}>cancel</button>
       ) : (
         <>
-          <button onClick={() => props.edit.modify(beginEdit)}>edit</button>
-          <button onClick={props.onRemove}>remove</button>
+          <button onClick={() => props.edit.modify(beginEdit)}>E</button>
+          <button onClick={props.onRemove}>R</button>
         </>
       )
     )}

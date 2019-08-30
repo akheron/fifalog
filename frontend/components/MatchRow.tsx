@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Atom, F } from '@grammarly/focal'
-import { MatchResult } from '../../common/types'
+import { MatchResult, Stats } from '../../common/types'
 import { finishMatch } from '../mutations'
 import { State } from '../state'
 import { requireAtom } from '../utils'
@@ -8,7 +8,11 @@ import MatchRowButtons from './MatchRowButtons'
 import EditMatch from './EditMatch'
 import * as styles from './MatchRow.scss'
 
-const MatchRow = (props: { row: Atom<State.MatchRow>; onRemove: () => {} }) => (
+const MatchRow = (props: {
+  row: Atom<State.MatchRow>
+  stats: Atom<Stats[]>
+  onRemove: () => {}
+}) => (
   <F.Fragment>
     {props.row.view(row => {
       const { home, away, homeUser, awayUser, result } = row.match
@@ -38,7 +42,7 @@ const MatchRow = (props: { row: Atom<State.MatchRow>; onRemove: () => {} }) => (
                 <EditMatch
                   key="edit"
                   edit={edit}
-                  onSave={result => finishMatch(props.row, result)}
+                  onSave={result => finishMatch(props.stats, props.row, result)}
                 />
               ))}
             </F.Fragment>

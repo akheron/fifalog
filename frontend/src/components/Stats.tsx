@@ -13,7 +13,7 @@ const Stats = (props: { stats: Stats[] }) => (
 const MonthStats = (props: { stats: Stats }) => (
   <tbody>
     {props.stats.userStats.map((user, index) => (
-      <tr>
+      <tr key={index}>
         <td>{index == 0 ? props.stats.month : null}</td>
         <td>{user.user.name}</td>
         <td>{user.wins}</td>

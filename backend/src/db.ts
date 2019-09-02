@@ -258,6 +258,7 @@ SELECT
         match.finished_type = 'penalties'
     ) :: int) AS tie_count
 FROM match
+WHERE match.finished_time IS NOT NULL
 GROUP BY month
 ORDER BY month DESC
 `

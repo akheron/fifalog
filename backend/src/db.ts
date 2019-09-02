@@ -151,7 +151,7 @@ WHERE
       return this.match(id)
     },
 
-    async latestMatches(count = 10) {
+    async latestMatches(count) {
       const { rows } = await client.query(
         `
 SELECT
@@ -178,7 +178,7 @@ JOIN team AS home ON (home.id = home_id)
 JOIN team AS away ON (away.id = away_id)
 JOIN "user" AS home_user ON (home_user.id = home_user_id)
 JOIN "user" AS away_user ON (away_user.id = away_user_id)
-ORDER BY match.id DESC
+ORDER BY finished_time DESC, match.id DESC
 LIMIT $1
 `,
         [count]

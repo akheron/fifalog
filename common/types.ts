@@ -1,5 +1,5 @@
 import * as t from 'io-ts'
-import { matchResultBody } from './codecs'
+import { matchResultBody, penalties } from './codecs'
 
 export type League = {
   id: number
@@ -43,6 +43,14 @@ export namespace MatchResult {
 }
 
 export type MatchResultBody = t.TypeOf<typeof matchResultBody>
+
+export namespace MatchResultBody {
+  export function isPenalties(
+    finishedType: MatchResultBody['finishedType']
+  ): finishedType is t.TypeOf<ReturnType<typeof penalties>> {
+    return finishedType.kind === 'penalties'
+  }
+}
 
 export type User = {
   id: number

@@ -3,6 +3,7 @@ import { League, Match, User } from '../../common/types'
 import { Pool } from 'pg'
 import { MatchResultBody } from '../../common/types'
 import { onIntegrityError } from './db-utils'
+import * as sql from './sql'
 
 type MonthUserStats = {
   month: string
@@ -41,203 +42,74 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
 
   const dbClient: DBClient = {
     async users() {
-      const { rows } = await client.query(`
-SELECT
-  id,
-  name
-FROM "user"
-ORDER BY name
-`)
-      return rows
+      return sql.users(client)
     },
 
     async leagues() {
-      const result = await client.query(`
-SELECT
-  league.id as league_id,
-  league.name as league_name,
-  team.id as team_id,
-  team.name as team_name
-FROM league
-LEFT JOIN team ON (team.league_id = league.id)
-ORDER BY league.name, team.name
-`)
-      return R.groupWith(
-        (a, b) => a.league_name === b.league_name,
-        result.rows
-      ).map(rows => ({
-        id: rows[0]['league_id'],
-        name: rows[0]['league_name'],
-        teams: rows.map(row => ({
-          id: row['team_id'],
-          name: row['team_name'],
-        })),
-      }))
+      const rows = await sql.leagues(client)
+      return R.groupWith((a, b) => a.league_name === b.league_name, rows).map(
+        rows => ({
+          id: rows[0].league_id,
+          name: rows[0].league_name,
+          teams: rows.map(row => ({
+            id: row.team_id,
+            name: row.team_name,
+          })),
+        })
+      )
     },
 
     async match(id) {
-      const { rows } = await client.query(
-        `
-SELECT
-    match.id as match_id,
-    league.id as league_id,
-    league.name as league_name,
-    home.id as home_id,
-    home.name as home_name,
-    away.id as away_id,
-    away.name as away_name,
-    home_user.id as home_user_id,
-    home_user.name as home_user_name,
-    away_user.id as away_user_id,
-    away_user.name as away_user_name,
-    home_score,
-    away_score,
-    finished_type,
-    home_penalty_goals,
-    away_penalty_goals,
-    to_char(finished_time, 'Day YYYY-MM-DD') AS finished_date
-FROM match
-JOIN league ON (league.id = league_id)
-JOIN team AS home ON (home.id = home_id)
-JOIN team AS away ON (away.id = away_id)
-JOIN "user" AS home_user ON (home_user.id = home_user_id)
-JOIN "user" AS away_user ON (away_user.id = away_user_id)
-WHERE match.id = $1
-`,
-        [id]
-      )
-      if (rows.length == 1) return matchFromRow(rows[0])
-      return null
+      const row = await sql.match(client, { matchId: id })
+      return row && matchFromRow(row)
     },
 
     async deleteMatch(id: number) {
-      const result = await client.query(
-        `
-DELETE FROM match
-WHERE id = $1
-AND finished_type IS NULL
-`,
-        [id]
-      )
-      return result.rowCount === 1
+      return (await sql.deleteMatch(client, { matchId: id })) === 1
     },
 
     async finishMatch(id: number, result: MatchResultBody) {
-      const { rowCount } = await client.query(
-        `
-UPDATE match
-SET
-    finished_time = now(),
-    home_score = $2,
-    away_score = $3,
-    finished_type = $4,
-    home_penalty_goals = $5,
-    away_penalty_goals = $6
-WHERE
-    id = $1
-`,
-        [
-          id,
-          result.homeScore,
-          result.awayScore,
-          result.finishedType.kind,
-          ...(result.finishedType.kind === 'penalties'
-            ? [result.finishedType.homeGoals, result.finishedType.awayGoals]
-            : [null, null]),
-        ]
-      )
-      if (rowCount == 0) return null
+      const rowCount = await sql.finishMatch(client, {
+        matchId: id,
+        homeScore: result.homeScore,
+        awayScore: result.awayScore,
+        finishedType: result.finishedType.kind,
+        homePenaltyGoals: MatchResultBody.isPenalties(result.finishedType)
+          ? result.finishedType.homeGoals
+          : null,
+        awayPenaltyGoals: MatchResultBody.isPenalties(result.finishedType)
+          ? result.finishedType.awayGoals
+          : null,
+      })
 
-      return this.match(id)
+      if (rowCount == 0) return null
+      return await this.match(id)
     },
 
     async latestMatches(count) {
-      const { rows } = await client.query(
-        `
-SELECT
-    match.id as match_id,
-    league.id as league_id,
-    league.name as league_name,
-    home.id as home_id,
-    home.name as home_name,
-    away.id as away_id,
-    away.name as away_name,
-    home_user.id as home_user_id,
-    home_user.name as home_user_name,
-    away_user.id as away_user_id,
-    away_user.name as away_user_name,
-    home_score,
-    away_score,
-    finished_type,
-    home_penalty_goals,
-    away_penalty_goals,
-    to_char(finished_time, 'Day YYYY-MM-DD') AS finished_date
-FROM match
-JOIN league ON (league.id = league_id)
-JOIN team AS home ON (home.id = home_id)
-JOIN team AS away ON (away.id = away_id)
-JOIN "user" AS home_user ON (home_user.id = home_user_id)
-JOIN "user" AS away_user ON (away_user.id = away_user_id)
-ORDER BY finished_time DESC, match.id DESC
-LIMIT $1
-`,
-        [count]
-      )
+      const rows = await sql.latestMatches(client, { limit: count })
       return rows.map(matchFromRow)
     },
 
     async createMatch({ leagueId, homeId, awayId, homeUserId, awayUserId }) {
       let result = await onIntegrityError(
         null,
-        client.query(
-          `
-INSERT INTO match (league_id, home_id, away_id, home_user_id, away_user_id)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id
-`,
-          [leagueId, homeId, awayId, homeUserId, awayUserId]
-        )
+        sql.createMatch(client, {
+          leagueId,
+          homeId,
+          awayId,
+          homeUserId,
+          awayUserId,
+        })
       )
       if (result == null) return null
-
-      const id: number = result.rows[0]['id']
-      return (await this.match(id)) as Match
+      return await this.match(result.id)
     },
 
     async userStats() {
-      const { rows } = await client.query(`
-SELECT
-    to_char(match.finished_time, 'YYYY-MM') as month,
-    "user".id AS user_id,
-    "user".name AS user_name,
-    sum(((
-        match.home_user_id = "user".id AND
-        match.finished_type <> 'penalties' AND
-        match.home_score > match.away_score
-    ) OR (
-        match.away_user_id = "user".id AND
-        match.finished_type <> 'penalties' AND
-        match.away_score > match.home_score
-    )) :: int) AS win_count,
-    sum(((
-        match.home_user_id = "user".id AND
-        match.finished_type = 'overTime' AND
-        match.home_score > match.away_score
-    ) OR (
-        match.away_user_id = "user".id AND
-        match.finished_type = 'overTime' AND
-        match.away_score > match.home_score
-    )) :: int) AS overtime_win_count
-FROM "user"
-JOIN match ON (match.home_user_id = "user".id or match.away_user_id = "user".id)
-JOIN team AS home_team ON (home_team.id = match.home_id)
-JOIN team AS away_team ON (away_team.id = match.away_id)
-WHERE match.finished_type IS NOT NULL
-GROUP BY month, user_id, user_name
-ORDER BY month DESC, win_count ASC
-`)
-      return rows.map((r: any) => ({
-        month: r.month,
+      const rows = await sql.userStats(client)
+      return rows.map(r => ({
+        month: assertNotNull(r.month),
         user: {
           id: r.user_id,
           name: r.user_name,
@@ -248,25 +120,11 @@ ORDER BY month DESC, win_count ASC
     },
 
     async totalStats() {
-      const { rows } = await client.query(
-        `
-SELECT
-    to_char(match.finished_time, 'YYYY-MM') as month,
-    count(*) as match_count,
-    sum((
-        match.home_score = match.away_score OR
-        match.finished_type = 'penalties'
-    ) :: int) AS tie_count
-FROM match
-WHERE match.finished_time IS NOT NULL
-GROUP BY month
-ORDER BY month DESC
-`
-      )
-      return rows.map((r: any) => ({
-        month: r.month,
+      const rows = await sql.totalStats(client)
+      return rows.map(r => ({
+        month: assertNotNull(r.month),
         matches: r.match_count,
-        ties: r.tie_count,
+        ties: r.tie_count || 0,
       }))
     },
   }
@@ -274,27 +132,40 @@ ORDER BY month DESC
   return dbClient
 }
 
-const matchFromRow = (r: any): Match => ({
-  id: r['match_id'],
-  leagueId: r['league_id'],
-  leagueName: r['league_name'],
-  home: { id: r['home_id'], name: r['home_name'] },
-  away: { id: r['away_id'], name: r['away_name'] },
-  homeUser: { id: r['home_user_id'], name: r['home_user_name'] },
-  awayUser: { id: r['away_user_id'], name: r['away_user_name'] },
-  result: r['finished_type'] && {
-    finishedDate: r['finished_date'],
-    homeScore: r['home_score'],
-    awayScore: r['away_score'],
-    finishedType:
-      r['finished_type'] === 'fullTime'
-        ? { kind: 'fullTime' }
-        : r['finished_type'] === 'overTime'
-        ? { kind: 'overTime' }
-        : {
-            kind: 'penalties',
-            homeGoals: r['home_penalty_goals'],
-            awayGoals: r['away_penalty_goals'],
-          },
-  },
-})
+type UnPromise<P extends Promise<any>> = P extends Promise<infer T> ? T : never
+type MatchRow = Exclude<UnPromise<ReturnType<typeof sql.match>>, null>
+
+function matchFromRow(r: MatchRow): Match {
+  return {
+    id: r.match_id,
+    leagueId: r.league_id,
+    leagueName: r.league_name,
+    home: { id: r.home_id, name: r.home_name },
+    away: { id: r.away_id, name: r.away_name },
+    homeUser: { id: r.home_user_id, name: r.home_user_name },
+    awayUser: { id: r.away_user_id, name: r.away_user_name },
+    result:
+      r.finished_type && r.finished_date
+        ? {
+            finishedDate: r.finished_date,
+            homeScore: assertNotNull(r.home_score),
+            awayScore: assertNotNull(r.away_score),
+            finishedType:
+              r.finished_type === 'fullTime'
+                ? { kind: 'fullTime' }
+                : r.finished_type === 'overTime'
+                ? { kind: 'overTime' }
+                : {
+                    kind: 'penalties',
+                    homeGoals: assertNotNull(r.home_penalty_goals),
+                    awayGoals: assertNotNull(r.away_penalty_goals),
+                  },
+          }
+        : null,
+  }
+}
+
+function assertNotNull<T>(value: T | null): T {
+  if (value == null) throw new Error('BUG: should not be reached')
+  return value
+}

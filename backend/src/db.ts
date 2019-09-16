@@ -46,14 +46,16 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
     },
 
     async leagues() {
-      const rows = await sql.leagues(client)
+      const rows = await sql.leagues(client, { matchPairsToExclude: 5 })
       return R.groupWith((a, b) => a.league_name === b.league_name, rows).map(
         rows => ({
-          id: rows[0].league_id,
-          name: rows[0].league_name,
+          // The `|| 0` and `|| ''` are hacks around nullability
+          // problems in sqltyper
+          id: rows[0].league_id || 0,
+          name: rows[0].league_name || '',
           teams: rows.map(row => ({
-            id: row.team_id,
-            name: row.team_name,
+            id: row.team_id || 0,
+            name: row.team_name || '',
           })),
         })
       )

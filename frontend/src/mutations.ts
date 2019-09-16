@@ -23,13 +23,15 @@ export async function createRandomMatchPair(
 export async function finishMatch(
   stats: Atom<Stats[]>,
   row: Atom<State.MatchRow>,
+  rows: Atom<State.MatchRow[]>,
   result: MatchResultBody
 ) {
   return api
     .finishMatch(row.get().match.id, result)
-    .then(match => api.stats().then(newStats => ({ match, newStats })))
-    .then(({ match, newStats }) => {
-      row.set({ match: match, edit: null })
+    .then(() => api.latestMatches())
+    .then(matches => api.stats().then(newStats => ({ matches, newStats })))
+    .then(({ matches, newStats }) => {
+      rows.set(matches.map(State.rowFromMatch))
       stats.set(newStats)
     })
 }

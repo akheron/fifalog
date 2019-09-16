@@ -10,6 +10,7 @@ import * as styles from './MatchRow.scss'
 
 const MatchRow = (props: {
   row: Atom<State.MatchRow>
+  rows: Atom<State.MatchRow[]>
   stats: Atom<Stats[]>
   onRemove: () => {}
 }) => (
@@ -42,7 +43,9 @@ const MatchRow = (props: {
                 <EditMatch
                   key="edit"
                   edit={edit}
-                  onSave={result => finishMatch(props.stats, props.row, result)}
+                  onSave={result =>
+                    finishMatch(props.stats, props.row, props.rows, result)
+                  }
                 />
               ))}
             </F.Fragment>

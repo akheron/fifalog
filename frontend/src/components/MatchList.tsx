@@ -31,6 +31,7 @@ const MatchList = (props: {
                   )
                 )
               }
+              rows={props.rows}
               stats={props.stats}
               onRemove={() =>
                 confirm('Really?') && deleteMatch(props.rows, row.match.id)

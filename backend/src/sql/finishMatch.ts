@@ -6,8 +6,8 @@ export async function finishMatch(
     homeScore: number
     awayScore: number
     finishedType: 'fullTime' | 'overTime' | 'penalties'
-    homePenaltyGoals: number
-    awayPenaltyGoals: number
+    homePenaltyGoals: number | null
+    awayPenaltyGoals: number | null
     matchId: number
   }
 ): Promise<number> {

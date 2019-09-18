@@ -3,9 +3,9 @@ import { ClientBase } from 'pg'
 export async function finishMatch(
   client: ClientBase,
   params: {
-    homeScore: number
-    awayScore: number
-    finishedType: 'fullTime' | 'overTime' | 'penalties'
+    homeScore: number | null
+    awayScore: number | null
+    finishedType: 'fullTime' | 'overTime' | 'penalties' | null
     homePenaltyGoals: number | null
     awayPenaltyGoals: number | null
     matchId: number

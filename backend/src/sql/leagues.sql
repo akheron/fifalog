@@ -16,6 +16,6 @@ SELECT
   team.id as team_id,
   team.name as team_name
 FROM league
-LEFT JOIN team ON (team.league_id = league.id)
+JOIN team ON (team.league_id = league.id)
 WHERE team.id NOT IN (SELECT team_id FROM latest_teams)
 ORDER BY league.name, team.name

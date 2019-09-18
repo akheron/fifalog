@@ -5,10 +5,10 @@ export async function leagues(
   params: { matchPairsToExclude: number }
 ): Promise<
   Array<{
-    league_id: number | null
-    league_name: string | null
-    team_id: number | null
-    team_name: string | null
+    league_id: number
+    league_name: string
+    team_id: number
+    team_name: string
   }>
 > {
   const result = await client.query(
@@ -31,7 +31,7 @@ SELECT
   team.id as team_id,
   team.name as team_name
 FROM league
-LEFT JOIN team ON (team.league_id = league.id)
+JOIN team ON (team.league_id = league.id)
 WHERE team.id NOT IN (SELECT team_id FROM latest_teams)
 ORDER BY league.name, team.name
 `,

@@ -49,13 +49,11 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
       const rows = await sql.leagues(client, { matchPairsToExclude: 5 })
       return R.groupWith((a, b) => a.league_name === b.league_name, rows).map(
         rows => ({
-          // The `|| 0` and `|| ''` are hacks around nullability
-          // problems in sqltyper
-          id: rows[0].league_id || 0,
-          name: rows[0].league_name || '',
+          id: rows[0].league_id,
+          name: rows[0].league_name,
           teams: rows.map(row => ({
-            id: row.team_id || 0,
-            name: row.team_name || '',
+            id: row.team_id,
+            name: row.team_name,
           })),
         })
       )
@@ -111,7 +109,7 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
     async userStats() {
       const rows = await sql.userStats(client)
       return rows.map(r => ({
-        month: assertNotNull(r.month),
+        month: r.month!,
         user: {
           id: r.user_id,
           name: r.user_name,
@@ -124,7 +122,7 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
     async totalStats() {
       const rows = await sql.totalStats(client)
       return rows.map(r => ({
-        month: assertNotNull(r.month),
+        month: r.month!,
         matches: r.match_count,
         ties: r.tie_count || 0,
       }))
@@ -150,8 +148,8 @@ function matchFromRow(r: MatchRow): Match {
       r.finished_type && r.finished_date
         ? {
             finishedDate: r.finished_date,
-            homeScore: assertNotNull(r.home_score),
-            awayScore: assertNotNull(r.away_score),
+            homeScore: r.home_score!,
+            awayScore: r.away_score!,
             finishedType:
               r.finished_type === 'fullTime'
                 ? { kind: 'fullTime' }
@@ -159,15 +157,10 @@ function matchFromRow(r: MatchRow): Match {
                 ? { kind: 'overTime' }
                 : {
                     kind: 'penalties',
-                    homeGoals: assertNotNull(r.home_penalty_goals),
-                    awayGoals: assertNotNull(r.away_penalty_goals),
+                    homeGoals: r.home_penalty_goals!,
+                    awayGoals: r.away_penalty_goals!,
                   },
           }
         : null,
   }
-}
-
-function assertNotNull<T>(value: T | null): T {
-  if (value == null) throw new Error('BUG: should not be reached')
-  return value
 }

@@ -1,3 +1,4 @@
+import * as Option from 'fp-ts/lib/Option'
 import * as t from 'io-ts'
 import { IntFromString } from 'io-ts-types/lib/IntFromString'
 import * as Router from 'koa-router'
@@ -58,7 +59,11 @@ export default (db: DBClient) => {
     if (userIds[0] === userIds[1])
       return Response.badRequest('User ids must be inequal')
 
-    const randomMatch = getRandomMatch(await db.leagues())
+    const randomMatchOption = getRandomMatch(await db.leagues())
+    if (Option.isNone(randomMatchOption)) {
+      return Response.badRequest('No teams defined in database')
+    }
+    const randomMatch = randomMatchOption.value
 
     const match1 = await db.createMatch({
       ...randomMatch,

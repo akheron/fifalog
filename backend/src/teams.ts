@@ -1,3 +1,5 @@
+import * as Option from 'fp-ts/lib/Option'
+import { pipe } from 'fp-ts/lib/pipeable'
 import { League, Team } from '../../common/types'
 
 const swap = <A, B>([a, b]: [A, B]): [B, A] => [b, a]
@@ -23,7 +25,7 @@ const numTeamPairs = (leagues: League[]) =>
 const nthTeamPairAndLeague = (
   leagues: League[],
   pairIndex: number
-): [League, [Team, Team]] => {
+): Option.Option<[League, [Team, Team]]> => {
   let currentIndex = -1
   for (const league of leagues) {
     const teams = league.teams
@@ -31,12 +33,12 @@ const nthTeamPairAndLeague = (
       for (let t2 = t1 + 1; t2 < teams.length; t2++) {
         currentIndex++
         if (currentIndex === pairIndex) {
-          return [league, [teams[t1], teams[t2]]]
+          return Option.some([league, [teams[t1], teams[t2]]])
         }
       }
     }
   }
-  throw new Error('No teams defined')
+  return Option.none
 }
 
 export type RandomMatch = {
@@ -45,9 +47,19 @@ export type RandomMatch = {
   awayId: number
 }
 
-export const getRandomMatch = (leagues: League[]): RandomMatch => {
+export const getRandomMatch = (
+  leagues: League[]
+): Option.Option<RandomMatch> => {
   const targetIndex = Math.floor(Math.random() * numTeamPairs(leagues))
-  const [league, pair] = nthTeamPairAndLeague(leagues, targetIndex)
-  const [home, away] = randomlySwap(pair)
-  return { leagueId: league.id, homeId: home.id, awayId: away.id }
+  return pipe(
+    nthTeamPairAndLeague(leagues, targetIndex),
+    Option.map(([league, pair]) => {
+      const [home, away] = randomlySwap(pair)
+      return {
+        leagueId: league.id,
+        homeId: home.id,
+        awayId: away.id,
+      }
+    })
+  )
 }

@@ -109,7 +109,7 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
     async userStats() {
       const rows = await sql.userStats(client)
       return rows.map(r => ({
-        month: r.month!,
+        month: r.month,
         user: {
           id: r.user_id,
           name: r.user_name,
@@ -122,7 +122,7 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
     async totalStats() {
       const rows = await sql.totalStats(client)
       return rows.map(r => ({
-        month: r.month!,
+        month: r.month,
         matches: r.match_count,
         ties: r.tie_count || 0,
       }))

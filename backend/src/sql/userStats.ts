@@ -4,7 +4,7 @@ export async function userStats(
   client: ClientBase
 ): Promise<
   Array<{
-    month: string | null
+    month: string
     user_id: number
     user_name: string
     win_count: number
@@ -13,7 +13,7 @@ export async function userStats(
 > {
   const result = await client.query(`\
 SELECT
-    to_char(match.finished_time, 'YYYY-MM') as month,
+    to_char(match.finished_time, 'YYYY-MM') AS month,
     "user".id AS user_id,
     "user".name AS user_name,
     sum(((
@@ -38,7 +38,11 @@ FROM "user"
 JOIN match ON (match.home_user_id = "user".id or match.away_user_id = "user".id)
 JOIN team AS home_team ON (home_team.id = match.home_id)
 JOIN team AS away_team ON (away_team.id = match.away_id)
-WHERE match.finished_type IS NOT NULL
+WHERE
+    match.finished_type IS NOT NULL AND
+    match.finished_time IS NOT NULL AND
+    match.home_score IS NOT NULL AND
+    match.away_score IS NOT NULL
 GROUP BY month, user_id, user_name
 ORDER BY month DESC, win_count ASC
 `)

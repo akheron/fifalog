@@ -2,6 +2,7 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 import * as Koa from 'koa'
+import * as koaMount from 'koa-mount'
 import * as koaStatic from 'koa-static'
 import * as koaBodyParser from 'koa-bodyparser'
 import * as koaCompress from 'koa-compress'
@@ -21,7 +22,7 @@ app.use(koaStatic('static/'))
 app.use(koaStatic('dist/frontend/'))
 
 db.connect(config.databaseUrl).then(dbClient => {
-  app.use(api(dbClient).routes())
+  app.use(koaMount('/api', api(dbClient)))
 })
 
 app.listen(config.port, config.bindHost, () => {

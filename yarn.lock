@@ -102,6 +102,13 @@
     "@types/koa" "*"
     "@types/node" "*"
 
+"@types/koa-mount@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@types/koa-mount/-/koa-mount-4.0.0.tgz#aa0505763c0d20bf4a16cdec0d9ccd2f4f2d2a86"
+  integrity sha512-56iBULArwY3uKLl28eRFchZ2v0diEoJzJbDaHH/ehgruF/s2/KMHyWsKcIhvDJ3tGdKu9oZNQvxaMg++1IKFdA==
+  dependencies:
+    "@types/koa" "*"
+
 "@types/koa-router@^7.0.42":
   version "7.0.42"
   resolved "https://registry.yarnpkg.com/@types/koa-router/-/koa-router-7.0.42.tgz#0e5c01d4d0a2873d402d432114f08372d7c50eb1"
@@ -1379,6 +1386,13 @@ debug@^3.1.0, debug@^3.2.6:
   dependencies:
     ms "^2.1.1"
 
+debug@^4.0.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-4.1.1.tgz#3b72260255109c6b589cee050f1d516139664791"
+  integrity sha512-pYAIzeRo8J6KPEaJ0VWOh5Pzkbw/RetuzehGM7QRRX5he4fPHx2rdKMB256ehJCkX+XRQm16eZLqLNS8RSZXZw==
+  dependencies:
+    ms "^2.1.1"
+
 debug@~3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/debug/-/debug-3.1.0.tgz#5bb5a0672628b64149566ba16819e61518c67261"
@@ -2341,6 +2355,11 @@ io-ts-types@^0.5.0:
   resolved "https://registry.yarnpkg.com/io-ts-types/-/io-ts-types-0.5.0.tgz#f69be9131362c31bbc6b5044f1d95892604f8f23"
   integrity sha512-+v88rlA76FmlQQcTImFq5iigoPA3OKO+BIdrpsfXlhWUdiVvOnDDiLKCsiIAW9eRj+OJgG31Sctebr77bqKhzw==
 
+io-ts-types@^0.5.1:
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/io-ts-types/-/io-ts-types-0.5.1.tgz#55bedec94e3cce1413d60c014918091d0dffbbce"
+  integrity sha512-wdlK7Gn9gBaI3BT44mpwU+Y54J3GTT5R3dkM7CYZoaPMKWDwp/jYZ1Bj8/RRfcwP2ElJjuGre06avjkHLvgl7w==
+
 io-ts@^2.0.0, io-ts@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/io-ts/-/io-ts-2.0.1.tgz#1261c12f915c2f48d16393a36966636b48a45aa1"
@@ -2723,6 +2742,14 @@ koa-is-json@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/koa-is-json/-/koa-is-json-1.0.0.tgz#273c07edcdcb8df6a2c1ab7d59ee76491451ec14"
   integrity sha1-JzwH7c3Ljfaiwat9We52SRRR7BQ=
+
+koa-mount@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/koa-mount/-/koa-mount-4.0.0.tgz#e0265e58198e1a14ef889514c607254ff386329c"
+  integrity sha512-rm71jaA/P+6HeCpoRhmCv8KVBIi0tfGuO/dMKicbQnQW/YJntJ6MnnspkodoA4QstMVEZArsCphmd0bJEtoMjQ==
+  dependencies:
+    debug "^4.0.1"
+    koa-compose "^4.1.0"
 
 koa-router@^7.4.0:
   version "7.4.0"
@@ -5133,24 +5160,27 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typera-common@0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/typera-common/-/typera-common-0.3.0.tgz#93b55ab183e14c1fc7533b79fd40528710801c85"
-  integrity sha512-drSsSVqnMATJ+4p43vsbep19oNGEDQjpzzp9VMtmre3YAzk0+lzmKMXW2kdxCDQqXBMW/bhXoekTXK72QKr7Gw==
+typera-common@0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/typera-common/-/typera-common-0.4.0.tgz#deb303206e68be4af4eaebd8e4c993e6cc31b9ff"
+  integrity sha512-R7R7kSxZ3N7TGXBFtvItU0XmDCWK1I1D52Teoq6GIIUOgr/nOv27Y5hFfeobFZH4zjulh6UthTC1u83ahoWULA==
   dependencies:
     fp-ts "^2.0.0"
     io-ts "^2.0.0"
+    io-ts-types "^0.5.1"
 
-typera-koa@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/typera-koa/-/typera-koa-0.3.0.tgz#410ab0cbbb12419d30da4fd200f9ff989875c2c6"
-  integrity sha512-YaXNd//xCvJ1aYn3kuPdzvkiXVj2zCBbGhuFrwsEivFcTvHxbagHbBWfCWkhHmTIJ9TVqajlVSA2vso5xanLfA==
+typera-koa@^0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/typera-koa/-/typera-koa-0.4.0.tgz#54ab19c98590ab85d9843a711b0eedda84b4643e"
+  integrity sha512-kNrO4hZtuwU5nLMVjI8qW2uvjTs4wDOq0CiHDpmNiZYNjZGYHIXcRpmtX22sTctpoF/BJsuGA5QgkmqvYA1VoA==
   dependencies:
     "@types/koa" "^2.0.48"
     "@types/koa-bodyparser" "^4.2.2"
+    "@types/koa-router" "^7.0.42"
     koa "^2.7.0"
     koa-bodyparser "^4.2.1"
-    typera-common "0.3.0"
+    koa-router "^7.4.0"
+    typera-common "0.4.0"
 
 typescript@^3.6.2:
   version "3.6.2"

@@ -91,10 +91,12 @@ export default (db: DBClient) => {
           month: total.month,
           ties: total.ties,
           matches: total.matches,
-          userStats: users.map(({ user, wins, overTimeWins }) => ({
+          goals: total.goals,
+          userStats: users.map(({ user, wins, overTimeWins, goalsFor }) => ({
             user,
             wins,
             overTimeWins,
+            goalsFor,
           })),
         }))
       )

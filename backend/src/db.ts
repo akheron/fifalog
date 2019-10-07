@@ -10,12 +10,14 @@ type MonthUserStats = {
   user: User
   wins: number
   overTimeWins: number
+  goalsFor: number
 }
 
 type TotalStats = {
   month: string
   matches: number
   ties: number
+  goals: number
 }
 
 export type DBClient = {
@@ -116,6 +118,7 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
         },
         wins: r.win_count,
         overTimeWins: r.overtime_win_count,
+        goalsFor: r.goals_for,
       }))
     },
 
@@ -124,7 +127,8 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
       return rows.map(r => ({
         month: r.month,
         matches: r.match_count,
-        ties: r.tie_count || 0,
+        ties: r.tie_count,
+        goals: r.goal_count,
       }))
     },
   }

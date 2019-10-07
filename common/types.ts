@@ -62,6 +62,7 @@ export type Stats = {
   userStats: Stats.UserStats[]
   ties: number
   matches: number
+  goals: number
 }
 
 export namespace Stats {
@@ -69,5 +70,6 @@ export namespace Stats {
     user: User
     wins: number
     overTimeWins: number
+    goalsFor: number
   }
 }

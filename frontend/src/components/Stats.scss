@@ -4,6 +4,10 @@
   border-spacing: 0;
   border-collapse: collapse;
 
+  thead th {
+    text-align: left;
+  }
+
   tbody:not(:last-child) {
     border-bottom: 1px solid #999;
   }

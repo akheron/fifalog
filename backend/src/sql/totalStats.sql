@@ -4,7 +4,8 @@ SELECT
     sum((
         match.home_score = match.away_score OR
         match.finished_type = 'penalties'
-    )::integer)::integer AS tie_count
+    )::integer)::integer AS tie_count,
+    sum(match.home_score + match.away_score)::integer as goal_count
 FROM match
 WHERE
     match.finished_type IS NOT NULL AND

@@ -4,6 +4,15 @@ import * as styles from './Stats.scss'
 
 const Stats = (props: { stats: Stats[] }) => (
   <table className={styles.stats}>
+    <thead>
+      <tr>
+        <th></th>
+        <th></th>
+        <th>W</th>
+        <th></th>
+        <th>G</th>
+      </tr>
+    </thead>
     {props.stats.map(monthStats => (
       <MonthStats key={monthStats.month} stats={monthStats} />
     ))}
@@ -18,6 +27,7 @@ const MonthStats = (props: { stats: Stats }) => (
         <td>{user.user.name}</td>
         <td>{user.wins}</td>
         <td>({user.overTimeWins} OT)</td>
+        <td>{user.goalsFor}</td>
       </tr>
     ))}
     <tr>
@@ -25,6 +35,7 @@ const MonthStats = (props: { stats: Stats }) => (
       <td>Total</td>
       <td>{props.stats.matches}</td>
       <td>({props.stats.ties} tied)</td>
+      <td>{props.stats.goals}</td>
     </tr>
   </tbody>
 )

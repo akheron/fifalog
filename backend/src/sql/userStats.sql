@@ -1,33 +1,38 @@
+WITH result AS (
+    SELECT
+        to_char(finished_time, 'YYYY-MM') AS month,
+        home_user_id AS user_id,
+        home_score AS goals_for,
+        finished_type <> 'penalties' AND home_score > away_score AS win,
+        finished_type = 'overTime' AND home_score > away_score AS overtime_win
+    FROM match
+    WHERE
+        finished_type IS NOT NULL AND
+        finished_time IS NOT NULL AND
+        home_score IS NOT NULL AND
+        away_score IS NOT NULL
+    UNION ALL
+    SELECT
+        to_char(finished_time, 'YYYY-MM') AS month,
+        away_user_id AS user_id,
+        away_score AS goals_for,
+        finished_type <> 'penalties' AND away_score > home_score AS win,
+        finished_type = 'overTime' AND away_score > home_score AS overtime_win
+    FROM match
+    WHERE
+        finished_type IS NOT NULL AND
+        finished_time IS NOT NULL AND
+        home_score IS NOT NULL AND
+        away_score IS NOT NULL
+)
 SELECT
-    to_char(match.finished_time, 'YYYY-MM') AS month,
+    result.month,
     "user".id AS user_id,
     "user".name AS user_name,
-    sum(((
-        match.home_user_id = "user".id AND
-        match.finished_type <> 'penalties' AND
-        match.home_score > match.away_score
-    ) OR (
-        match.away_user_id = "user".id AND
-        match.finished_type <> 'penalties' AND
-        match.away_score > match.home_score
-    ))::integer)::integer AS win_count,
-    sum(((
-        match.home_user_id = "user".id AND
-        match.finished_type = 'overTime' AND
-        match.home_score > match.away_score
-    ) OR (
-        match.away_user_id = "user".id AND
-        match.finished_type = 'overTime' AND
-        match.away_score > match.home_score
-    ))::integer)::integer AS overtime_win_count
+    sum(result.win::integer)::integer as win_count,
+    sum(result.overtime_win::integer)::integer as overtime_win_count,
+    sum(result.goals_for::integer)::integer as goals_for
 FROM "user"
-JOIN match ON (match.home_user_id = "user".id or match.away_user_id = "user".id)
-JOIN team AS home_team ON (home_team.id = match.home_id)
-JOIN team AS away_team ON (away_team.id = match.away_id)
-WHERE
-    match.finished_type IS NOT NULL AND
-    match.finished_time IS NOT NULL AND
-    match.home_score IS NOT NULL AND
-    match.away_score IS NOT NULL
-GROUP BY month, user_id, user_name
+JOIN result ON (result.user_id = "user".id)
+GROUP BY result.month, "user".id, "user".name
 ORDER BY month DESC, win_count ASC

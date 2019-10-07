@@ -34,8 +34,8 @@ export type DBClient = {
     homeUserId: number
     awayUserId: number
   }): Promise<Match | null>
-  userStats(): Promise<MonthUserStats[]>
-  totalStats(): Promise<TotalStats[]>
+  userStats(limit: number | null): Promise<MonthUserStats[]>
+  totalStats(limit: number | null): Promise<TotalStats[]>
 }
 
 export const connect = async (databaseUrl: string): Promise<DBClient> => {
@@ -108,8 +108,10 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
       return await this.match(result.id)
     },
 
-    async userStats() {
-      const rows = await sql.userStats(client)
+    async userStats(limit: number | null) {
+      const rows = await sql.userStats(client, {
+        limit: limit === null ? 0 : limit,
+      })
       return rows.map(r => ({
         month: r.month,
         user: {
@@ -122,8 +124,10 @@ export const connect = async (databaseUrl: string): Promise<DBClient> => {
       }))
     },
 
-    async totalStats() {
-      const rows = await sql.totalStats(client)
+    async totalStats(limit: number | null) {
+      const rows = await sql.totalStats(client, {
+        limit: limit === null ? 0 : limit,
+      })
       return rows.map(r => ({
         month: r.month,
         matches: r.match_count,

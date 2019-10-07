@@ -83,23 +83,37 @@ export default (db: DBClient) => {
 
   const stats: Route<Response.Ok<Stats[]>> = route('get', '/stats')()(
     async () => {
-      const userStats = R.groupWith(R.eqProps('month'), await db.userStats())
-      const totalStats = await db.totalStats()
+      const lastUserStats = await db.userStats(10)
+      const lastTotalStats = await db.totalStats(10)
+      const userStats = R.groupWith(
+        R.eqProps('month'),
+        await db.userStats(null)
+      )
+      const totalStats = await db.totalStats(null)
 
-      return Response.ok(
+      let result: Stats[] = []
+      if (lastTotalStats.length) {
+        const last = lastTotalStats[0]
+        result.push({
+          month: last.month,
+          ties: last.ties,
+          matches: last.matches,
+          goals: last.goals,
+          userStats: lastUserStats,
+        })
+      }
+
+      result = result.concat(
         R.zip(userStats, totalStats).map(([users, total]) => ({
           month: total.month,
           ties: total.ties,
           matches: total.matches,
           goals: total.goals,
-          userStats: users.map(({ user, wins, overTimeWins, goalsFor }) => ({
-            user,
-            wins,
-            overTimeWins,
-            goalsFor,
-          })),
+          userStats: users,
         }))
       )
+
+      return Response.ok(result)
     }
   )
 

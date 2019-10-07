@@ -4663,10 +4663,10 @@ split@^1.0.0:
   dependencies:
     through "2"
 
-sqltyper@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/sqltyper/-/sqltyper-0.2.0.tgz#37d564836e359277db495c77e1a7eff96b27b64b"
-  integrity sha512-1QifaECD/5TeLNTRdhD9jnzAkUKr4foaGUEImJA+sBSfl9RClu5QhrMYE8lmEcjm4NB6DkFFS7mW23eYY32DDw==
+sqltyper@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/sqltyper/-/sqltyper-0.2.1.tgz#493b8edc565882972b99375a8dc6cd9729b9d670"
+  integrity sha512-CfYrovZQE77PSlY24IlPcuf4GUkep0V3zXscKEyc7fvgiFVVdA996x7bUyhCFlHDEktM0PnF4KcPjs6mGYusUw==
   dependencies:
     buffer-writer "^2.0.0"
     camelcase "^5.3.1"

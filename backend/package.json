@@ -4,9 +4,11 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "sql": "sqltyper --database `grep DATABASE_URL ../.env | cut -d= -f2 | tr -d ' '` --prettify --verbose src/sql/",
     "start:dev:server": "nodemon --delay 1 -w src -w ../common -e ts -x 'cd .. && ts-node backend/src/main.ts'",
-    "start:dev:sqltyper": "sqltyper --database `grep DATABASE_URL ../.env | cut -d= -f2 | tr -d ' '` --prettify --verbose --watch src/sql/",
-    "start:dev": "concurrently npm:start:dev:server npm:start:dev:sqltyper",
+    "start:dev:sql": "yarn sql --watch",
+    "start:dev": "concurrently npm:start:dev:server npm:start:dev:sql",
+    "lint": "yarn sql --check",
     "build": "tsc"
   },
   "devDependencies": {
@@ -21,7 +23,7 @@
     "@types/pg": "^7.11.0",
     "@types/ramda": "^0.26.21",
     "nodemon": "^1.19.1",
-    "sqltyper": "^0.2.1",
+    "sqltyper": "^0.2.2",
     "ts-node": "^8.3.0",
     "typescript": "^3.6.2"
   },

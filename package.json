@@ -11,6 +11,7 @@
   "scripts": {
     "start:dev": "concurrently -n frontend,backend 'yarn workspace frontend start:dev' 'yarn workspace backend start:dev'",
     "build": "concurrently -n frontend,backend 'yarn workspace frontend build' 'yarn workspace backend build'",
+    "lint": "yarn workspace backend lint",
     "start": "node dist/backend/src/main.js"
   },
   "devDependencies": {

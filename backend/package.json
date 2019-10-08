@@ -4,10 +4,11 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "sql": "sqltyper --database `grep DATABASE_URL ../.env | cut -d= -f2 | tr -d ' '` --prettify --verbose src/sql/",
+    "sql": "sqltyper --database `sh -c '[ -n \"$DATABASE_URL\" ] && echo $DATABASE_URL || grep DATABASE_URL ../.env | cut -d= -f2 | tr -d \" \"'` --prettify --verbose src/sql/",
     "start:dev:server": "nodemon --delay 1 -w src -w ../common -e ts -x 'cd .. && ts-node backend/src/main.ts'",
     "start:dev:sql": "yarn sql --watch",
     "start:dev": "concurrently npm:start:dev:server npm:start:dev:sql",
+    "migrate": "yarn db-migrate up",
     "lint": "yarn sql --check",
     "build": "tsc"
   },

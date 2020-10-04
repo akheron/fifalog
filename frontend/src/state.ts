@@ -1,4 +1,3 @@
-import { Option } from '@grammarly/focal'
 import { Match, MatchResult, User, Stats } from '../../common/types'
 
 export type State = State.LoggedOut | State.LoggedIn
@@ -20,12 +19,12 @@ export namespace State {
     state: LoggedInState
   }
 
-  export type LoggedInState = Option<{
+  export type LoggedInState = {
     users: User[]
     stats: Stats[]
     matches: MatchRow[]
-    create: Option<Create>
-  }>
+    create: Create | undefined
+  } | undefined
 
   export type Create = {
     user1: number
@@ -85,7 +84,7 @@ export function loggedIn(
 
 // Helpers
 
-function initCreate(users: User[]): Option<State.Create> {
+function initCreate(users: User[]): State.Create | undefined {
   if (users.length >= 2) {
     return { user1: users[0].id, user2: users[1].id }
   }

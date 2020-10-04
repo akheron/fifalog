@@ -1,18 +1,26 @@
-import * as React from 'react'
-import { Atom, F } from '@grammarly/focal'
+import { Property } from 'baconjs'
+import { Atom, ListView, h } from 'harmaja'
 import { User } from '../../../common/types'
 
-const UserSelect = (props: { users: User[]; selectedUser: Atom<number> }) => (
-  <F.select
-    value={props.selectedUser.view(x => x.toString())}
+const UserSelect = (props: {
+  users: Property<User[]>
+  selectedUser: Atom<number>
+}) => (
+  <select
     onChange={e => props.selectedUser.set(parseInt(e.currentTarget.value))}
   >
-    {props.users.map(({ id, name }) => (
-      <option key={id} value={id}>
-        {name}
-      </option>
-    ))}
-  </F.select>
+    <ListView
+      observable={props.users}
+      renderItem={user => (
+        <option
+          selected={props.selectedUser.map(id => user.id === id)}
+          value={user.id}
+        >
+          {user.name}
+        </option>
+      )}
+    />
+  </select>
 )
 
 export default UserSelect

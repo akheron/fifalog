@@ -35,4 +35,5 @@ module.exports = {
     path: path.resolve(__dirname, '../dist/frontend/'),
     filename: 'index.js',
   },
+  devtool: 'eval-source-map'
 }

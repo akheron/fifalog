@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { Atom, F } from '@grammarly/focal'
+import { Atom, Fragment, h } from 'harmaja'
 import { State } from '../state'
 import * as styles from './MatchRowButtons.scss'
 
@@ -7,26 +6,26 @@ const MatchRowButtons = (props: {
   edit: Atom<State.EditMatch>
   onRemove: () => void
 }) => (
-  <F.div className={styles.buttons}>
-    {props.edit.view(edit =>
+  <div className={styles.buttons}>
+    {props.edit.map(edit =>
       edit ? (
-        <button onClick={() => props.edit.modify(cancelEdit)}>cancel</button>
+        <button onClick={() => props.edit.set(cancelEdit)}>cancel</button>
       ) : (
         <>
-          <button onClick={() => props.edit.modify(beginEdit)}>E</button>
+          <button onClick={() => props.edit.set(beginEdit)}>E</button>
           <button onClick={props.onRemove}>R</button>
         </>
       )
     )}
-  </F.div>
+  </div>
 )
 
 export default MatchRowButtons
 
-const beginEdit = (): State.EditMatch => ({
+const beginEdit: State.EditMatch = {
   homeScore: '',
   awayScore: '',
   finishedType: { kind: 'fullTime' },
-})
+}
 
-const cancelEdit = (): State.EditMatch => null
+const cancelEdit: State.EditMatch = null

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { h } from 'harmaja'
 
 const RandomizeButton = (props: {
   disabled?: boolean

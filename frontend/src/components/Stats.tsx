@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { h } from 'harmaja'
 import { Stats } from '../../../common/types'
 import * as styles from './Stats.scss'
 
@@ -14,7 +14,7 @@ const Stats = (props: { stats: Stats[] }) => (
       </tr>
     </thead>
     {props.stats.map(monthStats => (
-      <MonthStats key={monthStats.month} stats={monthStats} />
+      <MonthStats stats={monthStats} />
     ))}
   </table>
 )
@@ -22,7 +22,7 @@ const Stats = (props: { stats: Stats[] }) => (
 const MonthStats = (props: { stats: Stats }) => (
   <tbody>
     {props.stats.userStats.map((user, index) => (
-      <tr key={index}>
+      <tr>
         <td>{index == 0 ? props.stats.month : null}</td>
         <td>{user.user.name}</td>
         <td>{user.wins}</td>

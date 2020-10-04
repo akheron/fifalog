@@ -1,35 +1,46 @@
-import * as React from 'react'
 import { either } from 'fp-ts'
 import { pipe } from 'fp-ts/es6/pipeable'
-import { Atom, Lens, F, bind } from '@grammarly/focal'
+import { Atom, Lens, h } from 'harmaja'
 import {
   MatchResult as BackendMatchResult,
   MatchResultBody,
 } from '../../../common/types'
 import { matchResultBodyS } from '../../../common/codecs'
 import { State } from '../state'
+import { match } from '../atom-utils'
+import Input from './Input'
 import * as styles from './EditMatch.scss'
 
-const finishedTypeLens = Lens.create<
+type FinishedType = 'fullTime' | 'overTime' | 'penalties'
+
+const finishedTypeLens: Lens<
   BackendMatchResult.FinishedTypeString,
-  'fullTime' | 'overTime' | 'penalties'
->(
-  s => s.kind,
-  v =>
-    v == 'fullTime' || v == 'overTime'
+  FinishedType
+> = {
+  get(s) {
+    return s.kind
+  },
+  set(_, v) {
+    return v === 'fullTime' || v === 'overTime'
       ? { kind: v }
       : { kind: 'penalties', homeGoals: '', awayGoals: '' }
-)
+  },
+}
 
-const penaltiesLens = (field: 'homeGoals' | 'awayGoals') =>
-  Lens.create<BackendMatchResult.FinishedTypeString, string>(
-    s => (s as BackendMatchResult.Penalties<string>)[field],
-    (v, s) => ({
-      ...(s as BackendMatchResult.Penalties<string>),
+const penaltiesLens = (
+  field: 'homeGoals' | 'awayGoals'
+): Lens<BackendMatchResult.Penalties<string>, string> => ({
+  get(s) {
+    return s[field]
+  },
+  set(s, v) {
+    return {
+      ...s,
       kind: 'penalties',
       [field]: v,
-    })
-  )
+    }
+  },
+})
 
 const convertEdit = (edit: State.EditMatch): MatchResultBody | null =>
   pipe<any, MatchResultBody | null>(
@@ -40,60 +51,53 @@ const convertEdit = (edit: State.EditMatch): MatchResultBody | null =>
 const EditMatch = (props: {
   edit: Atom<Exclude<State.EditMatch, null>>
   onSave: (result: MatchResultBody) => void
-}) => (
-  <F.div className={styles.editMatch}>
-    <F.input type="text" {...bind({ value: props.edit.lens('homeScore') })} />
-    {' - '}
-    <F.input
-      type="text"
-      {...bind({ value: props.edit.lens('awayScore') })}
-    />{' '}
-    <F.select
-      {...bind({
-        value: props.edit.lens('finishedType').lens(finishedTypeLens),
-      })}
-    >
-      <option value="fullTime">full time</option>
-      <option value="overTime">overtime</option>
-      <option value="penalties">penalties</option>
-    </F.select>
-    {props.edit.lens('finishedType').view(
-      finishedType =>
-        finishedType.kind === 'penalties' && (
-          <small key="penalties">
-            {' '}
-            (
-            <F.input
-              type="text"
-              {...bind({
-                value: props.edit
-                  .lens('finishedType')
-                  .lens(penaltiesLens('homeGoals')),
-              })}
-            />
+}) => {
+  const homeScore = props.edit.view('homeScore')
+  const awayScore = props.edit.view('awayScore')
+  const finishedType = props.edit.view('finishedType')
+
+  return (
+    <div className={styles.editMatch}>
+      <Input type="text" value={homeScore} />
+      {' - '}
+      <Input type="text" value={awayScore} />{' '}
+      <FinishedTypeSelect value={finishedType.view(finishedTypeLens)} />
+      {match(
+        finishedType,
+        (f): f is BackendMatchResult.Penalties<string> =>
+          f.kind === 'penalties',
+        f => (
+          <small>
+            {' ('}
+            <Input type="text" value={f.view(penaltiesLens('homeGoals'))} />
             {' - '}
-            <F.input
-              type="text"
-              {...bind({
-                value: props.edit
-                  .lens('finishedType')
-                  .lens(penaltiesLens('awayGoals')),
-              })}
-            />{' '}
-            P)
+            <Input type="text" value={f.view(penaltiesLens('awayGoals'))} />
+            {' P)'}
           </small>
-        )
-    )}{' '}
-    <F.button
-      disabled={props.edit.view(e => !convertEdit(e))}
-      onClick={() => {
-        const result = convertEdit(props.edit.get())
-        if (result) props.onSave(result)
-      }}
-    >
-      save
-    </F.button>
-  </F.div>
-)
+        ),
+        () => null
+      )}{' '}
+      <button
+        disabled={props.edit.map(e => !convertEdit(e))}
+        onClick={() => {
+          const result = convertEdit(props.edit.get())
+          if (result) props.onSave(result)
+        }}
+      >
+        save
+      </button>
+    </div>
+  )
+}
 
 export default EditMatch
+
+const FinishedTypeSelect = (props: { value: Atom<FinishedType> }) => (
+  <select
+    onChange={e => props.value.set(e.currentTarget.value as FinishedType)}
+  >
+    <option value="fullTime">full time</option>
+    <option value="overTime">overtime</option>
+    <option value="penalties">penalties</option>
+  </select>
+)

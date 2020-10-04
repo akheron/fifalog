@@ -1,4 +1,4 @@
-import { Atom } from '@grammarly/focal'
+import { Atom } from 'harmaja'
 import { MatchResultBody, Stats } from '../../common/types'
 import * as api from './api'
 import { State, loggedIn, loggedOut } from './state'
@@ -10,8 +10,12 @@ export async function login(
 ) {
   state.set(loggedOut(username, password, 'loading'))
   if (await api.login(username, password)) {
-    Promise.all([api.users(), api.latestMatches(), api.stats()]).then(
-      ([users, matches, stats]) => state.set(loggedIn(users, matches, stats))
+    Promise.all([
+      api.users(),
+      api.latestMatches(),
+      api.stats(),
+    ]).then(([users, matches, stats]) =>
+      state.set(loggedIn(users, matches, stats))
     )
   } else {
     state.set(loggedOut(username, password, 'invalid'))

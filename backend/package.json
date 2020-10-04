@@ -1,0 +1,48 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "sql": "sqltyper --database `sh -c '[ -n \"$DATABASE_URL\" ] && echo $DATABASE_URL || grep DATABASE_URL ../.env | cut -d= -f2 | tr -d \" \"'` --prettify --verbose src/sql/",
+    "start:dev:server": "nodemon --delay 1 -w src -w ../common -w ../.env -e ts -x 'tsc && cd .. && node dist/backend/src/main.js'",
+    "start:dev:sql": "yarn sql --watch",
+    "start:dev": "concurrently npm:start:dev:server npm:start:dev:sql",
+    "lint": "yarn sql --check",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/koa": "^2.11.4",
+    "@types/koa-basic-auth": "^2.0.3",
+    "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa-compress": "^4.0.0",
+    "@types/koa-mount": "^4.0.0",
+    "@types/koa-static": "^4.0.1",
+    "@types/pg": "^7.14.5",
+    "@types/ramda": "^0.27.17",
+    "concurrently": "^5.3.0",
+    "nodemon": "^2.0.4",
+    "sqltyper": "^1.0.0",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.3"
+  },
+  "dependencies": {
+    "db-migrate": "^0.11.11",
+    "db-migrate-pg": "^1.2.2",
+    "dotenv": "^8.2.0",
+    "fp-ts": "^2.8.2",
+    "io-ts": "^2.2.10",
+    "io-ts-types": "^0.5.11",
+    "koa": "^2.13.0",
+    "koa-bodyparser": "^4.3.0",
+    "koa-compress": "^5.0.1",
+    "koa-mount": "^4.0.0",
+    "koa-static": "^5.0.0",
+    "monocle-ts": "^2.3.3",
+    "pg": "^8.3.3",
+    "prettier": "^1.18.2",
+    "ramda": "^0.27.1",
+    "typera-koa": "1.0.0-alpha.1"
+  }
+}

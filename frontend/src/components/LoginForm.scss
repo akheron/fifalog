@@ -1,0 +1,18 @@
+.form {
+  div {
+    margin-top: 0.5em;
+
+    &:last-child {
+      margin-top: 1em;
+    }
+  }
+
+  span {
+    display: inline-block;
+    min-width: 5em;
+  }
+
+  &.invalid span {
+    color: #f00;
+  }
+}

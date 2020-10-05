@@ -18,7 +18,7 @@ if (config.env === 'production') {
   app.proxy = true
   app.use(redirectToHttps)
 }
-app.use(koaCompress())
+app.use(koaCompress({ br: false }))
 app.use(koaBodyParser())
 app.use(koaStatic('dist/frontend/'))
 

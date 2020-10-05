@@ -1,8 +1,9 @@
-import { h } from 'harmaja'
+import { Property } from 'baconjs'
+import { ListView, h } from 'harmaja'
 import { Stats } from '../../../common/types'
 import * as styles from './Stats.scss'
 
-const Stats = (props: { stats: Stats[] }) => (
+const Stats = (props: { stats: Property<Stats[]> }) => (
   <table className={styles.stats}>
     <thead>
       <tr>
@@ -13,9 +14,10 @@ const Stats = (props: { stats: Stats[] }) => (
         <th>G</th>
       </tr>
     </thead>
-    {props.stats.map(monthStats => (
-      <MonthStats stats={monthStats} />
-    ))}
+    <ListView
+      observable={props.stats}
+      renderItem={monthStats => <MonthStats stats={monthStats} />}
+    />
   </table>
 )
 

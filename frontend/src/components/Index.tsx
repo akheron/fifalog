@@ -13,9 +13,7 @@ export default (props: { state: Atom<State.LoggedInState> }) => (
       state => (
         <div>
           <h2>Stats</h2>
-          {state.view('stats').map(stats => (
-            <Stats stats={stats} />
-          ))}
+          <Stats stats={state.view('stats')} />
           <h2>Latest matches</h2>
           <CreateRandomMatchPair
             users={state.view('users')}

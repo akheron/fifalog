@@ -17,17 +17,10 @@ export default (props: { state: Atom<State.LoggedInState> }) => (
             <Stats stats={stats} />
           ))}
           <h2>Latest matches</h2>
-          {definedOr(
-            state.view('create'),
-            create => (
-              <CreateRandomMatchPair
-                users={state.view('users')}
-                matches={state.view('matches')}
-                state={create}
-              />
-            ),
-            () => null
-          )}
+          <CreateRandomMatchPair
+            users={state.view('users')}
+            matches={state.view('matches')}
+          />
           <MatchList rows={state.view('matches')} stats={state.view('stats')} />
         </div>
       ),

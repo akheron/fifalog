@@ -23,13 +23,7 @@ export namespace State {
     users: User[]
     stats: Stats[]
     matches: MatchRow[]
-    create: Create | undefined
   } | undefined
-
-  export type Create = {
-    user1: number
-    user2: number
-  }
 
   export type MatchRow = {
     match: Match
@@ -77,16 +71,6 @@ export function loggedIn(
       users,
       stats,
       matches: matches.map(State.rowFromMatch),
-      create: initCreate(users),
     },
   }
-}
-
-// Helpers
-
-function initCreate(users: User[]): State.Create | undefined {
-  if (users.length >= 2) {
-    return { user1: users[0].id, user2: users[1].id }
-  }
-  return undefined
 }

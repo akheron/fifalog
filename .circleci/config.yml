@@ -2,11 +2,11 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:12
+      - image: circleci/node:14
         environment:
           DATABASE_URL: postgres://fifalog@127.0.0.1:5432/fifalog
 
-      - image: circleci/postgres:11
+      - image: circleci/postgres:12
         environment:
           POSTGRES_USER: fifalog
           POSTGRES_DB: fifalog

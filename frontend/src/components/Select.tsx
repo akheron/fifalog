@@ -2,18 +2,23 @@ import { Property } from 'baconjs'
 import { Atom, ListView, h } from 'harmaja'
 import { User } from '../../../common/types'
 
-const UserSelect = (props: {
-  users: Property<User[]>
-  selectedUser: Atom<number>
+interface Item {
+  id: number
+  name: string
+}
+
+const Select = (props: {
+  items: Property<Item[]>
+  value: Atom<number>
 }) => (
   <select
-    onChange={e => props.selectedUser.set(parseInt(e.currentTarget.value))}
+    onChange={e => props.value.set(parseFloat(e.currentTarget.value))}
   >
     <ListView
-      observable={props.users}
+      observable={props.items}
       renderItem={user => (
         <option
-          selected={props.selectedUser.map(id => user.id === id)}
+          selected={props.value.map(id => user.id === id)}
           value={user.id}
         >
           {user.name}
@@ -23,4 +28,4 @@ const UserSelect = (props: {
   </select>
 )
 
-export default UserSelect
+export default Select

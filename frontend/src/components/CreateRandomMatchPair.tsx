@@ -4,7 +4,7 @@ import { User } from '../../../common/types'
 import { State } from '../state'
 import { createRandomMatchPair } from '../mutations'
 import RandomizeButton from './RandomizeButton'
-import UserSelect from './UserSelect'
+import Select from './Select'
 
 const CreateRandomMatchPair = (props: {
   users: Property<User[]>
@@ -12,12 +12,9 @@ const CreateRandomMatchPair = (props: {
   state: Atom<State.Create>
 }) => (
   <div>
-    <UserSelect users={props.users} selectedUser={props.state.view('user1')} />
+    <Select items={props.users} value={props.state.view('user1')} />
     {' vs. '}
-    <UserSelect
-      users={props.users}
-      selectedUser={props.state.view('user2')}
-    />{' '}
+    <Select items={props.users} value={props.state.view('user2')} />{' '}
     {props.state.map(({ user1, user2 }) => (
       <RandomizeButton
         disabled={user1 === user2}

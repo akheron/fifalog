@@ -47,33 +47,39 @@ export function match<
   else_: MapBranch<A, Exclude<A, S1 | S2 | S3 | S4>, O>
 ): O
 export function match<A>(atom: Atom<A>, ...fns: ((x: any) => any)[]) {
-  const matchingBranch = (value: A) => {
-    for (let i = 0; i < fns.length - 1; ) {
-      const match = fns[i++]
-      const map = fns[i++]
-      if (match(value)) return { i, match, map }
-    }
-    return { i: fns.length, match: always, map: fns[fns.length - 1] }
+  type Fn = (v: any) => any
+  type Branch = { match: Fn; map: Fn; i: number }
+
+  const last = fns.length - 1
+
+  const branches: Branch[] = []
+  for (let i = 0; i < fns.length - 1; i += 2) {
+    branches.push({
+      match: fns[i],
+      map: fns[i + 1],
+      i,
+    })
   }
 
-  const result = atom
-    .skipDuplicates((left, right) => {
-      return matchingBranch(left).i === matchingBranch(right).i
-    })
+  const else_: Branch = {
+    // Match if none of the other branches match
+    match: (value: any) => !branches.some(b => b.match(value)),
+    map: fns[last],
+    i: last,
+  }
+
+  const matchingBranch = (value: A) =>
+    branches.find(branch => branch.match(value)) ?? else_
+
+  return atom
+    .skipDuplicates(
+      (left, right) => matchingBranch(left).i === matchingBranch(right).i
+    )
     .flatMapLatest(value => {
       const { match, map } = matchingBranch(value)
       return map(atom.freezeUnless(match))
     })
-
-  if ((atom as any).eager) {
-    result.subscribe()
-    ;(result as any).eager = true
-  }
-  //result.subscribe()
-  return result
 }
-
-const always = () => true
 
 export function definedOr<A, O>(
   atom: Atom<A | null | undefined>,

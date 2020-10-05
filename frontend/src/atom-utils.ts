@@ -1,16 +1,17 @@
-import { Atom } from 'harmaja'
+import * as B from 'baconjs'
+import * as H from 'harmaja'
 
 type MatchBranch<A, S extends A> = (value: A) => value is S
-type MapBranch<A, S extends A, O> = (atom: Atom<S>) => O
+type MapBranch<A, S extends A, O> = (atom: H.Atom<S>) => O
 
 export function match<A, S1 extends A, O>(
-  atom: Atom<A>,
+  atom: H.Atom<A>,
   match1: MatchBranch<A, S1>,
   map1: MapBranch<A, S1, O>,
   else_: MapBranch<A, Exclude<A, S1>, O>
 ): O
 export function match<A, S1 extends A, S2 extends A, O>(
-  atom: Atom<A>,
+  atom: H.Atom<A>,
   match1: MatchBranch<A, S1>,
   map1: MapBranch<A, S1, O>,
   match2: MatchBranch<A, S2>,
@@ -18,7 +19,7 @@ export function match<A, S1 extends A, S2 extends A, O>(
   else_: MapBranch<A, Exclude<A, S1 | S2>, O>
 ): O
 export function match<A, S1 extends A, S2 extends A, S3 extends A, O>(
-  atom: Atom<A>,
+  atom: H.Atom<A>,
   match1: MatchBranch<A, S1>,
   map1: MapBranch<A, S1, O>,
   match2: MatchBranch<A, S2>,
@@ -35,7 +36,7 @@ export function match<
   S4 extends A,
   O
 >(
-  atom: Atom<A>,
+  atom: H.Atom<A>,
   match1: MatchBranch<A, S1>,
   map1: MapBranch<A, S1, O>,
   match2: MatchBranch<A, S2>,
@@ -46,7 +47,7 @@ export function match<
   map4: MapBranch<A, S4, O>,
   else_: MapBranch<A, Exclude<A, S1 | S2 | S3 | S4>, O>
 ): O
-export function match<A>(atom: Atom<A>, ...fns: ((x: any) => any)[]) {
+export function match<A>(atom: H.Atom<A>, ...fns: ((x: any) => any)[]) {
   type Fn = (v: any) => any
   type Branch = { match: Fn; map: Fn; i: number }
 
@@ -82,9 +83,17 @@ export function match<A>(atom: Atom<A>, ...fns: ((x: any) => any)[]) {
 }
 
 export function definedOr<A, O>(
-  atom: Atom<A | null | undefined>,
-  map: (atom: Atom<A>) => O,
+  atom: H.Atom<A | null | undefined>,
+  map: (atom: H.Atom<A>) => O,
   else_: () => O
 ) {
   return match(atom, (x): x is A => x !== undefined && x !== null, map, else_)
+}
+
+export function editAtom<A>(source: B.Property<A>): H.Atom<A> {
+  const localValue = H.atom<A | undefined>(undefined)
+  const value = B.combine(source, localValue, (s, l) =>
+    l !== undefined ? l : s
+  )
+  return H.atom(value, localValue.set)
 }

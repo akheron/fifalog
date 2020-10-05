@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "sql": "sqltyper --database `sh -c '[ -n \"$DATABASE_URL\" ] && echo $DATABASE_URL || grep DATABASE_URL ../.env | cut -d= -f2 | tr -d \" \"'` --prettify --verbose src/sql/",
-    "start:dev:server": "nodemon --delay 1 -w src -w ../common -w ../.env -e ts -x 'tsc && cd .. && node dist/backend/src/main.js'",
+    "start:dev:server": "tsc-watch --onSuccess \"sh -c 'cd .. && node dist/backend/src/main.js'\"",
     "start:dev:sql": "yarn sql --watch",
     "start:dev": "concurrently npm:start:dev:server npm:start:dev:sql",
     "lint": "yarn sql --check",
@@ -22,9 +22,9 @@
     "@types/pg": "^7.14.5",
     "@types/ramda": "^0.27.17",
     "concurrently": "^5.3.0",
-    "nodemon": "^2.0.4",
     "sqltyper": "^1.0.0",
     "ts-node": "^9.0.0",
+    "tsc-watch": "^4.2.9",
     "typescript": "^4.0.3"
   },
   "dependencies": {

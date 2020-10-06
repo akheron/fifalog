@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import { Atom, Fragment, ListView, atom, h } from 'harmaja'
+import { Atom, ListView, atom, h } from 'harmaja'
 import { Stats } from '../../../common/types'
 import { deleteMatch } from '../mutations'
 import { State } from '../state'
@@ -21,28 +21,31 @@ const MatchList = (props: {
   return (
     <ListView
       atom={groupByDate(props.rows)}
-      getKey={g => g[0].match.id}
+      getKey={g => groupFinishedDate(g)}
       renderAtom={(_, group) => (
         <div>
           <div className={styles.date}>{group.map(groupFinishedDate)}</div>
           <ListView
             atom={group}
             getKey={row => row.match.id}
-            renderAtom={(_, row) =>
-              row
-                .view('match')
-                .view('id')
-                .map(matchId => (
-                  <MatchRow
-                    row={row}
-                    rows={props.rows}
-                    stats={props.stats}
-                    onRemove={() =>
-                      confirm('Really?') && deleteMatch(props.rows, matchId)
-                    }
-                  />
-                ))
-            }
+            renderAtom={(_, row) => (
+              // This intermediary div is needed because of https://github.com/raimohanska/harmaja/pull/23
+              <div>
+                {row
+                  .view('match')
+                  .view('id')
+                  .map(matchId => (
+                    <MatchRow
+                      row={row}
+                      rows={props.rows}
+                      stats={props.stats}
+                      onRemove={() =>
+                        confirm('Really?') && deleteMatch(props.rows, matchId)
+                      }
+                    />
+                  ))}
+              </div>
+            )}
           />
         </div>
       )}
@@ -56,18 +59,7 @@ const groupFinishedDate = (group: State.MatchRow[]) => finishedDate(group[0])
 
 const finishedDate: (
   match: State.MatchRow
-) => string | null = R.pathOr('Not played yet', [
-  'match',
-  'result',
-  'finishedDate',
-])
+) => string = R.pathOr('Not played yet', ['match', 'result', 'finishedDate'])
 
 const eqDate = (a: State.MatchRow, b: State.MatchRow): boolean =>
   finishedDate(a) === finishedDate(b)
-
-const indexOf = (
-  arr: any[][],
-  outerIndex: number,
-  innerIndex: number
-): number =>
-  R.sum(arr.slice(0, outerIndex).map(innerArr => innerArr.length)) + innerIndex

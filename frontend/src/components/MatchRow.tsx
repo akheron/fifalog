@@ -61,25 +61,6 @@ const MatchRow = (props: {
   )
 }
 
-// {result == null && (
-//       <Fragment>
-//         <MatchRowButtons
-//           edit={props.row.lens('edit')}
-//           onRemove={props.onRemove}
-//         />
-//         {requireAtom(props.row.lens('edit'), null, edit => (
-//           <EditMatch
-//             key="edit"
-//             edit={edit}
-//             onSave={result =>
-//               finishMatch(props.stats, props.row, props.rows, result)
-//             }
-//           />
-//         ))}
-//       </Fragment>
-//     )}
-//   </div>
-
 export default MatchRow
 
 const hiliteWinner = (

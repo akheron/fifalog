@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import { Atom, ListView, atom, h } from 'harmaja'
+import { Atom, Fragment, ListView, atom, h } from 'harmaja'
 import { Stats } from '../../../common/types'
 import { deleteMatch } from '../mutations'
 import { State } from '../state'
@@ -28,23 +28,21 @@ const MatchList = (props: {
           <ListView
             atom={group}
             getKey={row => row.match.id}
-            renderAtom={(_, row) => (
-              <div>
-                {row
-                  .view('match')
-                  .view('id')
-                  .map(matchId => (
-                    <MatchRow
-                      row={row}
-                      rows={props.rows}
-                      stats={props.stats}
-                      onRemove={() =>
-                        confirm('Really?') && deleteMatch(props.rows, matchId)
-                      }
-                    />
-                  ))}
-              </div>
-            )}
+            renderAtom={(_, row) =>
+              row
+                .view('match')
+                .view('id')
+                .map(matchId => (
+                  <MatchRow
+                    row={row}
+                    rows={props.rows}
+                    stats={props.stats}
+                    onRemove={() =>
+                      confirm('Really?') && deleteMatch(props.rows, matchId)
+                    }
+                  />
+                ))
+            }
           />
         </div>
       )}

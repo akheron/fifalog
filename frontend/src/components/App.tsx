@@ -1,4 +1,4 @@
-import { Atom, h } from 'harmaja'
+import { Atom, Fragment, h } from 'harmaja'
 
 import { login } from '../mutations'
 import { State } from '../state'
@@ -27,10 +27,10 @@ export default (props: { state: Atom<State> }) => {
 
         // LoggedIn
         s => (
-          <div>
+          <>
             <Logout state={props.state} />
             <Index state={s.view('state')} />
-          </div>
+          </>
         )
       )}
     </main>

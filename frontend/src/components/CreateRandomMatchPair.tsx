@@ -1,5 +1,5 @@
 import { Property } from 'baconjs'
-import { Atom, h } from 'harmaja'
+import { Atom, Fragment, h } from 'harmaja'
 import { User } from '../../../common/types'
 import { State } from '../state'
 import { definedOr, editAtom } from '../atom-utils'
@@ -27,7 +27,7 @@ const CreateRandomMatchPair = (props: {
   return definedOr(
     maybeState,
     state => (
-      <div>
+      <>
         <Select items={props.users} value={state.view('user1')} />
         {' vs. '}
         <Select items={props.users} value={state.view('user2')} />{' '}
@@ -38,7 +38,7 @@ const CreateRandomMatchPair = (props: {
             title="Create random match pair"
           />
         ))}
-      </div>
+      </>
     ),
     () => null
   )

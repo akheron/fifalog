@@ -68,7 +68,7 @@ const hiliteWinner = (
   which: 'home' | 'away',
   text: Atom<string>
 ) =>
-  combine((r, t) => [r, t] as const, result, text).map(([result, text]) => {
+  combine(result, text, (result, text) => {
     const winner =
       !result ||
       result.homeScore == result.awayScore ||

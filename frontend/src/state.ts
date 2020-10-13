@@ -1,46 +1,46 @@
 import { Match, MatchResult, User, Stats } from '../../common/types'
 
-export type State = State.LoggedOut | State.LoggedIn
+export type State = LoggedOut | LoggedIn
 
-export namespace State {
-  export type LoggedOut = {
-    kind: 'LoggedOut'
-    state: LoggedOutState
-  }
-
-  export type LoggedOutState = {
-    username: string
-    password: string
-    uiState: null | 'invalid' | 'loading'
-  }
-
-  export type LoggedIn = {
-    kind: 'LoggedIn'
-    state: LoggedInState
-  }
-
-  export type LoggedInState = {
-    users: User[]
-    stats: Stats[]
-    matches: MatchRow[]
-  } | undefined
-
-  export type MatchRow = {
-    match: Match
-    edit: EditMatch
-  }
-
-  export type EditMatch = {
-    homeScore: string
-    awayScore: string
-    finishedType: MatchResult.FinishedTypeString
-  } | null
-
-  export const rowFromMatch = (match: Match): State.MatchRow => ({
-    match,
-    edit: null,
-  })
+export type LoggedOut = {
+  kind: 'LoggedOut'
+  state: LoggedOutState
 }
+
+export type LoggedOutState = {
+  username: string
+  password: string
+  uiState: null | 'invalid' | 'loading'
+}
+
+export type LoggedIn = {
+  kind: 'LoggedIn'
+  state: LoggedInState
+}
+
+export type LoggedInState =
+  | {
+      users: User[]
+      stats: Stats[]
+      matches: MatchRow[]
+    }
+  | undefined
+
+export type MatchRow = {
+  match: Match
+  edit: EditMatch
+}
+
+export type EditMatch = {
+  homeScore: string
+  awayScore: string
+  finishedType: MatchResult.FinishedTypeString
+} | null
+
+export const rowFromMatch = (match: Match): MatchRow => ({
+  match,
+  edit: null,
+})
 
 export function loggedOut(
   username: string = '',
@@ -70,7 +70,7 @@ export function loggedIn(
     state: {
       users,
       stats,
-      matches: matches.map(State.rowFromMatch),
+      matches: matches.map(rowFromMatch),
     },
   }
 }

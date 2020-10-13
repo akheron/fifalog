@@ -6,7 +6,7 @@ import {
   MatchResultBody,
 } from '../../../common/types'
 import { matchResultBodyS } from '../../../common/codecs'
-import { State } from '../state'
+import { EditMatch } from '../state'
 import { match } from '../atom-utils'
 import Input from './Input'
 import * as styles from './EditMatch.scss'
@@ -42,14 +42,14 @@ const penaltiesLens = (
   },
 })
 
-const convertEdit = (edit: State.EditMatch): MatchResultBody | null =>
+const convertEdit = (edit: EditMatch): MatchResultBody | null =>
   pipe<any, MatchResultBody | null>(
     matchResultBodyS.decode(edit),
     either.getOrElse(() => null)
   )
 
 const EditMatch = (props: {
-  edit: Atom<Exclude<State.EditMatch, null>>
+  edit: Atom<Exclude<EditMatch, null>>
   onSave: (result: MatchResultBody) => void
 }) => {
   const homeScore = props.edit.view('homeScore')

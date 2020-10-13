@@ -1,11 +1,11 @@
 import classNames from 'classnames'
 import { Atom, h } from 'harmaja'
-import { State } from '../state'
+import { LoggedOutState } from '../state'
 import Input from './Input'
 import * as styles from './LoginForm.scss'
 
 const LoginForm = (props: {
-  state: Atom<State.LoggedOutState>
+  state: Atom<LoggedOutState>
   onLogin: (username: string, password: string) => Promise<void>
 }) => (
   <form

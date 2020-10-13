@@ -1,7 +1,7 @@
 import { Property } from 'baconjs'
 import { Atom, Fragment, h } from 'harmaja'
 import { User } from '../../../common/types'
-import { State } from '../state'
+import { MatchRow } from '../state'
 import { definedOr, editAtom } from '../atom-utils'
 import { createRandomMatchPair } from '../mutations'
 import RandomizeButton from './RandomizeButton'
@@ -21,7 +21,7 @@ function init(users: User[]): ComponentState | undefined {
 
 const CreateRandomMatchPair = (props: {
   users: Property<User[]>
-  matches: Atom<State.MatchRow[]>
+  matches: Atom<MatchRow[]>
 }) => {
   const maybeState = editAtom(props.users.map(init))
   return definedOr(

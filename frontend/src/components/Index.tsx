@@ -1,12 +1,12 @@
 import { Atom, Fragment, h } from 'harmaja'
 import { definedOr } from '../atom-utils'
 
-import { State } from '../state'
+import { LoggedInState } from '../state'
 import CreateRandomMatchPair from './CreateRandomMatchPair'
 import MatchList from './MatchList'
 import Stats from './Stats'
 
-export default (props: { state: Atom<State.LoggedInState> }) =>
+export default (props: { state: Atom<LoggedInState> }) =>
   definedOr(
     props.state,
     state => (

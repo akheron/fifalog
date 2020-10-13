@@ -1,7 +1,7 @@
 import { Atom, Fragment, h } from 'harmaja'
 
 import { login } from '../mutations'
-import { State } from '../state'
+import { LoggedOut, State } from '../state'
 import { match } from '../atom-utils'
 import LoginForm from './LoginForm'
 import Logout from './Logout'
@@ -15,7 +15,7 @@ export default (props: { state: Atom<State> }) => {
         props.state,
 
         // LoggedOut
-        (s): s is State.LoggedOut => s.kind === 'LoggedOut',
+        (s): s is LoggedOut => s.kind === 'LoggedOut',
         s => (
           <LoginForm
             state={s.view('state')}

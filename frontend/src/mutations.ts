@@ -1,7 +1,7 @@
 import { Atom } from 'harmaja'
 import { MatchResultBody, Stats } from '../../common/types'
 import * as api from './api'
-import { State, loggedIn, loggedOut } from './state'
+import { MatchRow, State, loggedIn, loggedOut, rowFromMatch } from './state'
 
 export async function login(
   state: Atom<State>,
@@ -27,27 +27,27 @@ export async function logout(state: Atom<State>) {
   state.set(loggedOut())
 }
 
-export async function deleteMatch(rows: Atom<State.MatchRow[]>, id: number) {
+export async function deleteMatch(rows: Atom<MatchRow[]>, id: number) {
   if (await api.deleteMatch(id)) {
     rows.modify(rows => rows.filter(row => row.match.id !== id))
   }
 }
 
 export async function createRandomMatchPair(
-  rows: Atom<State.MatchRow[]>,
+  rows: Atom<MatchRow[]>,
   userIds: [number, number]
 ) {
   return api
     .addRandomMatchPair(userIds)
     .then(newPair =>
-      rows.modify(prev => [...newPair.map(State.rowFromMatch), ...prev])
+      rows.modify(prev => [...newPair.map(rowFromMatch), ...prev])
     )
 }
 
 export async function finishMatch(
   stats: Atom<Stats[]>,
-  row: Atom<State.MatchRow>,
-  rows: Atom<State.MatchRow[]>,
+  row: Atom<MatchRow>,
+  rows: Atom<MatchRow[]>,
   result: MatchResultBody
 ) {
   return api
@@ -55,7 +55,7 @@ export async function finishMatch(
     .then(() => api.latestMatches())
     .then(matches => api.stats().then(newStats => ({ matches, newStats })))
     .then(({ matches, newStats }) => {
-      rows.set(matches.map(State.rowFromMatch))
+      rows.set(matches.map(rowFromMatch))
       stats.set(newStats)
     })
 }

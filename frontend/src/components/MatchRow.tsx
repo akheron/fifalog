@@ -3,14 +3,14 @@ import { Atom, Fragment, h } from 'harmaja'
 import { MatchResult, Stats, User } from '../../../common/types'
 import { definedOr } from '../atom-utils'
 import { finishMatch } from '../mutations'
-import { State } from '../state'
+import { MatchRow } from '../state'
 import MatchRowButtons from './MatchRowButtons'
 import EditMatch from './EditMatch'
 import * as styles from './MatchRow.scss'
 
 const MatchRow = (props: {
-  row: Atom<State.MatchRow>
-  rows: Atom<State.MatchRow[]>
+  row: Atom<MatchRow>
+  rows: Atom<MatchRow[]>
   stats: Atom<Stats[]>
   onRemove: () => {}
 }) => {

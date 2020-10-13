@@ -1,9 +1,9 @@
 import { Atom, Fragment, h } from 'harmaja'
-import { State } from '../state'
+import { EditMatch } from '../state'
 import * as styles from './MatchRowButtons.scss'
 
 const MatchRowButtons = (props: {
-  edit: Atom<State.EditMatch>
+  edit: Atom<EditMatch>
   onRemove: () => void
 }) => (
   <div className={styles.buttons}>
@@ -22,10 +22,10 @@ const MatchRowButtons = (props: {
 
 export default MatchRowButtons
 
-const beginEdit: State.EditMatch = {
+const beginEdit: EditMatch = {
   homeScore: '',
   awayScore: '',
   finishedType: { kind: 'fullTime' },
 }
 
-const cancelEdit: State.EditMatch = null
+const cancelEdit: EditMatch = null

@@ -2,20 +2,20 @@ import * as R from 'ramda'
 import { Atom, ListView, atom, h } from 'harmaja'
 import { Stats } from '../../../common/types'
 import { deleteMatch } from '../mutations'
-import { State } from '../state'
-import MatchRow from './MatchRow'
+import { MatchRow } from '../state'
+import MatchRowComponent from './MatchRow'
 import * as styles from './MatchList.scss'
 
-function groupByDate(items: Atom<State.MatchRow[]>): Atom<State.MatchRow[][]> {
+function groupByDate(items: Atom<MatchRow[]>): Atom<MatchRow[][]> {
   const property = items.map(R.groupWith(eqDate))
-  const onChange = (groups: State.MatchRow[][]) => {
+  const onChange = (groups: MatchRow[][]) => {
     items.set(groups.flat())
   }
   return atom(property, onChange)
 }
 
 const MatchList = (props: {
-  rows: Atom<State.MatchRow[]>
+  rows: Atom<MatchRow[]>
   stats: Atom<Stats[]>
 }) => {
   return (
@@ -35,7 +35,7 @@ const MatchList = (props: {
                   .view('match')
                   .view('id')
                   .map(matchId => (
-                    <MatchRow
+                    <MatchRowComponent
                       row={row}
                       rows={props.rows}
                       stats={props.stats}
@@ -55,11 +55,11 @@ const MatchList = (props: {
 
 export default MatchList
 
-const groupFinishedDate = (group: State.MatchRow[]) => finishedDate(group[0])
+const groupFinishedDate = (group: MatchRow[]) => finishedDate(group[0])
 
 const finishedDate: (
-  match: State.MatchRow
+  match: MatchRow
 ) => string = R.pathOr('Not played yet', ['match', 'result', 'finishedDate'])
 
-const eqDate = (a: State.MatchRow, b: State.MatchRow): boolean =>
+const eqDate = (a: MatchRow, b: MatchRow): boolean =>
   finishedDate(a) === finishedDate(b)

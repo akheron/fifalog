@@ -4,14 +4,14 @@ import { atom, h } from 'harmaja'
 import Input from './Input'
 import * as styles from './LoginForm.scss'
 
-type Status = 'idle' | 'loading' | 'invalid'
+export type Status = 'idle' | 'loading' | 'invalid'
 
-type Props = {
+export type Props = {
   status: Property<Status>
   onLogin: (username: string, password: string) => void
 }
 
-const LoginForm = ({ status, onLogin }: Props) => {
+export default ({ status, onLogin }: Props) => {
   const state = atom({ username: '', password: '' })
   return (
     <form
@@ -44,5 +44,3 @@ const LoginForm = ({ status, onLogin }: Props) => {
     </form>
   )
 }
-
-export default LoginForm

@@ -1,67 +1,10 @@
 import { combine } from 'baconjs'
-import { Atom, Fragment, h } from 'harmaja'
-import { MatchResult, Stats, User } from '../../../common/types'
-import { definedOr } from '../atom-utils'
-import { finishMatch } from '../mutations'
-import { MatchRow } from '../state'
+import { Atom, Fragment, atom, h } from 'harmaja'
+import { Match, MatchResult, MatchResultBody } from '../../../common/types'
+import { definedOr, ifElse } from '../atom-utils'
 import MatchRowButtons from './MatchRowButtons'
 import EditMatch from './EditMatch'
 import * as styles from './MatchRow.scss'
-
-const MatchRow = (props: {
-  row: Atom<MatchRow>
-  rows: Atom<MatchRow[]>
-  stats: Atom<Stats[]>
-  onRemove: () => {}
-}) => {
-  const match = props.row.view('match')
-  const home = match.view('home')
-  const away = match.view('away')
-  const homeUser = match.view('homeUser')
-  const awayUser = match.view('awayUser')
-  const result = match.view('result')
-  const edit = props.row.view('edit')
-
-  return (
-    <div className={styles.match}>
-      <div className={styles.matchInfo}>
-        <strong>{home.view('name')}</strong> (
-        {hiliteWinner(result, 'home', homeUser.view('name'))}) -{' '}
-        <strong>{away.view('name')}</strong> (
-        {hiliteWinner(result, 'away', awayUser.view('name'))})
-      </div>
-      {definedOr(
-        result,
-        r => (
-          <div className={styles.result}>
-            <strong>{r.view('homeScore')}</strong> -{' '}
-            <strong>{r.view('awayScore')}</strong>
-            {r.view('finishedType').map(finishedTypeString)}
-          </div>
-        ),
-        () => (
-          <>
-            <MatchRowButtons edit={edit} onRemove={props.onRemove} />
-            {definedOr(
-              edit,
-              e => (
-                <EditMatch
-                  edit={e}
-                  onSave={result =>
-                    finishMatch(props.stats, props.row, props.rows, result)
-                  }
-                />
-              ),
-              () => null
-            )}
-          </>
-        )
-      )}
-    </div>
-  )
-}
-
-export default MatchRow
 
 const hiliteWinner = (
   result: Atom<MatchResult | null>,
@@ -96,4 +39,61 @@ const finishedTypeString = (finishedType: MatchResult.FinishedType) => {
       )
     }
   }
+}
+
+export type Props = {
+  match: Atom<Match>
+  onFinish: (result: MatchResultBody) => void
+  onDelete: () => void
+}
+
+export default ({ match, onFinish, onDelete }: Props) => {
+  const state = atom({ editing: false })
+  const editing = state.view('editing')
+  const edit = () => editing.set(true)
+  const cancel = () => editing.set(false)
+
+  const home = match.view('home')
+  const away = match.view('away')
+  const homeUser = match.view('homeUser')
+  const awayUser = match.view('awayUser')
+  const result = match.view('result')
+
+  return (
+    <div className={styles.match}>
+      <div className={styles.matchInfo}>
+        <strong>{home.view('name')}</strong> (
+        {hiliteWinner(result, 'home', homeUser.view('name'))}) -{' '}
+        <strong>{away.view('name')}</strong> (
+        {hiliteWinner(result, 'away', awayUser.view('name'))})
+      </div>
+      {definedOr(
+        result,
+        r => (
+          <div className={styles.result}>
+            <strong>{r.view('homeScore')}</strong> -{' '}
+            <strong>{r.view('awayScore')}</strong>
+            {r.view('finishedType').map(finishedTypeString)}
+          </div>
+        ),
+        () => (
+          <>
+            <MatchRowButtons
+              editing={state.view('editing')}
+              onEdit={edit}
+              onCancel={cancel}
+              onRemove={onDelete}
+            />
+            {ifElse(
+              editing,
+              () => (
+                <EditMatch onSave={onFinish} />
+              ),
+              () => null
+            )}
+          </>
+        )
+      )}
+    </div>
+  )
 }

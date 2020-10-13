@@ -1,31 +1,27 @@
 import { Atom, Fragment, h } from 'harmaja'
-import { EditMatch } from '../state'
+import { ifElse } from '../atom-utils'
 import * as styles from './MatchRowButtons.scss'
 
-const MatchRowButtons = (props: {
-  edit: Atom<EditMatch>
+export type Props = {
+  editing: Atom<boolean>
+  onEdit: () => void
+  onCancel: () => void
   onRemove: () => void
-}) => (
+}
+
+export default ({ editing, onEdit, onCancel, onRemove }: Props) => (
   <div className={styles.buttons}>
-    {props.edit.map(edit =>
-      edit ? (
-        <button onClick={() => props.edit.set(cancelEdit)}>cancel</button>
-      ) : (
+    {ifElse(
+      editing,
+      () => (
+        <button onClick={onCancel}>cancel</button>
+      ),
+      () => (
         <>
-          <button onClick={() => props.edit.set(beginEdit)}>E</button>
-          <button onClick={props.onRemove}>R</button>
+          <button onClick={onEdit}>E</button>
+          <button onClick={onRemove}>R</button>
         </>
       )
     )}
   </div>
 )
-
-export default MatchRowButtons
-
-const beginEdit: EditMatch = {
-  homeScore: '',
-  awayScore: '',
-  finishedType: { kind: 'fullTime' },
-}
-
-const cancelEdit: EditMatch = null

@@ -3,7 +3,9 @@ import { ListView, h } from 'harmaja'
 import { Stats } from '../../../common/types'
 import * as styles from './Stats.scss'
 
-const Stats = (props: { stats: Property<Stats[]> }) => (
+export type Props = { stats: Property<Stats[]> }
+
+export default ({ stats }: Props) => (
   <table className={styles.stats}>
     <thead>
       <tr>
@@ -15,7 +17,7 @@ const Stats = (props: { stats: Property<Stats[]> }) => (
       </tr>
     </thead>
     <ListView
-      observable={props.stats}
+      observable={stats}
       renderItem={monthStats => <MonthStats stats={monthStats} />}
     />
   </table>
@@ -41,5 +43,3 @@ const MonthStats = (props: { stats: Stats }) => (
     </tr>
   </tbody>
 )
-
-export default Stats

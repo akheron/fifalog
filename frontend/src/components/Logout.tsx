@@ -3,7 +3,7 @@ import * as styles from './Logout.scss'
 
 export type Props = { onLogout: () => void }
 
-const Logout = ({ onLogout }: Props) => (
+export default ({ onLogout }: Props) => (
   <a
     className={styles.logout}
     href="#"
@@ -15,5 +15,3 @@ const Logout = ({ onLogout }: Props) => (
     Sign out
   </a>
 )
-
-export default Logout

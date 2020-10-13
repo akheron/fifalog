@@ -1,13 +1,13 @@
 import { Atom, h } from 'harmaja'
 
-const Input = (props: { type?: 'text' | 'password'; value: Atom<string> }) => (
+export type Props = { type?: 'text' | 'password'; value: Atom<string> }
+
+export default ({ type = 'text', value }: Props) => (
   <input
-    type={props.type ?? 'text'}
-    value={props.value}
+    type={type}
+    value={value}
     onInput={e => {
-      props.value.set(e.target.value)
+      value.set(e.target.value)
     }}
   />
 )
-
-export default Input

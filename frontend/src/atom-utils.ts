@@ -97,3 +97,11 @@ export function editAtom<A>(source: B.Property<A>): H.Atom<A> {
   )
   return H.atom(value, localValue.set)
 }
+
+export function ifElse<O>(
+  property: B.Property<boolean>,
+  then_: () => O,
+  else_: () => O
+): B.Property<O> {
+  return property.map(value => (value ? then_() : else_()))
+}

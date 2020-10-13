@@ -1,22 +1,21 @@
 import { either } from 'fp-ts'
 import { pipe } from 'fp-ts/es6/pipeable'
-import { Atom, Lens, h } from 'harmaja'
-import {
-  MatchResult as BackendMatchResult,
-  MatchResultBody,
-} from '../../../common/types'
+import { Atom, Lens, atom, h } from 'harmaja'
+import { MatchResult, MatchResultBody } from '../../../common/types'
 import { matchResultBodyS } from '../../../common/codecs'
-import { EditMatch } from '../state'
 import { match } from '../atom-utils'
 import Input from './Input'
 import * as styles from './EditMatch.scss'
 
+export type State = {
+  homeScore: string
+  awayScore: string
+  finishedType: MatchResult.FinishedTypeString
+}
+
 type FinishedType = 'fullTime' | 'overTime' | 'penalties'
 
-const finishedTypeLens: Lens<
-  BackendMatchResult.FinishedTypeString,
-  FinishedType
-> = {
+const finishedTypeLens: Lens<MatchResult.FinishedTypeString, FinishedType> = {
   get(s) {
     return s.kind
   },
@@ -29,7 +28,7 @@ const finishedTypeLens: Lens<
 
 const penaltiesLens = (
   field: 'homeGoals' | 'awayGoals'
-): Lens<BackendMatchResult.Penalties<string>, string> => ({
+): Lens<MatchResult.Penalties<string>, string> => ({
   get(s) {
     return s[field]
   },
@@ -42,19 +41,26 @@ const penaltiesLens = (
   },
 })
 
-const convertEdit = (edit: EditMatch): MatchResultBody | null =>
-  pipe<any, MatchResultBody | null>(
-    matchResultBodyS.decode(edit),
-    either.getOrElse(() => null)
+const convertEdit = (state: State): MatchResultBody | null =>
+  pipe(
+    matchResultBodyS.decode(state),
+    either.getOrElse((): MatchResultBody | null => null)
   )
 
-const EditMatch = (props: {
-  edit: Atom<Exclude<EditMatch, null>>
+export type Props = {
   onSave: (result: MatchResultBody) => void
-}) => {
-  const homeScore = props.edit.view('homeScore')
-  const awayScore = props.edit.view('awayScore')
-  const finishedType = props.edit.view('finishedType')
+}
+
+export default ({ onSave }: Props) => {
+  const state = atom<State>({
+    homeScore: '',
+    awayScore: '',
+    finishedType: { kind: 'fullTime' },
+  })
+
+  const homeScore = state.view('homeScore')
+  const awayScore = state.view('awayScore')
+  const finishedType = state.view('finishedType')
 
   return (
     <div className={styles.editMatch}>
@@ -64,8 +70,7 @@ const EditMatch = (props: {
       <FinishedTypeSelect value={finishedType.view(finishedTypeLens)} />
       {match(
         finishedType,
-        (f): f is BackendMatchResult.Penalties<string> =>
-          f.kind === 'penalties',
+        (f): f is MatchResult.Penalties<string> => f.kind === 'penalties',
         f => (
           <small>
             {' ('}
@@ -78,10 +83,10 @@ const EditMatch = (props: {
         () => null
       )}{' '}
       <button
-        disabled={props.edit.map(e => !convertEdit(e))}
+        disabled={state.map(s => !convertEdit(s))}
         onClick={() => {
-          const result = convertEdit(props.edit.get())
-          if (result) props.onSave(result)
+          const result = convertEdit(state.get())
+          if (result) onSave(result)
         }}
       >
         save
@@ -89,8 +94,6 @@ const EditMatch = (props: {
     </div>
   )
 }
-
-export default EditMatch
 
 const FinishedTypeSelect = (props: { value: Atom<FinishedType> }) => (
   <select

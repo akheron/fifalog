@@ -1,9 +1,8 @@
 import { Atom, Fragment, atom, h } from 'harmaja'
 
 import * as api from '../api'
-import { rowFromMatch } from '../state'
-import { match } from '../atom-utils'
-import LoginForm from './LoginForm'
+import { definedOr, match } from '../atom-utils'
+import LoginForm, { Status as LoginStatus } from './LoginForm'
 import Logout from './Logout'
 import Index, { State as IndexState } from './Index'
 import './App.scss'
@@ -13,7 +12,7 @@ export type State = LoggedOut | LoggedIn
 
 export type LoggedOut = {
   kind: 'LoggedOut'
-  status: 'idle' | 'invalid' | 'loading'
+  status: LoginStatus
 }
 
 export type LoggedIn = {
@@ -21,40 +20,30 @@ export type LoggedIn = {
   state: IndexState | undefined
 }
 
-export function loggedOut(
+export const loggedOut = (
   status: 'idle' | 'invalid' | 'loading' = 'idle'
-): State {
-  return { kind: 'LoggedOut', status }
+): State => ({ kind: 'LoggedOut', status })
+
+export const loggedInLoading: State = {
+  kind: 'LoggedIn',
+  state: undefined,
 }
 
-export function loggedInLoading(): State {
-  return {
-    kind: 'LoggedIn',
-    state: undefined,
-  }
-}
-
-export function loggedIn(
+export const loggedIn = (
   users: User[],
   matches: Match[],
   stats: Stats[]
-): State {
-  return {
-    kind: 'LoggedIn',
-    state: {
-      users,
-      stats,
-      matches: matches.map(rowFromMatch),
-    },
-  }
-}
+): State => ({
+  kind: 'LoggedIn',
+  state: { users, stats, matches },
+})
 
 export type Props = { isLoggedIn: boolean }
 
-const App = ({ isLoggedIn }: Props) => {
+export default ({ isLoggedIn }: Props) => {
   let state: Atom<State>
   if (isLoggedIn) {
-    state = atom(loggedInLoading())
+    state = atom(loggedInLoading)
     api
       .initialData()
       .then(({ users, matches, stats }) =>
@@ -99,12 +88,18 @@ const App = ({ isLoggedIn }: Props) => {
         s => (
           <>
             <Logout onLogout={logout} />
-            <Index state={s.view('state')} />
+            {definedOr(
+              s.view('state'),
+              indexState => (
+                <Index state={indexState} />
+              ),
+              () => (
+                <div>Loading...</div>
+              )
+            )}
           </>
         )
       )}
     </main>
   )
 }
-
-export default App

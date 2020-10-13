@@ -1,13 +1,14 @@
+import { Property } from 'baconjs'
 import { h } from 'harmaja'
 
-const RandomizeButton = (props: {
-  disabled?: boolean
-  onClick: () => void
+export type Props = {
   title: string
-}) => (
-  <button type="button" disabled={props.disabled} onClick={props.onClick}>
-    {props.title}
+  disabled: Property<boolean>
+  onClick: () => void
+}
+
+export default ({ title, disabled, onClick }: Props) => (
+  <button type="button" disabled={disabled} onClick={onClick}>
+    {title}
   </button>
 )
-
-export default RandomizeButton

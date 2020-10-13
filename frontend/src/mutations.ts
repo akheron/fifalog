@@ -1,31 +1,7 @@
 import { Atom } from 'harmaja'
 import { MatchResultBody, Stats } from '../../common/types'
 import * as api from './api'
-import { MatchRow, State, loggedIn, loggedOut, rowFromMatch } from './state'
-
-export async function login(
-  state: Atom<State>,
-  username: string,
-  password: string
-) {
-  state.set(loggedOut(username, password, 'loading'))
-  if (await api.login(username, password)) {
-    Promise.all([
-      api.users(),
-      api.latestMatches(),
-      api.stats(),
-    ]).then(([users, matches, stats]) =>
-      state.set(loggedIn(users, matches, stats))
-    )
-  } else {
-    state.set(loggedOut(username, password, 'invalid'))
-  }
-}
-
-export async function logout(state: Atom<State>) {
-  await api.logout()
-  state.set(loggedOut())
-}
+import { MatchRow, rowFromMatch } from './state'
 
 export async function deleteMatch(rows: Atom<MatchRow[]>, id: number) {
   if (await api.deleteMatch(id)) {

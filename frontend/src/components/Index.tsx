@@ -1,24 +1,33 @@
 import { Atom, Fragment, h } from 'harmaja'
+import * as C from '../../../common/types'
 import { definedOr } from '../atom-utils'
+import { MatchRow } from '../state'
 
-import { LoggedInState } from '../state'
 import CreateRandomMatchPair from './CreateRandomMatchPair'
 import MatchList from './MatchList'
 import Stats from './Stats'
 
-export default (props: { state: Atom<LoggedInState> }) =>
+export type State = {
+  users: C.User[]
+  stats: C.Stats[]
+  matches: MatchRow[]
+}
+
+export type Props = { state: Atom<State | undefined> }
+
+export default ({ state }: Props) =>
   definedOr(
-    props.state,
-    state => (
+    state,
+    s => (
       <>
         <h2>Stats</h2>
-        <Stats stats={state.view('stats')} />
+        <Stats stats={s.view('stats')} />
         <h2>Latest matches</h2>
         <CreateRandomMatchPair
-          users={state.view('users')}
-          matches={state.view('matches')}
+          users={s.view('users')}
+          matches={s.view('matches')}
         />
-        <MatchList rows={state.view('matches')} stats={state.view('stats')} />
+        <MatchList rows={s.view('matches')} stats={s.view('stats')} />
       </>
     ),
 

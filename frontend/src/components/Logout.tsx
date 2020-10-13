@@ -1,15 +1,15 @@
-import { Atom, h } from 'harmaja'
-import * as mutations from '../mutations'
-import { State } from '../state'
+import { h } from 'harmaja'
 import * as styles from './Logout.scss'
 
-const Logout = (props: { state: Atom<State> }) => (
+export type Props = { onLogout: () => void }
+
+const Logout = ({ onLogout }: Props) => (
   <a
     className={styles.logout}
     href="#"
     onClick={e => {
       e.preventDefault()
-      mutations.logout(props.state)
+      onLogout()
     }}
   >
     Sign out

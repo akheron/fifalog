@@ -1,5 +1,6 @@
 import { either } from 'fp-ts'
 import { pipe } from 'fp-ts/es6/pipeable'
+import { Property, combine } from 'baconjs'
 import { Atom, Lens, atom, h } from 'harmaja'
 import { MatchResult, MatchResultBody } from '../../../common/types'
 import { matchResultBodyS } from '../../../common/codecs'
@@ -48,10 +49,11 @@ const convertEdit = (state: State): MatchResultBody | null =>
   )
 
 export type Props = {
+  disabled: Property<boolean>
   onSave: (result: MatchResultBody) => void
 }
 
-export default ({ onSave }: Props) => {
+export default ({ disabled, onSave }: Props) => {
   const state = atom<State>({
     homeScore: '',
     awayScore: '',
@@ -61,6 +63,9 @@ export default ({ onSave }: Props) => {
   const homeScore = state.view('homeScore')
   const awayScore = state.view('awayScore')
   const finishedType = state.view('finishedType')
+
+  const invalid = state.map(s => !convertEdit(s))
+  const saveDisabled = combine(disabled, invalid, (d, i) => d || i)
 
   return (
     <div className={styles.editMatch}>
@@ -83,7 +88,7 @@ export default ({ onSave }: Props) => {
         () => null
       )}{' '}
       <button
-        disabled={state.map(s => !convertEdit(s))}
+        disabled={saveDisabled}
         onClick={() => {
           const result = convertEdit(state.get())
           if (result) onSave(result)

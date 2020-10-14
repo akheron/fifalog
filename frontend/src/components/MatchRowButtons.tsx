@@ -1,25 +1,27 @@
-import { Atom, Fragment, h } from 'harmaja'
+import { Property } from 'baconjs'
+import { Fragment, h } from 'harmaja'
 import { ifElse } from '../atom-utils'
 import * as styles from './MatchRowButtons.scss'
 
 export type Props = {
-  editing: Atom<boolean>
+  editing: Property<boolean>
+  disabled: Property<boolean>
   onEdit: () => void
   onCancel: () => void
-  onRemove: () => void
+  onDelete: () => void
 }
 
-export default ({ editing, onEdit, onCancel, onRemove }: Props) => (
+export default ({ editing, disabled, onEdit, onCancel, onDelete }: Props) => (
   <div className={styles.buttons}>
     {ifElse(
       editing,
       () => (
-        <button onClick={onCancel}>cancel</button>
+        <button disabled={disabled} onClick={onCancel}>cancel</button>
       ),
       () => (
         <>
-          <button onClick={onEdit}>E</button>
-          <button onClick={onRemove}>R</button>
+          <button disabled={disabled} onClick={onEdit}>E</button>
+          <button disabled={disabled} onClick={onDelete}>R</button>
         </>
       )
     )}

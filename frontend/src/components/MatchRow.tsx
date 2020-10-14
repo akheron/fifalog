@@ -2,9 +2,18 @@ import { combine } from 'baconjs'
 import { Atom, Fragment, atom, h } from 'harmaja'
 import { Match, MatchResult, MatchResultBody } from '../../../common/types'
 import { definedOr, ifElse } from '../atom-utils'
+import { Status } from '../status'
 import MatchRowButtons from './MatchRowButtons'
 import EditMatch from './EditMatch'
 import * as styles from './MatchRow.scss'
+
+export interface State extends Match {
+  status: Status
+}
+
+export function initialState(match: Match): State {
+  return { ...match, status: 'idle' }
+}
 
 const hiliteWinner = (
   result: Atom<MatchResult | null>,
@@ -42,7 +51,7 @@ const finishedTypeString = (finishedType: MatchResult.FinishedType) => {
 }
 
 export type Props = {
-  match: Atom<Match>
+  match: Atom<State>
   onFinish: (result: MatchResultBody) => void
   onDelete: () => void
 }
@@ -58,6 +67,8 @@ export default ({ match, onFinish, onDelete }: Props) => {
   const homeUser = match.view('homeUser')
   const awayUser = match.view('awayUser')
   const result = match.view('result')
+
+  const loading = match.view('status').map(status => status === 'loading')
 
   return (
     <div className={styles.match}>
@@ -80,14 +91,15 @@ export default ({ match, onFinish, onDelete }: Props) => {
           <>
             <MatchRowButtons
               editing={state.view('editing')}
+              disabled={loading}
               onEdit={edit}
               onCancel={cancel}
-              onRemove={onDelete}
+              onDelete={onDelete}
             />
             {ifElse(
               editing,
               () => (
-                <EditMatch onSave={onFinish} />
+                <EditMatch disabled={loading} onSave={onFinish} />
               ),
               () => null
             )}

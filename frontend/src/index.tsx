@@ -1,6 +1,5 @@
-import { Atom, atom, h, mount } from 'harmaja'
-import { initialData } from './api'
-import App, { State as AppState, loggedIn, loggedInLoading, loggedOut } from './components/App'
+import { h, mount } from 'harmaja'
+import App from './components/App'
 
 // Server-side rendered
 declare const IS_LOGGED_IN: boolean

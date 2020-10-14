@@ -4,7 +4,7 @@ import { atom, h } from 'harmaja'
 import Input from './Input'
 import * as styles from './LoginForm.scss'
 
-export type Status = 'idle' | 'loading' | 'invalid'
+export type Status = 'idle' | 'loading' | 'invalid' | 'error'
 
 export type Props = {
   status: Property<Status>
@@ -40,6 +40,7 @@ export default ({ status, onLogin }: Props) => {
       <div>
         <button disabled={status.map(s => s === 'loading')}>Login</button>{' '}
         {status.map(s => (s === 'loading' ? <span>Loading...</span> : null))}
+        {status.map(s => (s === 'error' ? <span>Error requesting server</span> : null))}
       </div>
     </form>
   )

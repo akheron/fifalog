@@ -1,60 +1,39 @@
-import { Atom, Fragment, atom, h } from 'harmaja'
+import { Fragment, atom, h } from 'harmaja'
+import * as Effect from '../effect'
 import * as api from '../api'
-import { match } from '../atom-utils'
-import LoginForm, { Status as LoginFormStatus } from './LoginForm'
+import { ifElse } from '../atom-utils'
+import LoginForm from './LoginForm'
 import Logout from './Logout'
 import Index from './Index'
 import './App.scss'
 
-export type State = LoggedOut | LoggedIn
-
-export type LoggedOut = {
-  loggedIn: false
-  status: LoginFormStatus
-}
-
-export type LoggedIn = {
-  loggedIn: true
-}
-
 export type Props = { isLoggedIn: boolean }
 
 export default ({ isLoggedIn }: Props) => {
-  const state = atom(
-    isLoggedIn ? { loggedIn: true } : { loggedIn: false, status: 'idle' }
-  )
+  const state = atom(isLoggedIn)
 
-  const login = async (username: string, password: string) => {
-    state.set({ loggedIn: false, status: 'loading' })
-    if (await api.login(username, password)) {
-      state.set({ loggedIn: true })
-    } else {
-      state.set({ loggedIn: false, status: 'invalid' })
-    }
-  }
+  const login = Effect.fromPromise(api.login)
+  Effect.onSuccess(login, ok => {
+    state.set(ok)
+  })
 
-  const logout = async () => {
-    await api.logout()
-    state.set({ loggedIn: false, status: 'idle' })
-  }
+  const logout = Effect.fromPromise(api.logout)
+  Effect.onSuccess(logout, () => {
+    state.set(false)
+  })
 
   return (
     <main>
-      {match(
+      {ifElse(
         state,
-
-        // LoggedOut
-        (s): s is LoggedOut => !s.loggedIn,
-        s => (
-          <LoginForm status={s.view('status')} onLogin={login} />
-        ),
-
-        // LoggedIn
-        s => (
+        () => (
           <>
-            <Logout onLogout={logout} />
+            <Logout logout={logout} />
             <Index />
           </>
+        ),
+        () => (
+          <LoginForm login={login} />
         )
       )}
     </main>

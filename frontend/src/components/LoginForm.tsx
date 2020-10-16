@@ -1,27 +1,25 @@
-import { Property } from 'baconjs'
 import classNames from 'classnames'
 import { atom, h } from 'harmaja'
+import * as Effect from '../effect'
 import Input from './Input'
 import * as styles from './LoginForm.scss'
 
-export type Status = 'idle' | 'loading' | 'invalid' | 'error'
-
 export type Props = {
-  status: Property<Status>
-  onLogin: (username: string, password: string) => void
+  login: Effect.Effect<{ username: string; password: string }, void, boolean>
 }
 
-export default ({ status, onLogin }: Props) => {
+export default ({ login }: Props) => {
   const state = atom({ username: '', password: '' })
   return (
     <form
-      className={status.map(s =>
-        classNames(styles.form, { [styles.invalid]: s === 'invalid' })
-      )}
+      className={Effect.ifSuccess(
+        login,
+        ok => !ok,
+        () => false
+      ).map(invalid => classNames(styles.form, { [styles.invalid]: invalid }))}
       onSubmit={e => {
         e.preventDefault()
-        const { username, password } = state.get()
-        onLogin(username, password)
+        login.run(state.get())
       }}
     >
       <h2>Login</h2>
@@ -38,9 +36,21 @@ export default ({ status, onLogin }: Props) => {
         </label>
       </div>
       <div>
-        <button disabled={status.map(s => s === 'loading')}>Login</button>{' '}
-        {status.map(s => (s === 'loading' ? <span>Loading...</span> : null))}
-        {status.map(s => (s === 'error' ? <span>Error requesting server</span> : null))}
+        <button disabled={Effect.isPending(login)}>Login</button>{' '}
+        {Effect.ifPending(
+          login,
+          () => (
+            <span>Loading...</span>
+          ),
+          () => null
+        )}
+        {Effect.ifError(
+          login,
+          () => (
+            <span>Error requesting server</span>
+          ),
+          () => null
+        )}
       </div>
     </form>
   )

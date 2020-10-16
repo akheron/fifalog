@@ -1,14 +1,14 @@
 import { Match, User, Stats } from '../../common/types'
 import { MatchResultBody } from '../../common/types'
 
-export async function login(
-  username: string,
+export async function login(credentials: {
+  username: string
   password: string
-): Promise<boolean> {
+}): Promise<boolean> {
   const response = await fetch('/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify(credentials),
   })
   return response.ok
 }

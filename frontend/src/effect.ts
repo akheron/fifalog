@@ -1,4 +1,5 @@
 import * as B from 'baconjs'
+import { Atom, onUnmount } from 'harmaja'
 
 export type EffectState<E, T> = NotStarted | Pending | Success<T> | Error<E>
 
@@ -62,6 +63,31 @@ export function onSuccess<A, E, T>(
   })
 }
 
+export function sync<A, E, T>(
+  effect: Effect<A, E, T>,
+  target: Atom<EffectState<E, T>>
+): void {
+  onUnmount(effect.state.onValue(effectState => target.set(effectState)))
+}
+
+export function syncSuccess<A, E, T>(
+  effect: Effect<A, E, T>,
+  target: Atom<T>
+): void
+export function syncSuccess<A, E, T, U>(
+  effect: Effect<A, E, T>,
+  map: (value: T) => U,
+  target: Atom<U>
+): void
+export function syncSuccess<A, E, T>(
+  effect: Effect<A, E, T>,
+  ...rest: any[]
+): void {
+  const [map, target] =
+    rest.length === 1 ? [identity, rest[0]] : [rest[0], rest[1]]
+  onUnmount(onSuccess(effect, value => target.set(map(value))))
+}
+
 export function onError<A, E, T>(
   effect: Effect<A, E, T>,
   then_: (error: E) => void
@@ -97,24 +123,39 @@ export function ifError<E, U>(
   return effect.state.map(s => (s.kind === 'Error' ? then_(s.error) : else_()))
 }
 
-export function fromPromise<A, T>(fn: () => Promise<T>): Effect<void, void, T>
+//
+
+export type EffectConstructor<A, E, T> = () => Effect<A, E, T>
+
+function makeEffectConstructor<A, E, T>(
+  run: (bus: B.Bus<EffectState<E, T>>, arg: A) => void
+): EffectConstructor<A, E, T> {
+  return () => {
+    const bus = new B.Bus<EffectState<E, T>>()
+    return {
+      run: (arg: A) => run(bus, arg),
+      state: bus.toProperty(notStarted()),
+    }
+  }
+}
+
+export function fromPromise<A, T>(
+  fn: () => Promise<T>
+): () => Effect<void, void, T>
 export function fromPromise<A, T>(
   fn: (arg: A) => Promise<T>
-): Effect<A, void, T>
+): () => Effect<A, void, T>
 export function fromPromise<A, T>(
   fn: (arg: A) => Promise<T>
-): Effect<A, void, T> {
-  const bus = new B.Bus<EffectState<void, T>>().log('fromPromise bus')
-  const run = (arg: A) => {
+): EffectConstructor<A, void, T> {
+  return makeEffectConstructor((bus, arg) => {
     bus.push(pending())
     bus.plug(
       B.fromPromise(fn(arg))
         .map<EffectState<void, T>>(success)
-        .mapError(error(undefined))
+        .mapError(error<void, T>(undefined))
     )
-  }
-  return {
-    run,
-    state: bus.toProperty(notStarted()),
-  }
+  })
 }
+
+const identity = <T>(x: T): T => x

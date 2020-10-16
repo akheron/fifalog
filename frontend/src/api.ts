@@ -1,21 +1,22 @@
 import { Match, User, Stats } from '../../common/types'
 import { MatchResultBody } from '../../common/types'
+import * as Effect from './effect'
 
-export async function login(credentials: {
+export const login = Effect.fromPromise(async (credentials: {
   username: string
   password: string
-}): Promise<boolean> {
+}) => {
   const response = await fetch('/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials),
   })
   return response.ok
-}
+})
 
-export async function logout(): Promise<void> {
+export const logout = Effect.fromPromise(async () => {
   await fetch('/auth/logout')
-}
+})
 
 export async function initialData(): Promise<{
   users: User[]

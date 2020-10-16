@@ -12,15 +12,11 @@ export type Props = { isLoggedIn: boolean }
 export default ({ isLoggedIn }: Props) => {
   const state = atom(isLoggedIn)
 
-  const login = Effect.fromPromise(api.login)
-  Effect.onSuccess(login, ok => {
-    state.set(ok)
-  })
+  const login = api.login()
+  Effect.syncSuccess(login, state)
 
-  const logout = Effect.fromPromise(api.logout)
-  Effect.onSuccess(logout, () => {
-    state.set(false)
-  })
+  const logout = api.logout()
+  Effect.syncSuccess(logout, () => false, state)
 
   return (
     <main>

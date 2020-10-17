@@ -109,16 +109,25 @@ export function syncSuccess<A, E, T>(
 ): void
 export function syncSuccess<A, E, T, U>(
   effect: Effect<A, E, T>,
-  map: (value: T) => U,
+  update: (current: U, next: T) => U,
   target: Atom<U>
 ): void
-export function syncSuccess<A, E, T>(
+export function syncSuccess<A, E, T, U>(
   effect: Effect<A, E, T>,
   ...rest: any[]
 ): void {
-  const [map, target] =
-    rest.length === 1 ? [identity, rest[0]] : [rest[0], rest[1]]
-  onUnmount(onSuccess(effect, value => target.set(map(value))))
+  let update: (current: U, next: T) => U
+  let target: Atom<U>
+  if (rest.length === 1) {
+    update = identity2 as any
+    target = rest[0]
+  } else {
+    update = rest[0]
+    target = rest[1]
+  }
+  onUnmount(
+    onSuccess(effect, next => target.modify(current => update(current, next)))
+  )
 }
 
 export function onError<A, E, T>(

@@ -2,7 +2,7 @@ import { Property, combine } from 'baconjs'
 import { Fragment, h } from 'harmaja'
 import { User } from '../../../common/types'
 import { definedOr, editAtom } from '../atom-utils'
-import { Status } from '../status'
+import * as Effect from '../effect'
 import RandomizeButton from './RandomizeButton'
 import Select from './Select'
 
@@ -20,19 +20,18 @@ function init(users: User[]): State | undefined {
 
 export type Props = {
   users: Property<User[]>
-  status: Property<Status>
-  onCreate: (userIds: [number, number]) => void
+  create: Effect.Effect<[number, number], any, any>
 }
 
-export default ({ users, status, onCreate }: Props) => {
+export default ({ users, create }: Props) => {
   const maybeState = editAtom(users.map(init))
   return definedOr(
     maybeState,
     state => {
       const disabled = combine(
         state,
-        status,
-        ({ user1, user2 }, s) => user1 === user2 || s === 'loading'
+        Effect.isPending(create),
+        ({ user1, user2 }, creating) => user1 === user2 || creating
       )
       return (
         <>
@@ -44,15 +43,18 @@ export default ({ users, status, onCreate }: Props) => {
             disabled={disabled}
             onClick={() => {
               const { user1, user2 } = state.get()
-              onCreate([user1, user2])
+              create.run([user1, user2])
             }}
           />{' '}
-          {status.map(s =>
-            s === 'loading'
-              ? '...'
-              : s === 'error'
-              ? 'Could not create match'
-              : null
+          {Effect.ifPending(
+            create,
+            () => '...',
+            () => null
+          )}
+          {Effect.ifError(
+            create,
+            () => 'Could not create match',
+            () => null
           )}
         </>
       )

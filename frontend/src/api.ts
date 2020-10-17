@@ -34,20 +34,19 @@ export async function deleteMatch(id: number): Promise<boolean> {
   return (await fetch(`/api/matches/${id}`, { method: 'DELETE' })).ok
 }
 
-export async function addRandomMatchPair(
-  userIds: [number, number]
-): Promise<[Match, Match]> {
-  return (
-    await fetch('/api/matches/random_pair', {
-      method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userIds }),
-    })
-  ).json()
-}
+export const createRandomMatchPair = Effect.fromPromise(
+  async (userIds: [number, number]): Promise<[Match, Match]> =>
+    (
+      await fetch('/api/matches/random_pair', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userIds }),
+      })
+    ).json()
+)
 
 export async function finishMatch(
   id: number,

@@ -5,7 +5,7 @@ import * as api from '../api'
 import { editAtom } from '../atom-utils'
 import * as Effect from '../effect'
 import * as L from '../lenses'
-import { Status, trackStatus } from '../status'
+import { trackStatus } from '../status'
 import CreateRandomMatchPair from './CreateRandomMatchPair'
 import MatchList, { MatchState, initialMatchState } from './MatchList'
 import Stats from './Stats'
@@ -32,7 +32,6 @@ type State = {
   users: C.User[]
   stats: C.Stats[]
   matches: MatchState[]
-  createStatus: Status
 }
 
 const Content = (props: { data: Property<Data> }) => {
@@ -40,22 +39,22 @@ const Content = (props: { data: Property<Data> }) => {
     props.data.map(data => ({
       ...data,
       matches: data.matches.map(match => ({ ...match, status: 'idle' })),
-      createStatus: 'idle',
     }))
   )
 
   const users = state.view('users')
   const stats = state.view('stats')
   const matches = state.view('matches')
-  const createStatus = state.view('createStatus')
 
-  const createMatchPair = async (userIds: [number, number]) => {
-    const newPair = await trackStatus(
-      api.addRandomMatchPair(userIds),
-      createStatus
-    )
-    matches.modify(prev => [...newPair.map(initialMatchState), ...prev])
-  }
+  const createMatchPair = api.createRandomMatchPair()
+  Effect.syncSuccess(
+    createMatchPair,
+    (currentMatches, newPair) => [
+      ...newPair.map(initialMatchState),
+      ...currentMatches,
+    ],
+    matches
+  )
 
   const statusOf = (matchId: number) =>
     matches
@@ -84,11 +83,7 @@ const Content = (props: { data: Property<Data> }) => {
       <h2>Stats</h2>
       <Stats stats={stats} />
       <h2>Latest matches</h2>
-      <CreateRandomMatchPair
-        users={users}
-        status={createStatus}
-        onCreate={createMatchPair}
-      />
+      <CreateRandomMatchPair users={users} create={createMatchPair} />
       <MatchList
         matches={matches}
         onDeleteMatch={deleteMatch}

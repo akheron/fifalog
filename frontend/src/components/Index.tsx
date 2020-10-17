@@ -3,8 +3,8 @@ import { Atom, Fragment, atom, h } from 'harmaja'
 import * as C from '../../../common/types'
 import * as api from '../api'
 import { editAtom } from '../atom-utils'
+import * as Effect from '../effect'
 import * as L from '../lenses'
-import * as RD from '../remotedata'
 import { Status, trackStatus } from '../status'
 import CreateRandomMatchPair from './CreateRandomMatchPair'
 import MatchList, { MatchState, initialMatchState } from './MatchList'
@@ -17,11 +17,11 @@ export type Data = {
 }
 
 export default () => {
-  // TODO: Could be just a property, but RD.match doesn't support it
-  const state = editAtom(RD.fromPromise(api.initialData()))
+  const initialData = api.initialData()
+  initialData.run()
 
-  return RD.match(
-    state,
+  return Effect.match(
+    initialData,
     () => <div>Loading...</div>,
     data => <Content data={data} />,
     () => <div>Error fetching data</div>
@@ -65,7 +65,7 @@ const Content = (props: { data: Property<Data> }) => {
   const finishMatch = async (matchId: number, result: C.MatchResultBody) => {
     const [newMatches, newStats] = await trackStatus(async () => {
       await api.finishMatch(matchId, result)
-      return Promise.all([api.latestMatches(), api.stats()])
+      return Promise.all([api.latestMatches_(), api.stats_()])
     }, statusOf(matchId))
     matches.set(newMatches.map(initialMatchState))
     stats.set(newStats)

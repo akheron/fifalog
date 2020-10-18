@@ -3,6 +3,7 @@ import { Atom, Fragment, atom, h } from 'harmaja'
 import { Match, MatchResult, MatchResultBody } from '../../../common/types'
 import { definedOr, ifElse } from '../atom-utils'
 import { Status } from '../status'
+import * as Effect from '../effect'
 import MatchRowButtons from './MatchRowButtons'
 import EditMatch from './EditMatch'
 import * as styles from './MatchRow.scss'
@@ -53,10 +54,10 @@ const finishedTypeString = (finishedType: MatchResult.FinishedType) => {
 export type Props = {
   match: Atom<State>
   onFinish: (result: MatchResultBody) => void
-  onDelete: () => void
+  deleteMatch: Effect.Effect<void>
 }
 
-export default ({ match, onFinish, onDelete }: Props) => {
+export default ({ match, onFinish, deleteMatch }: Props) => {
   const state = atom({ editing: false })
   const editing = state.view('editing')
   const edit = () => editing.set(true)
@@ -94,7 +95,7 @@ export default ({ match, onFinish, onDelete }: Props) => {
               disabled={loading}
               onEdit={edit}
               onCancel={cancel}
-              onDelete={onDelete}
+              deleteMatch={deleteMatch}
             />
             {ifElse(
               editing,

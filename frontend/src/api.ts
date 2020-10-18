@@ -74,10 +74,8 @@ const void3: (arg: void) => [void, void, void] = () => [
   undefined,
 ]
 
-export const initialData = Effect.mapArg(
-  Effect.map(
-    Effect.parallel(users, latestMatches, stats),
-    ([users, matches, stats]) => ({ users, matches, stats })
-  ),
-  void3
+export const initialData = Effect.pipe(
+  Effect.parallel(users, latestMatches, stats),
+  Effect.map(([users, matches, stats]) => ({ users, matches, stats })),
+  Effect.mapArg(void3)
 )

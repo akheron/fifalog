@@ -184,13 +184,23 @@ export const map = <T, U>(fn: (value: T) => U) => <A, E>(
   }
 }
 
-export const mapArg = <A, B>(fn: (arg: B) => A) => <E, T>(
-  ctor: EffectConstructor<A, E, T>
-): EffectConstructor<B, E, T> => () => {
-  const effect = ctor()
-  return {
-    run: (arg: B) => effect.run(fn(arg)),
-    state: effect.state,
+export function mapArg<A>(
+  fn: () => A
+): <E, T>(ctor: EffectConstructor<A, E, T>) => EffectConstructor<void, E, T>
+export function mapArg<A, B>(
+  fn: (arg: B) => A
+): <E, T>(ctor: EffectConstructor<A, E, T>) => EffectConstructor<B, E, T>
+export function mapArg<A, B>(
+  fn: (arg: B) => A
+): <E, T>(ctor: EffectConstructor<A, E, T>) => EffectConstructor<B, E, T> {
+  return ctor => {
+    return () => {
+      const effect = ctor()
+      return {
+        run: (arg: B) => effect.run(fn(arg)),
+        state: effect.state,
+      }
+    }
   }
 }
 

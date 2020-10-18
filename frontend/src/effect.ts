@@ -36,7 +36,7 @@ export const isSuccess_ = <T>(
 export const isError_ = <E>(state: EffectState<E, any>): state is Error<E> =>
   state.kind === 'Error'
 
-export interface Effect<A, E, T> {
+export interface Effect<A, E = unknown, T = unknown> {
   run(arg: A): void
   state: B.Property<EffectState<E, T>>
 }

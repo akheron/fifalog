@@ -20,7 +20,7 @@ function init(users: User[]): State | undefined {
 
 export type Props = {
   users: Property<User[]>
-  create: Effect.Effect<[number, number], any, any>
+  create: Effect.Effect<[number, number]>
 }
 
 export default ({ users, create }: Props) => {

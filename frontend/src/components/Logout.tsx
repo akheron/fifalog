@@ -2,7 +2,9 @@ import { h, onUnmount } from 'harmaja'
 import * as Effect from '../effect'
 import * as styles from './Logout.scss'
 
-export type Props = { logout: Effect.Effect<void, void, void> }
+export type Props = {
+  logout: Effect.Effect<void>
+}
 
 export default ({ logout }: Props) => {
   const unsub = Effect.onError(logout, () => alert('Error requesting server'))

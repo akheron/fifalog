@@ -1,41 +1,35 @@
 import * as R from 'ramda'
 import { Atom, ListView, atom, h } from 'harmaja'
-import { MatchResultBody } from '../../../common/types'
+import { Match, MatchResultBody } from '../../../common/types'
 import * as Effect from '../effect'
-import MatchRow, {
-  State as MatchState,
-  initialState as initialMatchState,
-} from './MatchRow'
+import MatchRow from './MatchRow'
 import * as styles from './MatchList.scss'
 
-// Re-export
-export { MatchState, initialMatchState }
-
-function groupByDate(items: Atom<MatchState[]>): Atom<MatchState[][]> {
+function groupByDate(items: Atom<Match[]>): Atom<Match[][]> {
   const property = items.map(R.groupWith(eqDate))
-  const onChange = (groups: MatchState[][]) => {
+  const onChange = (groups: Match[][]) => {
     items.set(groups.flat())
   }
   return atom(property, onChange)
 }
 
-const groupFinishedDate = (group: MatchState[]) => finishedDate(group[0])
+const groupFinishedDate = (group: Match[]) => finishedDate(group[0])
 
-const finishedDate: (match: MatchState) => string = R.pathOr('Not played yet', [
+const finishedDate: (match: Match) => string = R.pathOr('Not played yet', [
   'result',
   'finishedDate',
 ])
 
-const eqDate = (a: MatchState, b: MatchState): boolean =>
+const eqDate = (a: Match, b: Match): boolean =>
   finishedDate(a) === finishedDate(b)
 
 export type Props = {
-  matches: Atom<MatchState[]>
-  onFinishMatch: (matchId: number, result: MatchResultBody) => void
+  matches: Atom<Match[]>
+  finishMatch: (matchId: number) => Effect.Effect<MatchResultBody>
   deleteMatch: (matchId: number) => Effect.Effect<void>
 }
 
-export default ({ matches, onFinishMatch, deleteMatch }: Props) => (
+export default ({ matches, finishMatch, deleteMatch }: Props) => (
   <ListView
     atom={groupByDate(matches)}
     getKey={g => groupFinishedDate(g)}
@@ -48,7 +42,7 @@ export default ({ matches, onFinishMatch, deleteMatch }: Props) => (
           renderAtom={(matchId: number, match) => (
             <MatchRow
               match={match}
-              onFinish={result => onFinishMatch(matchId, result)}
+              finishMatch={finishMatch(matchId)}
               deleteMatch={deleteMatch(matchId)}
             />
           )}

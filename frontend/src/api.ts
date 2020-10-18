@@ -49,25 +49,37 @@ export const createRandomMatchPair = Effect.fromPromise(
     ).json()
 )
 
-export async function finishMatch(
-  id: number,
-  matchResult: MatchResultBody
-): Promise<Match> {
-  return (
-    await fetch(`/api/matches/${id}/finish`, {
-      method: 'PUT',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(matchResult),
-    })
-  ).json()
-}
+export const finishMatch = Effect.fromPromise(
+  async (arg: { id: number; result: MatchResultBody }): Promise<Match> =>
+    (
+      await fetch(`/api/matches/${arg.id}/finish`, {
+        method: 'PUT',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(arg.result),
+      })
+    ).json()
+)
 
 export const stats_ = async (): Promise<Stats[]> =>
   (await fetch('/api/stats')).json()
 export const stats = Effect.fromPromise(stats_)
+
+const void2: (arg: void) => [void, void] = () => [undefined, undefined]
+
+export const finishMatchAndRefresh = Effect.seq(
+  Effect.pipe(
+    finishMatch,
+    Effect.map(() => undefined)
+  ),
+  Effect.pipe(
+    Effect.parallel(latestMatches, stats),
+    Effect.mapArg(void2),
+    Effect.map(([matches, stats]) => ({ matches, stats }))
+  )
+)
 
 const void3: (arg: void) => [void, void, void] = () => [
   undefined,

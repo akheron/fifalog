@@ -1,10 +1,11 @@
 import { either } from 'fp-ts'
 import { pipe } from 'fp-ts/es6/pipeable'
-import { Property, combine } from 'baconjs'
-import { Atom, Lens, atom, h } from 'harmaja'
+import { combine } from 'baconjs'
+import { Atom, Lens, atom, h, onUnmount } from 'harmaja'
 import { MatchResult, MatchResultBody } from '../../../common/types'
 import { matchResultBodyS } from '../../../common/codecs'
 import { match } from '../atom-utils'
+import * as Effect from '../effect'
 import Input from './Input'
 import * as styles from './EditMatch.scss'
 
@@ -49,11 +50,10 @@ const convertEdit = (state: State): MatchResultBody | null =>
   )
 
 export type Props = {
-  disabled: Property<boolean>
-  onSave: (result: MatchResultBody) => void
+  save: Effect.Effect<MatchResultBody>
 }
 
-export default ({ disabled, onSave }: Props) => {
+export default ({ save }: Props) => {
   const state = atom<State>({
     homeScore: '',
     awayScore: '',
@@ -63,9 +63,11 @@ export default ({ disabled, onSave }: Props) => {
   const homeScore = state.view('homeScore')
   const awayScore = state.view('awayScore')
   const finishedType = state.view('finishedType')
-
-  const invalid = state.map(s => !convertEdit(s))
-  const saveDisabled = combine(disabled, invalid, (d, i) => d || i)
+  const disabled = combine(
+    Effect.isPending(save),
+    state.map(s => !convertEdit(s)),
+    (saving, invalid) => saving || invalid
+  )
 
   return (
     <div className={styles.editMatch}>
@@ -88,10 +90,10 @@ export default ({ disabled, onSave }: Props) => {
         () => null
       )}{' '}
       <button
-        disabled={saveDisabled}
+        disabled={disabled}
         onClick={() => {
           const result = convertEdit(state.get())
-          if (result) onSave(result)
+          if (result) save.run(result)
         }}
       >
         save

@@ -267,6 +267,30 @@ function par<A1, E1, T1, A2, E2, T2>(
   })
 }
 
+export function seq<A1, E1, T1, E2, T2>(
+  first: EffectConstructor<A1, E1, T1>,
+  second: EffectConstructor<T1, E2, T2>
+): EffectConstructor<A1, E1 | E2, T2> {
+  return fromFunction((bus, arg) => {
+    const e1 = first()
+    const e2 = second()
+    bus.plug(
+      e1.state.flatMapLatest((s):
+        | EffectState<E1 | E2, T2>
+        | B.EventStream<EffectState<E1 | E2, T2>> => {
+        if (s.kind === 'Success') {
+          e2.run(s.value)
+          return e2.state
+            .toEventStream()
+            .filter(s2 => s2.kind !== 'NotStarted' && s2.kind !== 'Pending')
+        }
+        return s
+      })
+    )
+    e1.run(arg)
+  })
+}
+
 export function parallel<A1, E1, T1, A2, E2, T2>(
   first: EffectConstructor<A1, E1, T1>,
   second: EffectConstructor<A2, E2, T2>

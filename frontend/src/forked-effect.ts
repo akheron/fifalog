@@ -91,4 +91,4 @@ export function syncSuccess<A1, A2, E, T, U>(
 //
 
 const always = <T>(x: T) => () => x
-const identity3 = <T, U>(_x: U, y: T): T => y
+const identity3 = <T, U, V>(_x: V, _y: U, z: T): T => z

@@ -2,19 +2,10 @@ import { combine } from 'baconjs'
 import { Atom, Fragment, atom, h } from 'harmaja'
 import { Match, MatchResult, MatchResultBody } from '../../../common/types'
 import { definedOr, ifElse } from '../atom-utils'
-import { Status } from '../status'
 import * as Effect from '../effect'
 import MatchRowButtons from './MatchRowButtons'
 import EditMatch from './EditMatch'
 import * as styles from './MatchRow.scss'
-
-export interface State extends Match {
-  status: Status
-}
-
-export function initialState(match: Match): State {
-  return { ...match, status: 'idle' }
-}
 
 const hiliteWinner = (
   result: Atom<MatchResult | null>,
@@ -52,16 +43,14 @@ const finishedTypeString = (finishedType: MatchResult.FinishedType) => {
 }
 
 export type Props = {
-  match: Atom<State>
-  onFinish: (result: MatchResultBody) => void
+  match: Atom<Match>
+  finishMatch: Effect.Effect<MatchResultBody>
   deleteMatch: Effect.Effect<void>
 }
 
-export default ({ match, onFinish, deleteMatch }: Props) => {
+export default ({ match, finishMatch, deleteMatch }: Props) => {
   const state = atom({ editing: false })
   const editing = state.view('editing')
-  const edit = () => editing.set(true)
-  const cancel = () => editing.set(false)
 
   const home = match.view('home')
   const away = match.view('away')
@@ -69,7 +58,11 @@ export default ({ match, onFinish, deleteMatch }: Props) => {
   const awayUser = match.view('awayUser')
   const result = match.view('result')
 
-  const loading = match.view('status').map(status => status === 'loading')
+  const loading = combine(
+    Effect.isPending(finishMatch),
+    Effect.isPending(deleteMatch),
+    (finishing, deleting) => finishing || deleting
+  )
 
   return (
     <div className={styles.match}>
@@ -93,14 +86,12 @@ export default ({ match, onFinish, deleteMatch }: Props) => {
             <MatchRowButtons
               editing={state.view('editing')}
               disabled={loading}
-              onEdit={edit}
-              onCancel={cancel}
-              deleteMatch={deleteMatch}
+              onDelete={() => deleteMatch.run()}
             />
             {ifElse(
               editing,
               () => (
-                <EditMatch disabled={loading} onSave={onFinish} />
+                <EditMatch save={finishMatch} />
               ),
               () => null
             )}

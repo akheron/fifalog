@@ -181,34 +181,28 @@ function makeEffectConstructor<A, E, T>(
   }
 }
 
-export function map<A, E, T, U>(
-  ctor: EffectConstructor<A, E, T>,
-  fn: (value: T) => U
-): EffectConstructor<A, E, U> {
-  return () => {
-    const effect = ctor()
-    return {
-      run: effect.run,
-      state: effect.state.map(state => {
-        if (state.kind === 'Success') {
-          return success(fn(state.value))
-        }
-        return state
-      }),
-    }
+export const map = <T, U>(fn: (value: T) => U) => <A, E>(
+  ctor: EffectConstructor<A, E, T>
+): EffectConstructor<A, E, U> => () => {
+  const effect = ctor()
+  return {
+    run: effect.run,
+    state: effect.state.map(state => {
+      if (state.kind === 'Success') {
+        return success(fn(state.value))
+      }
+      return state
+    }),
   }
 }
 
-export function mapArg<A, B, E, T>(
-  ctor: EffectConstructor<A, E, T>,
-  fn: (arg: B) => A
-): EffectConstructor<B, E, T> {
-  return () => {
-    const effect = ctor()
-    return {
-      run: (arg: B) => effect.run(fn(arg)),
-      state: effect.state,
-    }
+export const mapArg = <A, B>(fn: (arg: B) => A) => <E, T>(
+  ctor: EffectConstructor<A, E, T>
+): EffectConstructor<B, E, T> => () => {
+  const effect = ctor()
+  return {
+    run: (arg: B) => effect.run(fn(arg)),
+    state: effect.state,
   }
 }
 
@@ -299,24 +293,126 @@ export function parallel<A1, E1, T1, A2, E2, T2, A3, E3, T3, A4, E4, T4>(
     case 2:
       return par(first, second)
     case 3:
-      return mapArg(
-        map(
-          par(par(first, second), third!),
-          ([[t1, t2], t3]) => [t1, t2, t3] as const
-        ),
-        ([a1, a2, a3]: [A1, A2, A3]) => [[a1, a2], a3] as const
+      return pipe(
+        par(par(first, second), third!),
+        map(([[t1, t2], t3]) => [t1, t2, t3] as const),
+        mapArg(([a1, a2, a3]: [A1, A2, A3]) => [[a1, a2], a3] as const)
       )
     default:
-      return mapArg(
-        map(
-          par(par(par(first, second), third!), fourth!),
-          ([[[t1, t2], t3], t4]) => [t1, t2, t3, t4] as const
-        ),
-        ([a1, a2, a3, a4]: [A1, A2, A3, A4]) => [[[a1, a2], a3], a4] as const
+      return pipe(
+        par(par(par(first, second), third!), fourth!),
+        map(([[[t1, t2], t3], t4]) => [t1, t2, t3, t4] as const),
+        mapArg(
+          ([a1, a2, a3, a4]: [A1, A2, A3, A4]) => [[[a1, a2], a3], a4] as const
+        )
       )
   }
 }
 
+// Taken from fp-ts
+export function pipe<A>(a: A): A
+export function pipe<A, B>(a: A, ab: (a: A) => B): B
+export function pipe<A, B, C>(a: A, ab: (a: A) => B, bc: (b: B) => C): C
+export function pipe<A, B, C, D>(
+  a: A,
+  ab: (a: A) => B,
+  bc: (b: B) => C,
+  cd: (c: C) => D
+): D
+export function pipe<A, B, C, D, E>(
+  a: A,
+  ab: (a: A) => B,
+  bc: (b: B) => C,
+  cd: (c: C) => D,
+  de: (d: D) => E
+): E
+export function pipe<A, B, C, D, E, F>(
+  a: A,
+  ab: (a: A) => B,
+  bc: (b: B) => C,
+  cd: (c: C) => D,
+  de: (d: D) => E,
+  ef: (e: E) => F
+): F
+export function pipe<A, B, C, D, E, F, G>(
+  a: A,
+  ab: (a: A) => B,
+  bc: (b: B) => C,
+  cd: (c: C) => D,
+  de: (d: D) => E,
+  ef: (e: E) => F,
+  fg: (f: F) => G
+): G
+export function pipe<A, B, C, D, E, F, G, H>(
+  a: A,
+  ab: (a: A) => B,
+  bc: (b: B) => C,
+  cd: (c: C) => D,
+  de: (d: D) => E,
+  ef: (e: E) => F,
+  fg: (f: F) => G,
+  gh: (g: G) => H
+): H
+export function pipe<A, B, C, D, E, F, G, H, I>(
+  a: A,
+  ab: (a: A) => B,
+  bc: (b: B) => C,
+  cd: (c: C) => D,
+  de: (d: D) => E,
+  ef: (e: E) => F,
+  fg: (f: F) => G,
+  gh: (g: G) => H,
+  hi: (h: H) => I
+): I
+export function pipe<A, B, C, D, E, F, G, H, I, J>(
+  a: A,
+  ab: (a: A) => B,
+  bc: (b: B) => C,
+  cd: (c: C) => D,
+  de: (d: D) => E,
+  ef: (e: E) => F,
+  fg: (f: F) => G,
+  gh: (g: G) => H,
+  hi: (h: H) => I,
+  ij: (i: I) => J
+): J
+export function pipe(
+  a: unknown,
+  ab?: Function,
+  bc?: Function,
+  cd?: Function,
+  de?: Function,
+  ef?: Function,
+  fg?: Function,
+  gh?: Function,
+  hi?: Function,
+  ij?: Function
+): unknown {
+  switch (arguments.length) {
+    case 1:
+      return a
+    case 2:
+      return ab!(a)
+    case 3:
+      return bc!(ab!(a))
+    case 4:
+      return cd!(bc!(ab!(a)))
+    case 5:
+      return de!(cd!(bc!(ab!(a))))
+    case 6:
+      return ef!(de!(cd!(bc!(ab!(a)))))
+    case 7:
+      return fg!(ef!(de!(cd!(bc!(ab!(a))))))
+    case 8:
+      return gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))
+    case 9:
+      return hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a))))))))
+    case 10:
+      return ij!(hi!(gh!(fg!(ef!(de!(cd!(bc!(ab!(a)))))))))
+  }
+  return
+}
+
 //
 
-const identity = <T>(x: T): T => x
+const identity2 = <T, U>(_x: U, y: T): T => y

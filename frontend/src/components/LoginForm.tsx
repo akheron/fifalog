@@ -5,7 +5,7 @@ import Input from './Input'
 import * as styles from './LoginForm.scss'
 
 export type Props = {
-  login: Effect.Effect<{ username: string; password: string }, void, boolean>
+  login: Effect.Effect<{ username: string; password: string }>
 }
 
 export default ({ login }: Props) => {

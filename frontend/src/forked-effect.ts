@@ -2,9 +2,9 @@ import * as B from 'baconjs'
 import { Atom, onUnmount } from 'harmaja'
 import { Effect, EffectConstructor, EffectState } from './effect'
 
-interface ForkedEffectConstructor<A, E, T> {
-  (arg: A): Effect<void, E, T>
-  state: B.Observable<ForkedEffectState<A, E, T>>
+interface ForkedEffectConstructor<A1, A2, E, T> {
+  (arg: A1): Effect<A2, E, T>
+  state: B.Observable<ForkedEffectState<A1, E, T>>
 }
 
 interface ForkedEffectState<A, E, T> {
@@ -14,13 +14,24 @@ interface ForkedEffectState<A, E, T> {
 
 export function fork<A, E, T>(
   ctor: EffectConstructor<A, E, T>
-): ForkedEffectConstructor<A, E, T> {
-  const bus = new B.Bus<ForkedEffectState<A, E, T>>()
-  const result = (arg: A) => {
+): ForkedEffectConstructor<A, void, E, T>
+export function fork<A, A1, A2, E, T>(
+  ctor: EffectConstructor<A, E, T>,
+  joinArg: (arg1: A1) => (arg2: A2) => A
+): ForkedEffectConstructor<A1, A2, E, T>
+export function fork<A, A1, A2, E, T>(
+  ctor: EffectConstructor<A, E, T>,
+  joinArg?: (part1: A1) => (part2: A2) => A
+): ForkedEffectConstructor<A1, A2, E, T> {
+  const bus = new B.Bus<ForkedEffectState<A1, E, T>>()
+  const result = (part1: A1) => {
     const effect = ctor()
-    bus.plug(effect.state.map(effectState => ({ arg, effectState })))
+    const argJoiner: (part2: A2) => A = (joinArg
+      ? joinArg(part1)
+      : always(part1)) as any
+    bus.plug(effect.state.map(effectState => ({ arg: part1, effectState })))
     return {
-      run: () => effect.run(arg),
+      run: (part2: A2) => effect.run(argJoiner(part2)),
       state: effect.state,
     }
   }
@@ -39,27 +50,27 @@ export function onSuccess<A, E, T>(
   })
 }
 
-export function sync<A, E, T>(
-  ctor: ForkedEffectConstructor<A, E, T>,
-  target: Atom<ForkedEffectState<A, E, T>>
+export function sync<A1, A2, E, T>(
+  ctor: ForkedEffectConstructor<A1, A2, E, T>,
+  target: Atom<ForkedEffectState<A1, E, T>>
 ): void {
   onUnmount(ctor.state.onValue(effectState => target.set(effectState)))
 }
 
-export function syncSuccess<A, E, T>(
-  ctor: ForkedEffectConstructor<A, E, T>,
+export function syncSuccess<A1, A2, E, T>(
+  ctor: ForkedEffectConstructor<A1, A2, E, T>,
   target: Atom<T>
 ): void
-export function syncSuccess<A, E, T, U>(
-  ctor: ForkedEffectConstructor<A, E, T>,
-  update: (current: U, arg: A, next: T) => U,
+export function syncSuccess<A1, A2, E, T, U>(
+  ctor: ForkedEffectConstructor<A1, A2, E, T>,
+  update: (current: U, arg: A1, next: T) => U,
   target: Atom<U>
 ): void
-export function syncSuccess<A, E, T, U>(
-  ctor: ForkedEffectConstructor<A, E, T>,
+export function syncSuccess<A1, A2, E, T, U>(
+  ctor: ForkedEffectConstructor<A1, A2, E, T>,
   ...rest: any[]
 ): void {
-  let update: (current: U, arg: A, next: T) => U
+  let update: (current: U, arg: A1, next: T) => U
   let target: Atom<U>
   if (rest.length === 1) {
     update = identity3 as any
@@ -79,4 +90,5 @@ export function syncSuccess<A, E, T, U>(
 
 //
 
+const always = <T>(x: T) => () => x
 const identity3 = <T, U>(_x: U, y: T): T => y

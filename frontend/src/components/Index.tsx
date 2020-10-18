@@ -1,9 +1,10 @@
 import { Property } from 'baconjs'
-import { Atom, Fragment, atom, h } from 'harmaja'
+import { Atom, Fragment, h, onUnmount } from 'harmaja'
 import * as C from '../../../common/types'
 import * as api from '../api'
 import { editAtom } from '../atom-utils'
 import * as Effect from '../effect'
+import * as ForkedEffect from '../forked-effect'
 import * as L from '../lenses'
 import { trackStatus } from '../status'
 import CreateRandomMatchPair from './CreateRandomMatchPair'
@@ -70,13 +71,13 @@ const Content = (props: { data: Property<Data> }) => {
     stats.set(newStats)
   }
 
-  const deleteMatch = async (matchId: number) => {
-    if (!confirm('Really')) return
-    const ok = await trackStatus(api.deleteMatch(matchId), statusOf(matchId))
-    if (ok) {
-      matches.modify(matches => matches.filter(match => match.id !== matchId))
-    }
-  }
+  const deleteMatch = ForkedEffect.fork(api.deleteMatch)
+  ForkedEffect.syncSuccess(
+    deleteMatch,
+    (currentMatches, matchId) =>
+      currentMatches.filter(match => match.id !== matchId),
+    matches
+  )
 
   return (
     <>
@@ -86,7 +87,7 @@ const Content = (props: { data: Property<Data> }) => {
       <CreateRandomMatchPair users={users} create={createMatchPair} />
       <MatchList
         matches={matches}
-        onDeleteMatch={deleteMatch}
+        deleteMatch={deleteMatch}
         onFinishMatch={finishMatch}
       />
     </>

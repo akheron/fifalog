@@ -1,6 +1,7 @@
 import * as R from 'ramda'
 import { Atom, ListView, atom, h } from 'harmaja'
 import { MatchResultBody } from '../../../common/types'
+import * as Effect from '../effect'
 import MatchRow, {
   State as MatchState,
   initialState as initialMatchState,
@@ -31,10 +32,10 @@ const eqDate = (a: MatchState, b: MatchState): boolean =>
 export type Props = {
   matches: Atom<MatchState[]>
   onFinishMatch: (matchId: number, result: MatchResultBody) => void
-  onDeleteMatch: (matchId: number) => void
+  deleteMatch: (matchId: number) => Effect.Effect<void>
 }
 
-export default ({ matches, onFinishMatch, onDeleteMatch }: Props) => (
+export default ({ matches, onFinishMatch, deleteMatch }: Props) => (
   <ListView
     atom={groupByDate(matches)}
     getKey={g => groupFinishedDate(g)}
@@ -48,7 +49,7 @@ export default ({ matches, onFinishMatch, onDeleteMatch }: Props) => (
             <MatchRow
               match={match}
               onFinish={result => onFinishMatch(matchId, result)}
-              onDelete={() => onDeleteMatch(matchId)}
+              deleteMatch={deleteMatch(matchId)}
             />
           )}
         />

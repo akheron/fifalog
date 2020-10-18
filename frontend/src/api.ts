@@ -30,9 +30,10 @@ export const latestMatches_ = async (): Promise<Match[]> =>
   (await fetch('/api/matches')).json()
 export const latestMatches = Effect.fromPromise(latestMatches_)
 
-export async function deleteMatch(id: number): Promise<boolean> {
-  return (await fetch(`/api/matches/${id}`, { method: 'DELETE' })).ok
-}
+export const deleteMatch = Effect.fromPromise(
+  async (id: number): Promise<boolean> =>
+    (await fetch(`/api/matches/${id}`, { method: 'DELETE' })).ok
+)
 
 export const createRandomMatchPair = Effect.fromPromise(
   async (userIds: [number, number]): Promise<[Match, Match]> =>

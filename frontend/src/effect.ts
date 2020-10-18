@@ -169,18 +169,6 @@ export function ifError<E, U>(
 
 export type EffectConstructor<A, E, T> = () => Effect<A, E, T>
 
-function makeEffectConstructor<A, E, T>(
-  run: (bus: B.Bus<EffectState<E, T>>, arg: A) => void
-): EffectConstructor<A, E, T> {
-  return () => {
-    const bus = new B.Bus<EffectState<E, T>>()
-    return {
-      run: (arg: A) => run(bus, arg),
-      state: bus.toProperty(notStarted()),
-    }
-  }
-}
-
 export const map = <T, U>(fn: (value: T) => U) => <A, E>(
   ctor: EffectConstructor<A, E, T>
 ): EffectConstructor<A, E, U> => () => {
@@ -206,6 +194,18 @@ export const mapArg = <A, B>(fn: (arg: B) => A) => <E, T>(
   }
 }
 
+export function fromFunction<A, E, T>(
+  fn: (bus: B.Bus<EffectState<E, T>>, arg: A) => void
+): EffectConstructor<A, E, T> {
+  return () => {
+    const bus = new B.Bus<EffectState<E, T>>()
+    return {
+      run: (arg: A) => fn(bus, arg),
+      state: bus.toProperty(notStarted()),
+    }
+  }
+}
+
 export function fromPromise<A, T>(
   fn: () => Promise<T>
 ): () => Effect<void, void, T>
@@ -215,7 +215,7 @@ export function fromPromise<A, T>(
 export function fromPromise<A, T>(
   fn: (arg: A) => Promise<T>
 ): EffectConstructor<A, void, T> {
-  return makeEffectConstructor((bus, arg) => {
+  return fromFunction((bus, arg) => {
     bus.push(pending())
     bus.plug(
       B.fromPromise(fn(arg))
@@ -231,7 +231,7 @@ function par<A1, E1, T1, A2, E2, T2>(
 ): EffectConstructor<readonly [A1, A2], E1 | E2, readonly [T1, T2]> {
   const e1 = first()
   const e2 = second()
-  return makeEffectConstructor((bus, [arg1, arg2]) => {
+  return fromFunction((bus, [arg1, arg2]) => {
     let done = false
     e1.run(arg1)
     e2.run(arg2)

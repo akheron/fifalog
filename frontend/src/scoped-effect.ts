@@ -2,7 +2,7 @@ import * as B from 'baconjs'
 import { Atom, onUnmount } from 'harmaja'
 import { Effect, EffectConstructor, EffectState, notStarted } from './effect'
 
-interface ForkedEffectConstructor<A1 extends string | number, A2, E, T> {
+interface ScopedEffectConstructor<A1 extends string | number, A2, E, T> {
   (arg: A1): Effect<A2, E, T>
   updates: B.Observable<EffectUpdate<A1, E, T>>
   state: B.Property<RootEffectState<A1, E, T>>
@@ -17,17 +17,17 @@ interface EffectUpdate<A1 extends string | number, E, T> {
   effectState: EffectState<E, T>
 }
 
-export function fork<A extends string | number, E, T>(
+export function scope<A extends string | number, E, T>(
   ctor: EffectConstructor<A, E, T>
-): ForkedEffectConstructor<A, void, E, T>
-export function fork<A, A1 extends string | number, A2, E, T>(
+): ScopedEffectConstructor<A, void, E, T>
+export function scope<A, A1 extends string | number, A2, E, T>(
   ctor: EffectConstructor<A, E, T>,
   joinArg: (arg1: A1) => (arg2: A2) => A
-): ForkedEffectConstructor<A1, A2, E, T>
-export function fork<A, A1 extends string | number, A2, E, T>(
+): ScopedEffectConstructor<A1, A2, E, T>
+export function scope<A, A1 extends string | number, A2, E, T>(
   ctor: EffectConstructor<A, E, T>,
   joinArg?: (part1: A1) => (part2: A2) => A
-): ForkedEffectConstructor<A1, A2, E, T> {
+): ScopedEffectConstructor<A1, A2, E, T> {
   const updates = new B.Bus<EffectUpdate<A1, E, T>>()
   const resets = new B.Bus<A1>()
   const state = B.update<RootEffectState<A1, E, T>>(
@@ -69,16 +69,16 @@ export function fork<A, A1 extends string | number, A2, E, T>(
 }
 
 export function syncSuccess<A1 extends string | number, A2, E, T>(
-  ctor: ForkedEffectConstructor<A1, A2, E, T>,
+  ctor: ScopedEffectConstructor<A1, A2, E, T>,
   target: Atom<T>
 ): void
 export function syncSuccess<A1 extends string | number, A2, E, T, U>(
-  ctor: ForkedEffectConstructor<A1, A2, E, T>,
+  ctor: ScopedEffectConstructor<A1, A2, E, T>,
   update: (current: U, arg: A1, next: T) => U,
   target: Atom<U>
 ): void
 export function syncSuccess<A1 extends string | number, A2, E, T, U>(
-  ctor: ForkedEffectConstructor<A1, A2, E, T>,
+  ctor: ScopedEffectConstructor<A1, A2, E, T>,
   ...rest: any[]
 ): void {
   let update: (current: U, arg: A1, next: T) => U

@@ -4,7 +4,7 @@ import * as C from '../../../common/types'
 import * as api from '../api'
 import { editAtom } from '../atom-utils'
 import * as Effect from '../effect'
-import * as ForkedEffect from '../forked-effect'
+import * as ScopedEffect from '../scoped-effect'
 import * as L from '../lenses'
 import CreateRandomMatchPair from './CreateRandomMatchPair'
 import MatchList from './MatchList'
@@ -48,19 +48,19 @@ const Content = (props: { data: Property<Data> }) => {
     matches
   )
 
-  const finishMatchAndRefresh = ForkedEffect.fork(
+  const finishMatchAndRefresh = ScopedEffect.scope(
     api.finishMatchAndRefresh,
     (id: number) => (result: C.MatchResultBody) => ({ id, result })
   )
-  ForkedEffect.syncSuccess(
+  ScopedEffect.syncSuccess(
     finishMatchAndRefresh,
     state.view(
       L.pick<State, 'matches' | 'stats'>(['matches', 'stats'])
     )
   )
 
-  const deleteMatch = ForkedEffect.fork(api.deleteMatch)
-  ForkedEffect.syncSuccess(
+  const deleteMatch = ScopedEffect.scope(api.deleteMatch)
+  ScopedEffect.syncSuccess(
     deleteMatch,
     (currentMatches, matchId) =>
       currentMatches.filter(match => match.id !== matchId),

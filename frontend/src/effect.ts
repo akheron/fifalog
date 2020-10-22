@@ -39,6 +39,7 @@ export const isError_ = <E>(state: EffectState<E, any>): state is Error<E> =>
 export interface Effect<A, E = unknown, T = unknown> {
   run(arg: A): void
   state: B.Property<EffectState<E, T>>
+  reset: () => void
 }
 
 export function run<E, T>(effect: Effect<void, E, T>): void
@@ -51,6 +52,10 @@ export function state<E, T>(
   effect: Effect<any, E, T>
 ): B.Property<EffectState<E, T>> {
   return effect.state
+}
+
+export function reset(effect: Effect<unknown>): void {
+  effect.reset()
 }
 
 export const match = <A, E, T, O>(
@@ -174,7 +179,7 @@ export const map = <T, U>(fn: (value: T) => U) => <A, E>(
 ): EffectConstructor<A, E, U> => () => {
   const effect = ctor()
   return {
-    run: effect.run,
+    ...effect,
     state: effect.state.map(state => {
       if (state.kind === 'Success') {
         return success(fn(state.value))
@@ -197,8 +202,8 @@ export function mapArg<A, B>(
     return () => {
       const effect = ctor()
       return {
+        ...effect,
         run: (arg: B) => effect.run(fn(arg)),
-        state: effect.state,
       }
     }
   }
@@ -212,6 +217,7 @@ export function fromFunction<A, E, T>(
     return {
       run: (arg: A) => fn(bus, arg),
       state: bus.toProperty(notStarted()),
+      reset: () => bus.push(notStarted()),
     }
   }
 }

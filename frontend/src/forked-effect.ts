@@ -1,72 +1,83 @@
 import * as B from 'baconjs'
 import { Atom, onUnmount } from 'harmaja'
-import { Effect, EffectConstructor, EffectState } from './effect'
+import { Effect, EffectConstructor, EffectState, notStarted } from './effect'
 
-interface ForkedEffectConstructor<A1, A2, E, T> {
+interface ForkedEffectConstructor<A1 extends string | number, A2, E, T> {
   (arg: A1): Effect<A2, E, T>
-  state: B.Observable<ForkedEffectState<A1, E, T>>
+  updates: B.Observable<EffectUpdate<A1, E, T>>
+  state: B.Property<RootEffectState<A1, E, T>>
 }
 
-interface ForkedEffectState<A, E, T> {
-  arg: A
+type RootEffectState<A1 extends string | number, E, T> = Partial<
+  Record<A1, EffectState<E, T>>
+>
+
+interface EffectUpdate<A1 extends string | number, E, T> {
+  arg: A1
   effectState: EffectState<E, T>
 }
 
-export function fork<A, E, T>(
+export function fork<A extends string | number, E, T>(
   ctor: EffectConstructor<A, E, T>
 ): ForkedEffectConstructor<A, void, E, T>
-export function fork<A, A1, A2, E, T>(
+export function fork<A, A1 extends string | number, A2, E, T>(
   ctor: EffectConstructor<A, E, T>,
   joinArg: (arg1: A1) => (arg2: A2) => A
 ): ForkedEffectConstructor<A1, A2, E, T>
-export function fork<A, A1, A2, E, T>(
+export function fork<A, A1 extends string | number, A2, E, T>(
   ctor: EffectConstructor<A, E, T>,
   joinArg?: (part1: A1) => (part2: A2) => A
 ): ForkedEffectConstructor<A1, A2, E, T> {
-  const bus = new B.Bus<ForkedEffectState<A1, E, T>>()
-  const result = (part1: A1) => {
+  const updates = new B.Bus<EffectUpdate<A1, E, T>>()
+  const resets = new B.Bus<A1>()
+  const state = B.update<RootEffectState<A1, E, T>>(
+    {},
+    [
+      updates,
+      (s, u: EffectUpdate<A1, E, T>) => ({ ...s, [u.arg]: u.effectState }),
+    ],
+    [
+      resets,
+      (s, arg: A1) => {
+        const nextState = { ...s }
+        delete nextState[arg]
+        return nextState
+      },
+    ]
+  )
+  const result = (part1: A1): Effect<A2, E, T> => {
     const effect = ctor()
     const argJoiner: (part2: A2) => A = (joinArg
       ? joinArg(part1)
       : always(part1)) as any
-    bus.plug(effect.state.map(effectState => ({ arg: part1, effectState })))
+    updates.plug(
+      effect.state
+        .skipDuplicates()
+        .map(effectState => ({ arg: part1, effectState }))
+    )
     return {
       run: (part2: A2) => effect.run(argJoiner(part2)),
-      state: effect.state,
+      state: state.map(s => s[part1] ?? notStarted<E, T>()).skipDuplicates(),
+      reset: () => {
+        resets.push(part1)
+      },
     }
   }
-  result.state = bus
+  result.updates = updates
+  result.state = state
   return result
 }
 
-export function onSuccess<A, E, T>(
-  effect: Effect<A, E, T>,
-  then_: (value: T) => void
-): B.Unsub {
-  return effect.state.onValue(s => {
-    if (s.kind === 'Success') {
-      then_(s.value)
-    }
-  })
-}
-
-export function sync<A1, A2, E, T>(
-  ctor: ForkedEffectConstructor<A1, A2, E, T>,
-  target: Atom<ForkedEffectState<A1, E, T>>
-): void {
-  onUnmount(ctor.state.onValue(effectState => target.set(effectState)))
-}
-
-export function syncSuccess<A1, A2, E, T>(
+export function syncSuccess<A1 extends string | number, A2, E, T>(
   ctor: ForkedEffectConstructor<A1, A2, E, T>,
   target: Atom<T>
 ): void
-export function syncSuccess<A1, A2, E, T, U>(
+export function syncSuccess<A1 extends string | number, A2, E, T, U>(
   ctor: ForkedEffectConstructor<A1, A2, E, T>,
   update: (current: U, arg: A1, next: T) => U,
   target: Atom<U>
 ): void
-export function syncSuccess<A1, A2, E, T, U>(
+export function syncSuccess<A1 extends string | number, A2, E, T, U>(
   ctor: ForkedEffectConstructor<A1, A2, E, T>,
   ...rest: any[]
 ): void {
@@ -80,7 +91,7 @@ export function syncSuccess<A1, A2, E, T, U>(
     target = rest[1]
   }
   onUnmount(
-    ctor.state.onValue(({ arg, effectState }) => {
+    ctor.updates.onValue(({ arg, effectState }) => {
       if (effectState.kind === 'Success') {
         target.modify(current => update(current, arg, effectState.value))
       }

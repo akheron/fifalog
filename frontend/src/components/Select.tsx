@@ -1,5 +1,5 @@
 import { Property } from 'baconjs'
-import { Atom, ListView, h } from 'harmaja'
+import { Atom, ListView, h } from 'harmaja/bacon'
 
 export type Item = {
   id: number

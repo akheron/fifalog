@@ -9,11 +9,12 @@
   },
   "devDependencies": {
     "@types/classnames": "^2.2.10",
-    "baconjs": "^3.0.15",
+    "baconjs": "^3.0.16",
     "classnames": "^2.2.6",
     "css-loader": "^4.3.0",
     "fp-ts": "^2.8.2",
-    "harmaja": "^0.8.5",
+    "harmaja": "^0.13.2",
+    "lonna": "^0.2.6",
     "mini-css-extract-plugin": "^0.11.2",
     "node-sass": "^4.14.1",
     "ramda": "^0.27.1",
@@ -22,5 +23,6 @@
     "typescript": "^4.0.3",
     "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12"
-  }
+  },
+  "dependencies": {}
 }

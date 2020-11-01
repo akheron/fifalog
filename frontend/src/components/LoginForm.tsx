@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { atom, h } from 'harmaja'
+import { atom, h } from 'harmaja/bacon'
 import * as Effect from '../effect'
 import Input from './Input'
 import * as styles from './LoginForm.scss'

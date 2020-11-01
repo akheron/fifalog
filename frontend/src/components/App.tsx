@@ -1,4 +1,4 @@
-import { Fragment, atom, h } from 'harmaja'
+import { Fragment, atom, h } from 'harmaja/bacon'
 import * as Effect from '../effect'
 import * as api from '../api'
 import { ifElse } from '../atom-utils'

@@ -1,4 +1,4 @@
-import { Atom } from 'harmaja'
+import { Atom } from 'harmaja/bacon'
 
 export type Status = 'idle' | 'loading' | 'error'
 

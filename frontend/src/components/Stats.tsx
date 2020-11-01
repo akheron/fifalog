@@ -1,5 +1,5 @@
 import { Property } from 'baconjs'
-import { ListView, h } from 'harmaja'
+import { ListView, h } from 'harmaja/bacon'
 import { Stats } from '../../../common/types'
 import * as styles from './Stats.scss'
 

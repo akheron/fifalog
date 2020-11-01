@@ -1,4 +1,4 @@
-import { h, mount } from 'harmaja'
+import { h, mount } from 'harmaja/bacon'
 import App from './components/App'
 
 // Server-side rendered

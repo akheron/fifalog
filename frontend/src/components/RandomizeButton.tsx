@@ -1,5 +1,5 @@
 import { Property } from 'baconjs'
-import { h } from 'harmaja'
+import { h } from 'harmaja/bacon'
 
 export type Props = {
   title: string

@@ -1,7 +1,7 @@
 import { either } from 'fp-ts'
 import { pipe } from 'fp-ts/es6/pipeable'
 import { combine } from 'baconjs'
-import { Atom, Lens, atom, h, onUnmount } from 'harmaja'
+import { Atom, Lens, atom, h, onUnmount } from 'harmaja/bacon'
 import { MatchResult, MatchResultBody } from '../../../common/types'
 import { matchResultBodyS } from '../../../common/codecs'
 import { match } from '../atom-utils'

@@ -1,5 +1,5 @@
 import * as B from 'baconjs'
-import { Atom, onUnmount } from 'harmaja'
+import { Atom, onUnmount } from 'harmaja/bacon'
 import { Effect, EffectConstructor, EffectState, notStarted } from './effect'
 
 interface ScopedEffectConstructor<A1 extends string | number, A2, E, T> {

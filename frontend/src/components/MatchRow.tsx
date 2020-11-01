@@ -1,5 +1,5 @@
 import { combine } from 'baconjs'
-import { Atom, Fragment, atom, h } from 'harmaja'
+import { Atom, Fragment, atom, h } from 'harmaja/bacon'
 import { Match, MatchResult, MatchResultBody } from '../../../common/types'
 import { definedOr, ifElse } from '../atom-utils'
 import * as Effect from '../effect'

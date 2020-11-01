@@ -1,5 +1,5 @@
 import * as B from 'baconjs'
-import * as H from 'harmaja'
+import * as H from 'harmaja/bacon'
 
 type MatchBranch<A, S extends A> = (value: A) => value is S
 type MapBranch<A, S extends A, O> = (atom: H.Atom<S>) => O

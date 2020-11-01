@@ -1,4 +1,4 @@
-import { Lens } from 'harmaja'
+import { Lens } from 'harmaja/bacon'
 
 export const pick = <T, K extends keyof T>(keys: K[]): Lens<T, Pick<T, K>> => ({
   get(root) {

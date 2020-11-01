@@ -1,4 +1,4 @@
-import { h, onUnmount } from 'harmaja'
+import { h, onUnmount } from 'harmaja/bacon'
 import * as Effect from '../effect'
 import * as styles from './Logout.scss'
 

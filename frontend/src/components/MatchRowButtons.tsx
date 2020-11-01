@@ -1,5 +1,5 @@
 import { Property } from 'baconjs'
-import { Atom, Fragment, h } from 'harmaja'
+import { Atom, Fragment, h } from 'harmaja/bacon'
 import { ifElse } from '../atom-utils'
 import * as styles from './MatchRowButtons.scss'
 

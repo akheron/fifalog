@@ -1,5 +1,5 @@
 import * as B from 'baconjs'
-import { Atom, onUnmount } from 'harmaja'
+import { Atom, onUnmount } from 'harmaja/bacon'
 import * as A from './atom-utils'
 
 export type EffectState<E, T> = NotStarted | Pending | Success<T> | Error<E>

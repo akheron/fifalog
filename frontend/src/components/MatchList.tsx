@@ -1,5 +1,5 @@
 import * as R from 'ramda'
-import { Atom, ListView, atom, h } from 'harmaja'
+import { Atom, ListView, atom, h } from 'harmaja/bacon'
 import { Match, MatchResultBody } from '../../../common/types'
 import * as Effect from '../effect'
 import MatchRow from './MatchRow'

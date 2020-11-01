@@ -1,4 +1,4 @@
-import { Atom, h } from 'harmaja'
+import { Atom, h } from 'harmaja/bacon'
 
 export type Props = { type?: 'text' | 'password'; value: Atom<string> }
 

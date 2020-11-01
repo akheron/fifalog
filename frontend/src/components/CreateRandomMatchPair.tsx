@@ -1,5 +1,5 @@
 import { Property, combine } from 'baconjs'
-import { Fragment, h } from 'harmaja'
+import { Fragment, h } from 'harmaja/bacon'
 import { User } from '../../../common/types'
 import { definedOr, editAtom } from '../atom-utils'
 import * as Effect from '../effect'

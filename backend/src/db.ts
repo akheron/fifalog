@@ -140,7 +140,14 @@ const dbClient = (client: pg.ClientBase): DBClient => {
   return dbClient
 }
 
-const pool = new pg.Pool({ connectionString: config.databaseUrl })
+const forceSslOptions = {
+  rejectUnauthorized: false,
+}
+
+export const pool = new pg.Pool({
+  connectionString: config.databaseUrl,
+  ssl: config.databaseForceSsl ? forceSslOptions : undefined,
+})
 
 export const db: Middleware.Middleware<{ db: DBClient }, never> = async () => {
   try {

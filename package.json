@@ -10,11 +10,11 @@
   ],
   "scripts": {
     "start:dev": "concurrently -n frontend,backend 'yarn workspace frontend start:dev' 'yarn workspace backend start:dev'",
+    "migrate-db:dev": "ts-node backend/src/migrate.ts",
     "build": "concurrently -n frontend,backend 'yarn workspace frontend build' 'yarn workspace backend build'",
-    "migrate-db": "yarn db-migrate up --migrations-dir backend/migrations/",
-    "create-migration": "yarn db-migrate create --migrations-dir backend/migrations/ --sql-file=true",
-    "lint": "yarn workspace backend lint",
-    "start": "NODE_ENV=production node dist/backend/src/main.js"
+    "start": "NODE_ENV=production node dist/backend/src/main.js",
+    "migrate-db": "node dist/backend/src/migrate.js",
+    "lint": "yarn workspace backend lint"
   },
   "devDependencies": {
     "concurrently": "^4.1.2",

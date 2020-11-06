@@ -9,6 +9,7 @@ jobs:
       - image: circleci/postgres:12
         environment:
           POSTGRES_USER: fifalog
+          POSTGRES_PASSWORD: fifalog
           POSTGRES_DB: fifalog
 
     working_directory: ~/repo
@@ -30,5 +31,5 @@ jobs:
           key: v1-dependencies-{{ checksum "package.json" }}
 
       - run: yarn build
-      - run: yarn migrate
+      - run: yarn migrate-db
       - run: yarn lint

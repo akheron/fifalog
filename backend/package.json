@@ -28,8 +28,6 @@
     "typescript": "^4.0.3"
   },
   "dependencies": {
-    "db-migrate": "^0.11.11",
-    "db-migrate-pg": "^1.2.2",
     "dotenv": "^8.2.0",
     "fp-ts": "^2.8.2",
     "io-ts": "^2.2.10",
@@ -40,7 +38,8 @@
     "koa-mount": "^4.0.0",
     "koa-static": "^5.0.0",
     "monocle-ts": "^2.3.3",
-    "pg": "^8.3.3",
+    "pg": "^8.4.2",
+    "postgres-migrations": "^5.1.0",
     "prettier": "^1.18.2",
     "ramda": "^0.27.1",
     "typera-koa": "1.0.0-alpha.1"

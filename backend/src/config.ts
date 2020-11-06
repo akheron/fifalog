@@ -1,5 +1,6 @@
 import * as t from 'io-ts'
 import { PathReporter } from 'io-ts/lib/PathReporter'
+import { BooleanFromString } from 'io-ts-types/lib/BooleanFromString'
 import { IntFromString } from 'io-ts-types/lib/IntFromString'
 import { isLeft } from 'fp-ts/lib/Either'
 
@@ -12,6 +13,7 @@ const codec = t.intersection([
     USERNAME: t.string,
     PASSWORD: t.string,
     SECRETS: t.string,
+    DATABASE_FORCE_SSL: BooleanFromString,
   }),
 ])
 
@@ -25,6 +27,7 @@ interface Config {
     secrets: string[]
   } | null
   databaseUrl: string
+  databaseForceSsl: boolean
 }
 
 function configFromEnv(env: t.TypeOf<typeof codec>): Config {
@@ -41,6 +44,7 @@ function configFromEnv(env: t.TypeOf<typeof codec>): Config {
           }
         : null,
     databaseUrl: env.DATABASE_URL,
+    databaseForceSsl: env.DATABASE_FORCE_SSL ?? false,
   }
 }
 

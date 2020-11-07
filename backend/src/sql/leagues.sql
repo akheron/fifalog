@@ -17,5 +17,7 @@ SELECT
   team.name as team_name
 FROM league
 JOIN team ON (team.league_id = league.id)
-WHERE team.id NOT IN (SELECT team_id FROM latest_teams)
+WHERE
+  NOT team.disabled
+  AND team.id NOT IN (SELECT team_id FROM latest_teams)
 ORDER BY league.name, team.name

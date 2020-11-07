@@ -10,6 +10,7 @@ export async function leagues(
   Array<{
     league_id: number
     league_name: string
+    exclude_random_all: boolean
     team_id: number
     team_name: string
   }>
@@ -31,6 +32,7 @@ WITH latest_matches AS (
 SELECT
   league.id as league_id,
   league.name as league_name,
+  league.exclude_random_all as exclude_random_all,
   team.id as team_id,
   team.name as team_name
 FROM league

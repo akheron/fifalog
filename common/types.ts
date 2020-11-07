@@ -4,6 +4,7 @@ import { matchResultBody, penalties } from './codecs'
 export type League = {
   id: number
   name: string
+  excludeRandomAll: boolean
   teams: Team[]
 }
 

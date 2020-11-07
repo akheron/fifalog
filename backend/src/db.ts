@@ -36,6 +36,7 @@ const dbClient = (client: pg.ClientBase) => ({
       rows => ({
         id: rows[0].league_id,
         name: rows[0].league_name,
+        excludeRandomAll: rows[0].exclude_random_all,
         teams: rows.map(row => ({
           id: row.team_id,
           name: row.team_name,

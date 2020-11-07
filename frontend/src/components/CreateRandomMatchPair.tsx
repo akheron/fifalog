@@ -35,9 +35,13 @@ export default ({ users, create }: Props) => {
       )
       return (
         <>
-          <Select items={users} value={state.view('user1')} />
-          {' vs. '}
-          <Select items={users} value={state.view('user2')} />{' '}
+          {ifLongerThan(users, 2, () => (
+            <>
+              <Select items={users} value={state.view('user1')} />
+              {' vs. '}
+              <Select items={users} value={state.view('user2')} />{' '}
+            </>
+          ))}
           <RandomizeButton
             title="Create random match pair"
             disabled={disabled}
@@ -62,3 +66,13 @@ export default ({ users, create }: Props) => {
     () => null
   )
 }
+
+const ifLongerThan = (
+  obs: Property<unknown[]>,
+  len: number,
+  fn: () => HarmajaOutput
+): HarmajaOutput =>
+  obs
+    .map(value => value.length > len)
+    .skipDuplicates()
+    .map(show => (show ? fn() : null))

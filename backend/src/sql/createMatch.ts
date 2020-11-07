@@ -6,7 +6,7 @@ import { ClientBase, Pool } from 'pg'
 export async function createMatch(
   client: ClientBase | Pool,
   params: {
-    leagueId: number
+    leagueId: number | null
     homeId: number
     awayId: number
     homeUserId: number

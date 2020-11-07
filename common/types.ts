@@ -14,8 +14,8 @@ export type Team = {
 
 export type Match = {
   id: number
-  leagueId: number
-  leagueName: string
+  leagueId: number | null
+  leagueName: string | null
   home: Team
   away: Team
   homeUser: User

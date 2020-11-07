@@ -89,7 +89,7 @@ const dbClient = (client: pg.ClientBase) => ({
   },
 
   async createMatch(params: {
-    leagueId: number
+    leagueId: number | null
     homeId: number
     awayId: number
     homeUserId: number

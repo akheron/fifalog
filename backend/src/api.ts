@@ -14,7 +14,7 @@ import { auth } from './auth'
 import { db } from './db'
 import { matchResultBody } from '../../common/codecs'
 import { League, Match, User, Stats } from '../../common/types'
-import { getRandomMatch } from './teams'
+import { getRandomMatchFromAll, getRandomMatchFromLeagues } from './teams'
 
 const route = applyMiddleware(auth, db)
 
@@ -53,7 +53,11 @@ const finishMatch: Route<
   | Response.BadRequest<string>
   | Response.Unauthorized<string>
   | Response.NotFound
-> = route.put('/matches/', URL.int('id'), '/finish')(
+> = route.put(
+  '/matches/',
+  URL.int('id'),
+  '/finish'
+)(
   db,
   Parser.body(matchResultBody)
 )(async req => {
@@ -62,7 +66,11 @@ const finishMatch: Route<
   return Response.ok(match)
 })
 
-const randomMatchPairBody = t.type({ userIds: t.tuple([t.number, t.number]) })
+const randomMatchPairBody = t.type({
+  user1: t.number,
+  user2: t.number,
+  respectLeagues: t.boolean,
+})
 
 const createRandomMatchPair: Route<
   | Response.Ok<[Match, Match]>
@@ -70,11 +78,14 @@ const createRandomMatchPair: Route<
   | Response.Unauthorized<string>
 > = route.post('/matches/random_pair')(db, Parser.body(randomMatchPairBody))(
   async req => {
-    const userIds = req.body.userIds
+    const userIds = [req.body.user1, req.body.user2]
     if (userIds[0] === userIds[1])
       return Response.badRequest('User ids must be inequal')
 
-    const randomMatchOption = getRandomMatch(await req.db.leagues())
+    const leagues = await req.db.leagues()
+    const randomMatchOption = req.body.respectLeagues
+      ? getRandomMatchFromLeagues(leagues)
+      : getRandomMatchFromAll(leagues)
     if (Option.isNone(randomMatchOption)) {
       return Response.badRequest('No teams defined in database')
     }

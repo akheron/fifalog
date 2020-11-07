@@ -67,7 +67,9 @@ export const getRandomMatchFromLeagues = (
 export const getRandomMatchFromAll = (
   leagues: League[]
 ): Option.Option<RandomMatch> => {
-  const teams = leagues.map(league => league.teams).flat()
+  const teams = leagues
+    .map(league => (league.excludeRandomAll ? [] : league.teams))
+    .flat()
   if (teams.length < 2) {
     return Option.none
   }

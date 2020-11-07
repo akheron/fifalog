@@ -1,5 +1,5 @@
 import { Property, combine } from 'baconjs'
-import { Fragment, h } from 'harmaja/bacon'
+import { Atom, Fragment, h, HarmajaOutput } from 'harmaja/bacon'
 import { User } from '../../../common/types'
 import { definedOr, editAtom } from '../atom-utils'
 import * as Effect from '../effect'
@@ -20,7 +20,11 @@ function init(users: User[]): State | undefined {
 
 export type Props = {
   users: Property<User[]>
-  create: Effect.Effect<[number, number]>
+  create: Effect.Effect<{
+    user1: number
+    user2: number
+    respectLeagues: boolean
+  }>
 }
 
 export default ({ users, create }: Props) => {
@@ -28,6 +32,10 @@ export default ({ users, create }: Props) => {
   return definedOr(
     maybeState,
     state => {
+      const randomize = (respectLeagues: boolean) => () => {
+        const { user1, user2 } = state.get()
+        create.run({ user1, user2, respectLeagues })
+      }
       const disabled = combine(
         state,
         Effect.isPending(create),
@@ -43,12 +51,14 @@ export default ({ users, create }: Props) => {
             </>
           ))}
           <RandomizeButton
-            title="Create random match pair"
+            title="Randomize"
             disabled={disabled}
-            onClick={() => {
-              const { user1, user2 } = state.get()
-              create.run([user1, user2])
-            }}
+            onClick={randomize(false)}
+          />{' '}
+          <RandomizeButton
+            title="Randomize in leagues"
+            disabled={disabled}
+            onClick={randomize(true)}
           />{' '}
           {Effect.ifPending(
             create,

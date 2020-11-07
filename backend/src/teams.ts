@@ -42,12 +42,12 @@ const nthTeamPairAndLeague = (
 }
 
 export type RandomMatch = {
-  leagueId: number
+  leagueId: number | null
   homeId: number
   awayId: number
 }
 
-export const getRandomMatch = (
+export const getRandomMatchFromLeagues = (
   leagues: League[]
 ): Option.Option<RandomMatch> => {
   const targetIndex = Math.floor(Math.random() * numTeamPairs(leagues))
@@ -63,3 +63,28 @@ export const getRandomMatch = (
     })
   )
 }
+
+export const getRandomMatchFromAll = (
+  leagues: League[]
+): Option.Option<RandomMatch> => {
+  const teams = leagues.map(league => league.teams).flat()
+  if (teams.length < 2) {
+    return Option.none
+  }
+  while (true) {
+    const team1 = teams[randInt(teams.length)]
+    const team2 = teams[randInt(teams.length)]
+    if (team1.id !== team2.id) {
+      return Option.some({
+        leagueId: null,
+        homeId: team1.id,
+        awayId: team2.id,
+      })
+    }
+  }
+}
+
+/**
+ * Random integer in [0, max)
+ */
+const randInt = (max: number) => Math.floor(Math.random() * max)

@@ -36,7 +36,11 @@ export const deleteMatch = Effect.fromPromise(
 )
 
 export const createRandomMatchPair = Effect.fromPromise(
-  async (userIds: [number, number]): Promise<[Match, Match]> =>
+  async (arg: {
+    user1: number
+    user2: number
+    respectLeagues: boolean
+  }): Promise<[Match, Match]> =>
     (
       await fetch('/api/matches/random_pair', {
         method: 'POST',
@@ -44,7 +48,7 @@ export const createRandomMatchPair = Effect.fromPromise(
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ userIds }),
+        body: JSON.stringify(arg),
       })
     ).json()
 )

@@ -1,10 +1,10 @@
 import { Route, Response, route, router } from 'typera-koa'
-import { validateAuth } from './auth'
+import { validateAuth } from '../auth'
 
 const indexPage: Route<
   Response.Ok<string, { 'Content-Type': string }>
 > = route.get('/').handler(async req => {
-  const isLoggedIn = validateAuth(req.ctx as any)
+  const isLoggedIn = validateAuth(req.ctx)
 
   return Response.ok(
     `\

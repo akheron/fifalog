@@ -10,11 +10,11 @@ import {
 } from 'typera-koa'
 import * as R from 'ramda'
 
-import { auth } from './auth'
-import { db } from './db'
-import { matchResultBody } from '../../common/codecs'
-import { League, Match, User, Stats } from '../../common/types'
-import { getRandomMatchFromAll, getRandomMatchFromLeagues } from './teams'
+import { auth } from '../auth'
+import { db } from '../db'
+import { matchResultBody } from '../../../common/codecs'
+import { League, Match, User, Stats } from '../../../common/types'
+import { getRandomMatchFromAll, getRandomMatchFromLeagues } from '../teams'
 
 const route = applyMiddleware(auth, db)
 

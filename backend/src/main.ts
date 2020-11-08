@@ -7,9 +7,10 @@ import * as koaStatic from 'koa-static'
 import * as koaBodyParser from 'koa-bodyparser'
 import * as koaCompress from 'koa-compress'
 
-import { apiRouter } from './api'
-import { authRouter } from './auth'
-import { indexPageRouter } from './indexPage'
+
+import { apiRouter } from './routes/api'
+import { authRouter } from './routes/auth'
+import { indexPageRouter } from './routes/indexPage'
 import config from './config'
 import { redirectToHttps } from './utils'
 

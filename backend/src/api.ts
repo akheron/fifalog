@@ -20,19 +20,19 @@ const route = applyMiddleware(auth, db)
 
 const users: Route<
   Response.Ok<User[]> | Response.Unauthorized<string>
-> = route.get('/users')(db)(async req => {
+> = route.get('/users')()(async req => {
   return Response.ok(await req.db.users())
 })
 
 const leagues: Route<
   Response.Ok<League[]> | Response.Unauthorized<string>
-> = route.get('/leagues')(db)(async req => {
+> = route.get('/leagues')()(async req => {
   return Response.ok(await req.db.leagues())
 })
 
 const matches: Route<
   Response.Ok<Match[]> | Response.Unauthorized<string>
-> = route.get('/matches')(db)(async req => {
+> = route.get('/matches')()(async req => {
   return Response.ok(await req.db.latestMatches(20))
 })
 
@@ -41,7 +41,7 @@ const deleteMatch: Route<
   | Response.BadRequest<string>
   | Response.Unauthorized<string>
   | Response.NotFound
-> = route.delete('/matches/', URL.int('id'))(db)(async req => {
+> = route.delete('/matches/', URL.int('id'))()(async req => {
   const result = await req.db.deleteMatch(req.routeParams.id)
 
   if (result) return Response.noContent()
@@ -57,10 +57,7 @@ const finishMatch: Route<
   '/matches/',
   URL.int('id'),
   '/finish'
-)(
-  db,
-  Parser.body(matchResultBody)
-)(async req => {
+)(Parser.body(matchResultBody))(async req => {
   const match = await req.db.finishMatch(req.routeParams.id, req.body)
   if (!match) return Response.notFound()
   return Response.ok(match)
@@ -76,7 +73,7 @@ const createRandomMatchPair: Route<
   | Response.Ok<[Match, Match]>
   | Response.BadRequest<string>
   | Response.Unauthorized<string>
-> = route.post('/matches/random_pair')(db, Parser.body(randomMatchPairBody))(
+> = route.post('/matches/random_pair')(Parser.body(randomMatchPairBody))(
   async req => {
     const userIds = [req.body.user1, req.body.user2]
     if (userIds[0] === userIds[1])
@@ -112,7 +109,7 @@ const createRandomMatchPair: Route<
 
 const stats: Route<
   Response.Ok<Stats[]> | Response.Unauthorized<string>
-> = route.get('/stats')(db)(async req => {
+> = route.get('/stats')()(async req => {
   const lastUserStats = await req.db.userStats(10)
   const lastTotalStats = await req.db.totalStats(10)
   const userStats = R.groupWith(

@@ -42,6 +42,6 @@
     "postgres-migrations": "^5.1.0",
     "prettier": "^1.18.2",
     "ramda": "^0.27.1",
-    "typera-koa": "1.0.0-alpha.1"
+    "typera-koa": "^1.0.0"
   }
 }

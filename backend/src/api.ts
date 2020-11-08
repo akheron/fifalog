@@ -20,19 +20,19 @@ const route = applyMiddleware(auth, db)
 
 const users: Route<
   Response.Ok<User[]> | Response.Unauthorized<string>
-> = route.get('/users')()(async req => {
+> = route.get('/users').handler(async req => {
   return Response.ok(await req.db.users())
 })
 
 const leagues: Route<
   Response.Ok<League[]> | Response.Unauthorized<string>
-> = route.get('/leagues')()(async req => {
+> = route.get('/leagues').handler(async req => {
   return Response.ok(await req.db.leagues())
 })
 
 const matches: Route<
   Response.Ok<Match[]> | Response.Unauthorized<string>
-> = route.get('/matches')()(async req => {
+> = route.get('/matches').handler(async req => {
   return Response.ok(await req.db.latestMatches(20))
 })
 
@@ -41,7 +41,7 @@ const deleteMatch: Route<
   | Response.BadRequest<string>
   | Response.Unauthorized<string>
   | Response.NotFound
-> = route.delete('/matches/', URL.int('id'))()(async req => {
+> = route.delete('/matches/', URL.int('id')).handler(async req => {
   const result = await req.db.deleteMatch(req.routeParams.id)
 
   if (result) return Response.noContent()
@@ -53,15 +53,14 @@ const finishMatch: Route<
   | Response.BadRequest<string>
   | Response.Unauthorized<string>
   | Response.NotFound
-> = route.put(
-  '/matches/',
-  URL.int('id'),
-  '/finish'
-)(Parser.body(matchResultBody))(async req => {
-  const match = await req.db.finishMatch(req.routeParams.id, req.body)
-  if (!match) return Response.notFound()
-  return Response.ok(match)
-})
+> = route
+  .put('/matches/', URL.int('id'), '/finish')
+  .use(Parser.body(matchResultBody))
+  .handler(async req => {
+    const match = await req.db.finishMatch(req.routeParams.id, req.body)
+    if (!match) return Response.notFound()
+    return Response.ok(match)
+  })
 
 const randomMatchPairBody = t.type({
   user1: t.number,
@@ -73,8 +72,10 @@ const createRandomMatchPair: Route<
   | Response.Ok<[Match, Match]>
   | Response.BadRequest<string>
   | Response.Unauthorized<string>
-> = route.post('/matches/random_pair')(Parser.body(randomMatchPairBody))(
-  async req => {
+> = route
+  .post('/matches/random_pair')
+  .use(Parser.body(randomMatchPairBody))
+  .handler(async req => {
     const userIds = [req.body.user1, req.body.user2]
     if (userIds[0] === userIds[1])
       return Response.badRequest('User ids must be inequal')
@@ -104,12 +105,11 @@ const createRandomMatchPair: Route<
       )
     }
     return Response.ok<[Match, Match]>([match2, match1])
-  }
-)
+  })
 
 const stats: Route<
   Response.Ok<Stats[]> | Response.Unauthorized<string>
-> = route.get('/stats')()(async req => {
+> = route.get('/stats').handler(async req => {
   const lastUserStats = await req.db.userStats(10)
   const lastTotalStats = await req.db.totalStats(10)
   const userStats = R.groupWith(

@@ -4727,7 +4727,7 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typera-common@^1.0.0-alpha.1:
+typera-common@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/typera-common/-/typera-common-1.0.0.tgz#adc8edc3439b0f065548f942627f821775dae6f1"
   integrity sha512-OB2cWhETQenCIZ+3FAfbiUK+5HiUvQXuTs0r4TDuEXcuBZGr/+yCMQifKSyuhBV3HTBTixgZ9D2SOfGeFQrtjw==
@@ -4736,10 +4736,10 @@ typera-common@^1.0.0-alpha.1:
     io-ts ">=2.0.0"
     io-ts-types ">=0.5.1"
 
-typera-koa@1.0.0-alpha.1:
-  version "1.0.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/typera-koa/-/typera-koa-1.0.0-alpha.1.tgz#1a5c07212f96265d892256c7a34b878ac4ba7a2a"
-  integrity sha512-G9p/Mcc51m1n88XGKopjyCIc7FalEpuJ97taSrorQfcrhQ26I69oxnVozn1o9q6JM4sMxvc9AXMwGjUTXgTf5g==
+typera-koa@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/typera-koa/-/typera-koa-1.0.0.tgz#664bb7e5c3c739815cab445df9935be3bf9b2835"
+  integrity sha512-xI3+waBZoNZQn64jlo4dJO0TbwycGMti2dnkmStrdobuyKv6iGtoETVFvtUePu2ztuy84cet2cpAFfvze7vjcA==
   dependencies:
     "@koa/router" ">=9.0.0"
     "@types/koa" ">=2.0.0"
@@ -4747,7 +4747,7 @@ typera-koa@1.0.0-alpha.1:
     "@types/koa__router" ">=8.0.0"
     koa ">=2.0.0"
     koa-bodyparser ">=4.0.0"
-    typera-common "^1.0.0-alpha.1"
+    typera-common "^1.0.0"
 
 typescript@^3.8.3:
   version "3.9.7"

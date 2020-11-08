@@ -3,7 +3,7 @@ import { validateAuth } from './auth'
 
 const indexPage: Route<
   Response.Ok<string, { 'Content-Type': string }>
-> = route.get('/')()(async req => {
+> = route.get('/').handler(async req => {
   const isLoggedIn = validateAuth(req.ctx as any)
 
   return Response.ok(

@@ -9,8 +9,8 @@ export async function latestMatches(
 ): Promise<
   Array<{
     match_id: number
-    league_id: number
-    league_name: string
+    league_id: number | null
+    league_name: string | null
     home_id: number
     home_name: string
     away_id: number
@@ -48,7 +48,7 @@ SELECT
     away_penalty_goals,
     to_char(finished_time, 'Day YYYY-MM-DD') AS finished_date
 FROM match
-JOIN league ON (league.id = league_id)
+LEFT JOIN league ON (league.id = league_id)
 JOIN team AS home ON (home.id = home_id)
 JOIN team AS away ON (away.id = away_id)
 JOIN "user" AS home_user ON (home_user.id = home_user_id)

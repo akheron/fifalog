@@ -4285,10 +4285,10 @@ sql-template-strings@^2.2.2:
   resolved "https://registry.yarnpkg.com/sql-template-strings/-/sql-template-strings-2.2.2.tgz#3f11508a25addfce217a3042a9d300c3193b96ff"
   integrity sha1-PxFQiiWt384hejBCqdMAwxk7lv8=
 
-sqltyper@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/sqltyper/-/sqltyper-1.0.0.tgz#5a287702e72b1927f7baadb7b37393b8f474a896"
-  integrity sha512-WRHLo2sYTpSZm/4jcVFRJmgqBiCtSRuw4C53vf9W0cwYAuj/a2ZcLR7LcpEowt6szIlkt3oq5KFEdt5GZvOiJg==
+sqltyper@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/sqltyper/-/sqltyper-1.0.1.tgz#5012736c05ba88a0380e04e115787ef8f347d03a"
+  integrity sha512-eT9RLOAjFP5/cBNa/4K875Y1Ew6SxX5JJ6BgX2O3l1qV3393UwEKoWe2soAH4EygLRXv1vzQZUEMSfMSFeaXSg==
   dependencies:
     buffer-writer "^2.0.0"
     camelcase "^6.0.0"
@@ -4297,7 +4297,7 @@ sqltyper@^1.0.0:
     packet-reader "^1.0.0"
     ramda "^0.27.0"
     typed-parser "^0.1.4"
-    typescript "^3.8.3"
+    typescript ">=3.8"
     wrap-ansi "^7.0.0"
     yargs "^15.3.1"
 
@@ -4749,10 +4749,10 @@ typera-koa@^1.0.0:
     koa-bodyparser ">=4.0.0"
     typera-common "^1.0.0"
 
-typescript@^3.8.3:
-  version "3.9.7"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.7.tgz#98d600a5ebdc38f40cb277522f12dc800e9e25fa"
-  integrity sha512-BLbiRkiBzAwsjut4x/dsibSTB6yWpwT5qWmC2OfuCg3GgVQCSgMs4vEctYPhsaGtd0AeuuHMkjZ2h2WG8MSzRw==
+typescript@>=3.8:
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.5.tgz#ae9dddfd1069f1cb5beb3ef3b2170dd7c1332389"
+  integrity sha512-ywmr/VrTVCmNTJ6iV2LwIrfG1P+lv6luD8sUJs+2eI9NLGigaN+nUQc13iHqisq7bra9lnmUSYqbJvegraBOPQ==
 
 typescript@^4.0.3:
   version "4.0.3"

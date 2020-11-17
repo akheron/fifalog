@@ -1,7 +1,7 @@
 import { either } from 'fp-ts'
 import { pipe } from 'fp-ts/es6/pipeable'
 import { combine } from 'baconjs'
-import { Atom, Lens, atom, h, onUnmount } from 'harmaja/bacon'
+import { Atom, Lens, atom, h } from 'harmaja/bacon'
 import { MatchResult, MatchResultBody } from '../../../common/types'
 import { matchResultBodyS } from '../../../common/codecs'
 import { match } from '../atom-utils'
@@ -71,9 +71,9 @@ export default ({ save }: Props) => {
 
   return (
     <div className={styles.editMatch}>
-      <Input type="text" value={homeScore} />
+      <Input type="number" value={homeScore} />
       {' - '}
-      <Input type="text" value={awayScore} />{' '}
+      <Input type="number" value={awayScore} />{' '}
       <FinishedTypeSelect value={finishedType.view(finishedTypeLens)} />
       {match(
         finishedType,
@@ -81,9 +81,9 @@ export default ({ save }: Props) => {
         f => (
           <small>
             {' ('}
-            <Input type="text" value={f.view(penaltiesLens('homeGoals'))} />
+            <Input type="number" value={f.view(penaltiesLens('homeGoals'))} />
             {' - '}
-            <Input type="text" value={f.view(penaltiesLens('awayGoals'))} />
+            <Input type="number" value={f.view(penaltiesLens('awayGoals'))} />
             {' P)'}
           </small>
         ),

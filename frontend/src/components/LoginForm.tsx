@@ -26,7 +26,7 @@ export default ({ login }: Props) => {
       <div>
         <label>
           <span>Username:</span>{' '}
-          <Input type="text" value={state.view('username')} />
+          <Input value={state.view('username')} />
         </label>
       </div>
       <div>

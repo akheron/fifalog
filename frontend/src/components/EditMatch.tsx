@@ -71,9 +71,9 @@ export default ({ save }: Props) => {
 
   return (
     <div className={styles.editMatch}>
-      <Input type="number" value={homeScore} />
+      <Input inputMode="numeric" value={homeScore} />
       {' - '}
-      <Input type="number" value={awayScore} />{' '}
+      <Input inputMode="numeric" value={awayScore} />{' '}
       <FinishedTypeSelect value={finishedType.view(finishedTypeLens)} />
       {match(
         finishedType,
@@ -81,9 +81,9 @@ export default ({ save }: Props) => {
         f => (
           <small>
             {' ('}
-            <Input type="number" value={f.view(penaltiesLens('homeGoals'))} />
+            <Input inputMode="numeric" value={f.view(penaltiesLens('homeGoals'))} />
             {' - '}
-            <Input type="number" value={f.view(penaltiesLens('awayGoals'))} />
+            <Input inputMode="numeric" value={f.view(penaltiesLens('awayGoals'))} />
             {' P)'}
           </small>
         ),

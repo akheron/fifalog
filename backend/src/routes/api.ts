@@ -1,13 +1,6 @@
 import * as Option from 'fp-ts/lib/Option'
 import * as t from 'io-ts'
-import {
-  Route,
-  Parser,
-  Response,
-  URL,
-  applyMiddleware,
-  router,
-} from 'typera-koa'
+import { Route, Parser, Response, applyMiddleware, router } from 'typera-koa'
 import * as R from 'ramda'
 
 import { auth } from '../auth'
@@ -41,7 +34,7 @@ const deleteMatch: Route<
   | Response.BadRequest<string>
   | Response.Unauthorized<string>
   | Response.NotFound
-> = route.delete('/matches/', URL.int('id')).handler(async req => {
+> = route.delete('/matches/:id(int)').handler(async req => {
   const result = await req.db.deleteMatch(req.routeParams.id)
 
   if (result) return Response.noContent()
@@ -54,7 +47,7 @@ const finishMatch: Route<
   | Response.Unauthorized<string>
   | Response.NotFound
 > = route
-  .put('/matches/', URL.int('id'), '/finish')
+  .put('/matches/:id(int)/finish')
   .use(Parser.body(matchResultBody))
   .handler(async req => {
     const match = await req.db.finishMatch(req.routeParams.id, req.body)

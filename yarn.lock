@@ -4644,10 +4644,10 @@ trim-newlines@^1.0.0:
   dependencies:
     glob "^7.1.2"
 
-ts-loader@^8.0.4:
-  version "8.0.4"
-  resolved "https://registry.yarnpkg.com/ts-loader/-/ts-loader-8.0.4.tgz#02b9c91fbcfdb3114d8b1e98a3829265270eee7a"
-  integrity sha512-5u8KF1SW8eCUb/Ff7At81e3wznPmT/27fvaGRO9CziVy+6NlPVRvrzSox4OwU0/e6OflOUB32Err4VquysCSAQ==
+ts-loader@^8.0.11:
+  version "8.0.11"
+  resolved "https://registry.yarnpkg.com/ts-loader/-/ts-loader-8.0.11.tgz#35d58a65932caacb120426eea59eca841786c899"
+  integrity sha512-06X+mWA2JXoXJHYAesUUL4mHFYhnmyoCdQVMXofXF552Lzd4wNwSGg7unJpttqUP7ziaruM8d7u8LUB6I1sgzA==
   dependencies:
     chalk "^2.3.0"
     enhanced-resolve "^4.0.0"
@@ -4727,19 +4727,19 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typera-common@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/typera-common/-/typera-common-1.0.0.tgz#adc8edc3439b0f065548f942627f821775dae6f1"
-  integrity sha512-OB2cWhETQenCIZ+3FAfbiUK+5HiUvQXuTs0r4TDuEXcuBZGr/+yCMQifKSyuhBV3HTBTixgZ9D2SOfGeFQrtjw==
+typera-common@^2.0.0-alpha.0:
+  version "2.0.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/typera-common/-/typera-common-2.0.0-alpha.0.tgz#2d0c3976b8c7e4d8356a3c901106d76105dd04fd"
+  integrity sha512-XnuPwoY897IHPz0JtPdO8u9mqC26K5CJHIMh7YFKGYdZwk0lXDqVnp4TPreNYelCFo46Ha0CzxXO4hwSCPSz1A==
   dependencies:
     fp-ts ">=2.0.0"
     io-ts ">=2.0.0"
     io-ts-types ">=0.5.1"
 
-typera-koa@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/typera-koa/-/typera-koa-1.0.0.tgz#664bb7e5c3c739815cab445df9935be3bf9b2835"
-  integrity sha512-xI3+waBZoNZQn64jlo4dJO0TbwycGMti2dnkmStrdobuyKv6iGtoETVFvtUePu2ztuy84cet2cpAFfvze7vjcA==
+typera-koa@^2.0.0-alpha.0:
+  version "2.0.0-alpha.0"
+  resolved "https://registry.yarnpkg.com/typera-koa/-/typera-koa-2.0.0-alpha.0.tgz#ae43de1bfc8bff24d64dff617a1ab7a38874541f"
+  integrity sha512-7kcPVYBqvRomi8Qty74cLidwg8TfTX7hwvb0AxXAbOxMKfxk+3lsHVsaEn3VeQpf8soQiQtVfcnP6px/odP1gQ==
   dependencies:
     "@koa/router" ">=9.0.0"
     "@types/koa" ">=2.0.0"
@@ -4747,17 +4747,17 @@ typera-koa@^1.0.0:
     "@types/koa__router" ">=8.0.0"
     koa ">=2.0.0"
     koa-bodyparser ">=4.0.0"
-    typera-common "^1.0.0"
+    typera-common "^2.0.0-alpha.0"
 
 typescript@>=3.8:
   version "4.0.5"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.5.tgz#ae9dddfd1069f1cb5beb3ef3b2170dd7c1332389"
   integrity sha512-ywmr/VrTVCmNTJ6iV2LwIrfG1P+lv6luD8sUJs+2eI9NLGigaN+nUQc13iHqisq7bra9lnmUSYqbJvegraBOPQ==
 
-typescript@^4.0.3:
-  version "4.0.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.3.tgz#153bbd468ef07725c1df9c77e8b453f8d36abba5"
-  integrity sha512-tEu6DGxGgRJPb/mVPIZ48e69xCn2yRmCgYmDugAVwmJ6o+0u1RI18eO7E7WBTLYLaEVVOhwQmcdhQHweux/WPg==
+typescript@^4.1.2:
+  version "4.1.2"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.1.2.tgz#6369ef22516fe5e10304aae5a5c4862db55380e9"
+  integrity sha512-thGloWsGH3SOxv1SoY7QojKi0tc+8FnOmiarEGMbd/lar7QOEd3hvlx3Fp5y6FlDUGl9L+pd4n2e+oToGMmhRQ==
 
 union-value@^1.0.0:
   version "1.0.1"

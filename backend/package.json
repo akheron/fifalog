@@ -25,7 +25,7 @@
     "sqltyper": "^1.0.1",
     "ts-node": "^9.0.0",
     "tsc-watch": "^4.2.9",
-    "typescript": "^4.0.3"
+    "typescript": "^4.1.2"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
@@ -42,6 +42,6 @@
     "postgres-migrations": "^5.1.0",
     "prettier": "^1.18.2",
     "ramda": "^0.27.1",
-    "typera-koa": "^1.0.0"
+    "typera-koa": "^2.0.0-alpha.0"
   }
 }

@@ -8,29 +8,30 @@ const loginBody = t.type({
   password: t.string,
 })
 
-const login: Route<Response.Ok | Response.BadRequest<string>> = route.post(
-  '/login'
-)(Parser.body(loginBody))(req => {
-  if (!config.auth)
-    return Response.badRequest('Session functionality is disabled')
+const login: Route<Response.Ok | Response.BadRequest<string>> = route
+  .post('/login')
+  .use(Parser.body(loginBody))
+  .handler(req => {
+    if (!config.auth)
+      return Response.badRequest('Session functionality is disabled')
 
-  if (
-    req.body.username === config.auth.username &&
-    req.body.password === config.auth.password
-  ) {
-    maybeInitAuth(req.ctx.app)
-    req.ctx.cookies.set('session', (+new Date()).toString(), {
-      signed: true,
-      secure: req.ctx.protocol === 'https',
-      maxAge: 14 * 24 * 60 * 60 * 1000, // 2 weeks in ms
-      overwrite: true,
-    })
-    return Response.ok()
-  }
-  return Response.badRequest('Invalid username or password')
-})
+    if (
+      req.body.username === config.auth.username &&
+      req.body.password === config.auth.password
+    ) {
+      maybeInitAuth(req.ctx.app)
+      req.ctx.cookies.set('session', (+new Date()).toString(), {
+        signed: true,
+        secure: req.ctx.protocol === 'https',
+        maxAge: 14 * 24 * 60 * 60 * 1000, // 2 weeks in ms
+        overwrite: true,
+      })
+      return Response.ok()
+    }
+    return Response.badRequest('Invalid username or password')
+  })
 
-const logout: Route<Response.Ok> = route.get('/logout')()(req => {
+const logout: Route<Response.Ok> = route.get('/logout').handler(req => {
   req.ctx.cookies.set('session')
   return Response.ok()
 })

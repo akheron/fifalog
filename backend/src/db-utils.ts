@@ -1,10 +1,13 @@
+import * as pg from 'pg'
+
 export async function onIntegrityError<E, A>(
   errorValue: E,
   query: Promise<A>
 ): Promise<E | A> {
   try {
     return await query
-  } catch (error) {
+  } catch (e) {
+    const error = e as pg.DatabaseError
     if (error.code && isIntegrityError(error.code)) {
       return errorValue
     }

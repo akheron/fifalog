@@ -2,7 +2,6 @@ import * as dotenv from 'dotenv'
 dotenv.config()
 
 import * as pg from 'pg'
-import * as path from 'path'
 import { migrate, loadMigrationFiles } from 'postgres-migrations'
 import { pool } from './db'
 
@@ -14,7 +13,7 @@ async function main() {
     await listMigrations()
     status = true
   } else if (process.argv[2] === 'fake') {
-    const id = +new Number(process.argv[3])
+    const id = Number(process.argv[3])
     if (isNaN(id)) {
       console.log(`Invalid migration id: ${process.argv[3]}`)
       status = false
@@ -60,7 +59,7 @@ async function applyMigrations() {
         logger: line => console.log(line),
       })
     } catch (e) {
-      console.error(e.message)
+      console.error((e as Error).message)
       return false
     }
     return true

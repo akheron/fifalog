@@ -18,7 +18,10 @@ module.exports = {
       {
         test: /\.scss$/,
         use: [
-          { loader: MiniCssExtractPlugin.loader },
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: { esModule: false },
+          },
           {
             loader: 'css-loader',
             options: { modules: { localIdentName: '[local]__[hash:base64]' } },
@@ -35,5 +38,5 @@ module.exports = {
     path: path.resolve(__dirname, '../dist/frontend/'),
     filename: 'index.js',
   },
-  devtool: 'eval-source-map'
+  devtool: 'eval-source-map',
 }

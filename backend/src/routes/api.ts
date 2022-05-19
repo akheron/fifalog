@@ -6,7 +6,7 @@ import * as R from 'ramda'
 import { auth } from '../auth'
 import { db } from '../db'
 import { matchResultBody } from '../../../common/codecs'
-import { League, Match, User, Stats } from '../../../common/types'
+import { League, Match, User, Stats, TeamStats} from '../../../common/types'
 import { getRandomMatchFromAll, getRandomMatchFromLeagues } from '../teams'
 
 const route = applyMiddleware(auth, db)
@@ -133,8 +133,13 @@ const stats: Route<
     }))
   )
 
-  return Response.ok(result)
-})
+    return Response.ok(result)
+  })
+
+const teamStats: Route<Response.Ok<TeamStats[]> | Response.Unauthorized<string>> =
+  route.get('/team-stats').handler(async (req) => {
+    return Response.ok(await req.db.teamStats())
+  })
 
 export const apiRouter = router(
   users,
@@ -143,5 +148,6 @@ export const apiRouter = router(
   deleteMatch,
   finishMatch,
   createRandomMatchPair,
-  stats
+  stats,
+  teamStats
 ).handler()

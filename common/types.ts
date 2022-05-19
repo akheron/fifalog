@@ -74,3 +74,10 @@ export namespace Stats {
     goalsFor: number
   }
 }
+
+export type TeamStats = {
+  team: string
+  matches: number
+  wins: number
+  winPercentage: number
+}

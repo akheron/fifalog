@@ -2,7 +2,7 @@ import * as R from 'ramda'
 import * as pg from 'pg'
 import { Middleware } from 'typera-koa'
 
-import { League, Match, User } from '../../common/types'
+import { League, Match, TeamStats, User } from '../../common/types'
 import { MatchResultBody } from '../../common/types'
 import config from './config'
 import { onIntegrityError } from './db-utils'
@@ -33,11 +33,11 @@ const dbClient = (client: pg.ClientBase) => ({
   async leagues(): Promise<League[]> {
     const rows = await sql.leagues(client, { matchPairsToExclude: 5 })
     return R.groupWith((a, b) => a.league_name === b.league_name, rows).map(
-      rows => ({
+      (rows) => ({
         id: rows[0].league_id,
         name: rows[0].league_name,
         excludeRandomAll: rows[0].exclude_random_all,
-        teams: rows.map(row => ({
+        teams: rows.map((row) => ({
           id: row.team_id,
           name: row.team_name,
         })),
@@ -105,7 +105,7 @@ const dbClient = (client: pg.ClientBase) => ({
     const rows = await sql.userStats(client, {
       limit: limit === null ? 0 : limit,
     })
-    return rows.map(r => ({
+    return rows.map((r) => ({
       month: r.month,
       user: {
         id: r.user_id,
@@ -121,11 +121,21 @@ const dbClient = (client: pg.ClientBase) => ({
     const rows = await sql.totalStats(client, {
       limit: limit === null ? 0 : limit,
     })
-    return rows.map(r => ({
+    return rows.map((r) => ({
       month: r.month,
       matches: r.match_count,
       ties: r.tie_count,
       goals: r.goal_count,
+    }))
+  },
+
+  async teamStats(): Promise<TeamStats[]> {
+    const rows = await sql.teamStats(client)
+    return rows.map((r) => ({
+      team: r.team,
+      matches: r.matches,
+      wins: r.wins,
+      winPercentage: r.win_percentage,
     }))
   },
 })

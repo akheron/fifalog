@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "outDir": "../dist",
+    "module": "commonjs",
+    "lib": ["ES2019"],
+    "strict": true,
+    "preserveWatchOutput": true
+  },
+  "include": ["**/*.ts"]
+}

@@ -3,9 +3,18 @@ dotenv.config()
 
 import * as pg from 'pg'
 import { migrate, loadMigrationFiles } from 'postgres-migrations'
-import { pool } from './db'
+import config from './config'
 
-const migrationsDir = './backend/migrations'
+const forceSslOptions = {
+  rejectUnauthorized: false,
+}
+
+export const pool = new pg.Pool({
+  connectionString: config.databaseUrl,
+  ssl: config.databaseForceSsl ? forceSslOptions : undefined,
+})
+
+const migrationsDir = './migrations'
 
 async function main() {
   let status: boolean

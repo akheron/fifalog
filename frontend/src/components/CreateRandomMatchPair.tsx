@@ -1,6 +1,6 @@
 import { Property, combine } from 'baconjs'
 import { Atom, Fragment, h, HarmajaOutput } from 'harmaja/bacon'
-import { User } from '../../../common/types'
+import { User } from '../types'
 import { definedOr, editAtom } from '../atom-utils'
 import * as Effect from '../effect'
 import RandomizeButton from './RandomizeButton'

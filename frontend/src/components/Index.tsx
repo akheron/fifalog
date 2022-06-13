@@ -1,6 +1,6 @@
 import { Property } from 'baconjs'
 import { Atom, Fragment, h } from 'harmaja/bacon'
-import * as C from '../../../common/types'
+import * as C from '..//types'
 import * as api from '../api'
 import { editAtom } from '../atom-utils'
 import * as Effect from '../effect'

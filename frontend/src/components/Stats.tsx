@@ -1,6 +1,6 @@
 import { Property } from 'baconjs'
 import { ListView, h } from 'harmaja/bacon'
-import { Stats } from '../../../common/types'
+import { Stats } from '../types'
 import * as styles from './Stats.scss'
 
 export type Props = { stats: Property<Stats[]> }

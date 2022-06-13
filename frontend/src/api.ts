@@ -1,5 +1,5 @@
-import { Match, User, Stats } from '../../common/types'
-import { MatchResultBody } from '../../common/types'
+import { Match, User, Stats } from './types'
+import { MatchResultBody } from './types'
 import * as Effect from './effect'
 
 export const login = Effect.fromPromise(

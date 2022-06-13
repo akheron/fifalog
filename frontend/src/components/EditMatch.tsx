@@ -2,12 +2,27 @@ import { either } from 'fp-ts'
 import { pipe } from 'fp-ts/es6/pipeable'
 import { combine } from 'baconjs'
 import { Atom, Lens, atom, h } from 'harmaja/bacon'
-import { MatchResult, MatchResultBody } from '../../../common/types'
-import { matchResultBodyS } from '../../../common/codecs'
+import { MatchResult, MatchResultBody } from '../types'
 import { match } from '../atom-utils'
 import * as Effect from '../effect'
 import Input from './Input'
 import * as styles from './EditMatch.scss'
+import * as t from 'io-ts'
+import { IntFromString } from 'io-ts-types/lib/IntFromString'
+
+const fullTime = t.type({ kind: t.literal('fullTime') })
+const overTime = t.type({ kind: t.literal('overTime') })
+const penaltiesS = t.type({
+  kind: t.literal('penalties'),
+  homeGoals: IntFromString,
+  awayGoals: IntFromString,
+})
+
+const matchResultBodyS = t.type({
+  homeScore: IntFromString,
+  awayScore: IntFromString,
+  finishedType: t.union([fullTime, overTime, penaltiesS]),
+})
 
 export type State = {
   homeScore: string

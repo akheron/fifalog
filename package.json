@@ -4,7 +4,6 @@
   "license": "MIT",
   "private": true,
   "workspaces": [
-    "common",
     "backend",
     "frontend",
     "migrations"
@@ -12,8 +11,7 @@
   "scripts": {
     "start:dev": "concurrently -n frontend,backend 'yarn workspace frontend start:dev' 'yarn workspace backend start:dev'",
     "migrate-db:dev": "ts-node migrations/migrate.ts",
-    "build": "concurrently -n frontend,backend 'yarn workspace frontend build' 'yarn workspace backend build' 'yarn workspace migrations build'",
-    "start": "NODE_ENV=production node dist/backend/src/main.js",
+    "build": "concurrently -n frontend,backend 'yarn workspace frontend build' 'yarn workspace migrations build'",
     "migrate-db": "node dist/migrations/migrate.js",
     "lint": "yarn workspace backend lint"
   },

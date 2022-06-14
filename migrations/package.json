@@ -7,6 +7,9 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@types/pg": "^8.6.5",
+    "dotenv": "^16.0.1",
+    "pg": "^8.7.3",
     "postgres-migrations": "^5.1.0"
   },
   "devDependencies": {

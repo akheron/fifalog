@@ -1,3 +1,33 @@
+use crate::sql::sql_types::UserId;
+use tokio_postgres::Client;
+
+pub struct Row(tokio_postgres::Row);
+
+impl Row {
+    pub fn month(&self) -> String {
+        self.0.get(0)
+    }
+    pub fn user_id(&self) -> UserId {
+        self.0.get(1)
+    }
+    pub fn user_name(&self) -> String {
+        self.0.get(2)
+    }
+    pub fn win_count(&self) -> i32 {
+        self.0.get(3)
+    }
+    pub fn overtime_win_count(&self) -> i32 {
+        self.0.get(4)
+    }
+    pub fn goals_for(&self) -> i32 {
+        self.0.get(5)
+    }
+}
+
+pub async fn user_stats(dbc: &Client, limit: i32) -> Result<Vec<Row>, tokio_postgres::Error> {
+    Ok(dbc
+        .query(
+            r#"
 WITH result AS (
     SELECT
         finished_time,
@@ -26,15 +56,15 @@ WITH result AS (
         away_score IS NOT NULL
     ORDER BY finished_time DESC
     LIMIT CASE
-        WHEN ${limit} = 0 THEN NULL
-        ELSE ${limit} * 2
+        WHEN $1 = 0 THEN NULL
+        ELSE $1 * 2
     END
 )
 SELECT
     CASE
-        WHEN ${limit} = 0
+        WHEN $1 = 0
         THEN to_char(result.finished_time, 'YYYY-MM')
-        ELSE 'Last ' || ${limit}
+        ELSE 'Last ' || $1
     END AS month,
     "user".id AS user_id,
     "user".name AS user_name,
@@ -45,3 +75,11 @@ FROM "user"
 JOIN result ON (result.user_id = "user".id)
 GROUP BY month, "user".id, "user".name
 ORDER BY month DESC, win_count ASC
+"#,
+            &[&limit],
+        )
+        .await?
+        .into_iter()
+        .map(Row)
+        .collect())
+}

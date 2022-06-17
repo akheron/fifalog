@@ -2,8 +2,8 @@ use std::net::SocketAddr;
 
 use axum::response::Html;
 use axum::routing::get;
-use axum_extra::routing::SpaRouter;
 use axum::{Extension, Router};
+use axum_extra::routing::SpaRouter;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
 
@@ -11,7 +11,7 @@ use crate::api_routes::api_routes;
 use crate::api_types::{FinishedType, League, Match, User};
 use crate::auth::{auth_routes, login_required, IsLoggedIn};
 use crate::config::Config;
-use crate::db::{database_layer, Database};
+use crate::db::{database_layer, database_pool, Database};
 use crate::env::Env;
 use crate::randomize::{get_random_match_from_all, get_random_match_from_leagues, RandomMatch};
 use crate::utils::{response, GenericResponse};
@@ -30,7 +30,10 @@ mod utils;
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let env = Env::read()?;
     let config = Config::from_env(&env);
-    let db = database_layer(&env.database_url, env.database_pool_size.unwrap_or(10))?;
+
+    println!("Running migrations...");
+    let dbc_pool = database_pool(&env.database_url, env.database_pool_size.unwrap_or(10))?;
+    migrations::run(dbc_pool.clone()).await?;
 
     let app = Router::new()
         .nest("/auth", auth_routes())
@@ -40,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .layer(
             ServiceBuilder::new()
                 .layer(Extension(config))
-                .layer(db)
+                .layer(database_layer(dbc_pool))
                 .layer(CookieManagerLayer::new()),
         );
 
@@ -52,6 +55,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap();
 
     Ok(())
+}
+
+mod migrations {
+    use deadpool_postgres::Pool;
+    use refinery::embed_migrations;
+    embed_migrations!();
+
+    pub async fn run(pool: Pool) -> Result<(), Box<dyn std::error::Error>> {
+        let mut dbc = pool.get().await?;
+        self::migrations::runner()
+            .run_async(&mut dbc as &mut tokio_postgres::Client)
+            .await?;
+        Ok(())
+    }
 }
 
 async fn index(IsLoggedIn(is_logged_in): IsLoggedIn) -> Html<String> {

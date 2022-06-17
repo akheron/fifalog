@@ -28,9 +28,7 @@ where
     }
 }
 
-pub type DatabaseLayer = Extension<Pool>;
-
-pub fn database_layer(url: &str, pool_size: usize) -> Result<DatabaseLayer, tokio_postgres::Error> {
+pub fn database_pool(url: &str, pool_size: usize) -> Result<Pool, tokio_postgres::Error> {
     let cfg = tokio_postgres::Config::from_str(url)?;
     let mgr = Manager::from_config(
         cfg,
@@ -39,6 +37,12 @@ pub fn database_layer(url: &str, pool_size: usize) -> Result<DatabaseLayer, toki
             recycling_method: RecyclingMethod::Fast,
         },
     );
-    let pool = Pool::builder(mgr).max_size(pool_size).build().unwrap();
-    Ok(Extension(pool))
+    Ok(Pool::builder(mgr).max_size(pool_size).build().unwrap())
+}
+
+
+pub type DatabaseLayer = Extension<Pool>;
+
+pub fn database_layer(pool: Pool) -> DatabaseLayer {
+    Extension(pool)
 }

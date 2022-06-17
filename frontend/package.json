@@ -17,6 +17,7 @@
     "io-ts": "^2.2.16",
     "lonna": "^0.12.1",
     "mini-css-extract-plugin": "^2.6.0",
+    "prettier": "^2.7.1",
     "ramda": "^0.28.0",
     "sass": "^1.50.1",
     "sass-loader": "^12.6.0",

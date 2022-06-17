@@ -14,15 +14,13 @@ RUN cargo build --release
 
 FROM node:16 AS frontend-builder
 WORKDIR /app
-COPY frontend frontend
-COPY package.json yarn.lock tsconfig.json .
-RUN yarn install --frozen-lockfile
-RUN cd frontend && yarn build
+COPY frontend .
+RUN yarn install --frozen-lockfile && yarn build
 
 FROM debian:buster-slim
 RUN mkdir /assets
 COPY --from=backend-builder /app/target/release/fifalog /usr/local/bin/fifalog
-COPY --from=frontend-builder /app/dist/frontend/index.* /assets
+COPY --from=frontend-builder /app/dist/index.* /assets
 ENV ASSET_PATH=/assets
 
 EXPOSE 8080

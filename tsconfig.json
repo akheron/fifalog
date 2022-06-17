@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "strict": true,
-    "lib": ["DOM", "ES2019"],
-    "jsx": "react",
-    "jsxFactory": "h",
-    "jsxFragmentFactory": "Fragment"
-  }
-}

@@ -35,7 +35,7 @@ module.exports = {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-    path: path.resolve(__dirname, '../dist/frontend/'),
+    path: path.resolve(__dirname, 'dist/'),
     filename: 'index.js',
   },
   devtool: 'eval-source-map',

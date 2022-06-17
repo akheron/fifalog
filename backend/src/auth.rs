@@ -1,12 +1,14 @@
 use crate::{response, Config, GenericResponse};
-use axum::http::{Request, StatusCode};
-use axum::middleware::Next;
-use axum::response::Response;
+use async_trait::async_trait;
+use axum::extract::{FromRequest, RequestParts};
+use axum::http::StatusCode;
+use axum::middleware::FromExtractorLayer;
 use axum::routing::{get, post};
 use axum::{Extension, Json, Router};
 use cookie::time::Duration;
 use cookie::{Cookie, SameSite};
 use serde::Deserialize;
+use std::convert::Infallible;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tower_cookies::Cookies;
 
@@ -43,7 +45,8 @@ pub async fn login(
 pub async fn logout(Extension(config): Extension<Config>, cookies: Cookies) -> StatusCode {
     let signed = cookies.signed(&config.secret);
     let cookie_opt = signed.get(COOKIE_NAME);
-    if let Some(cookie) = cookie_opt {
+    if let Some(mut cookie) = cookie_opt {
+        cookie.set_path("/");
         cookies.signed(&config.secret).remove(cookie);
     }
     StatusCode::NO_CONTENT
@@ -55,18 +58,57 @@ pub fn auth_routes() -> Router {
         .route("/logout", get(logout))
 }
 
-pub async fn auth_middleware<B>(req: Request<B>, next: Next<B>) -> Result<Response, StatusCode> {
-    let config = req.extensions().get::<Config>().unwrap();
-    let cookies = req.extensions().get::<Cookies>().unwrap();
-    let cookie = cookies.signed(&config.secret).get(COOKIE_NAME).ok_or(StatusCode::UNAUTHORIZED)?;
-    let seconds_since_epoch = cookie
-        .value()
-        .parse::<u64>()
-        .map_err(|_| StatusCode::UNAUTHORIZED)?;
-    if let Ok(time) = SystemTime::now().duration_since(UNIX_EPOCH) {
+pub struct IsLoggedIn(pub bool);
+
+#[async_trait]
+impl<B> FromRequest<B> for IsLoggedIn
+where
+    B: Send,
+{
+    type Rejection = Infallible;
+
+    async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
+        let Extension(config) = Extension::<Config>::from_request(req).await.unwrap();
+        let Extension(cookies) = Extension::<Cookies>::from_request(req).await.unwrap();
+        let cookie = cookies.signed(&config.secret).get(COOKIE_NAME);
+        if cookie.is_none() {
+            return Ok(Self(false));
+        }
+        let cookie_value = cookie.unwrap().value().parse::<u64>();
+        if cookie_value.is_err() {
+            return Ok(Self(false));
+        }
+
+        let seconds_since_epoch = cookie_value.unwrap();
+        let time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
+
         if time.as_secs() - seconds_since_epoch > 60 * 60 * 24 * 14 {
-            return Err(StatusCode::UNAUTHORIZED);
+            return Ok(Self(false));
+        }
+
+        Ok(Self(true))
+    }
+}
+
+pub struct LoginRequired;
+
+#[async_trait]
+impl<B> FromRequest<B> for LoginRequired
+where
+    B: Send,
+{
+    type Rejection = StatusCode;
+
+    async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
+        let IsLoggedIn(is_logged_in) = IsLoggedIn::from_request(req).await.unwrap();
+        if is_logged_in {
+            Ok(Self)
+        } else {
+            Err(StatusCode::UNAUTHORIZED)
         }
     }
-    Ok(next.run(req).await)
+}
+
+pub fn login_required() -> FromExtractorLayer<LoginRequired> {
+    axum::middleware::from_extractor::<LoginRequired>()
 }

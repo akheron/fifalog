@@ -3,13 +3,13 @@ use std::net::SocketAddr;
 use axum::response::Html;
 use axum::routing::get;
 use axum_extra::routing::SpaRouter;
-use axum::{middleware, Extension, Router};
+use axum::{Extension, Router};
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
 
 use crate::api_routes::api_routes;
 use crate::api_types::{FinishedType, League, Match, User};
-use crate::auth::{auth_middleware, auth_routes};
+use crate::auth::{auth_routes, login_required, IsLoggedIn};
 use crate::config::Config;
 use crate::db::{database_layer, Database};
 use crate::env::Env;
@@ -34,10 +34,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = Router::new()
         .nest("/auth", auth_routes())
-        .nest(
-            "/api",
-            api_routes().layer(middleware::from_fn(auth_middleware)),
-        )
+        .nest("/api", api_routes().layer(login_required()))
         .route("/", get(index))
         .merge(SpaRouter::new("/assets", &env.asset_path))
         .layer(
@@ -57,8 +54,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn index() -> Html<String> {
-    Html(format!(r#"<!DOCTYPE html>
+async fn index(IsLoggedIn(is_logged_in): IsLoggedIn) -> Html<String> {
+    Html(format!(
+        r#"<!DOCTYPE html>
 
 <head>
   <title>FIFA log</title>
@@ -71,5 +69,7 @@ async fn index() -> Html<String> {
   <script>var IS_LOGGED_IN = {is_logged_in};</script>
   <script src="/assets/index.js"></script>
 </body>
-"#, is_logged_in = false))
+"#,
+        is_logged_in = is_logged_in
+    ))
 }

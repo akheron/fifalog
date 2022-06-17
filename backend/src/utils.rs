@@ -26,5 +26,7 @@ pub fn response<T: Into<String>>(status: StatusCode, body: T) -> GenericResponse
 }
 
 pub fn internal_error<E: std::error::Error>(err: E) -> GenericResponse {
-    GenericResponse::new(StatusCode::INTERNAL_SERVER_ERROR, err.to_string())
+    let err_string = err.to_string();
+    println!("ERROR: {}", err_string);
+    GenericResponse::new(StatusCode::INTERNAL_SERVER_ERROR, err_string)
 }

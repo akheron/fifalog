@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use axum::extract::Path;
 use axum::http::StatusCode;
-use axum::routing::{delete, get, post, put};
+use axum::routing::{delete, get, post};
 use axum::{Json, Router};
 use serde::Deserialize;
 

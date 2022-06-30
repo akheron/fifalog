@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo } from 'react'
+
 import { MatchResultBody, useFinishMatchMutation } from '../matches/matchesApi'
 import { useFormState, useSelect, useTextField } from '../utils/formState'
+
 import * as styles from './EditMatch.scss'
 
 export interface State {
@@ -40,10 +42,10 @@ export default React.memo(function EditMatch({ id }: Props) {
   const validatedData = useMemo(() => validate(state.state), [state.state])
 
   const [finishMatch] = useFinishMatchMutation()
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!validatedData) return
-    finishMatch({ id, result: validatedData })
-  }, [validatedData, finishMatch])
+    await finishMatch({ id, result: validatedData })
+  }, [validatedData, finishMatch, id])
 
   return (
     <div className={styles.editMatch}>

@@ -1,5 +1,6 @@
-import { Match, MatchDay } from './matchesApi'
 import * as R from 'ramda'
+
+import { Match, MatchDay } from './matchesApi'
 
 function eqDate(a: Match, b: Match): boolean {
   return a.result?.finishedDate === b.result?.finishedDate

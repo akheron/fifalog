@@ -19,9 +19,12 @@ export function useTextField<
 ): [T[K], (e: ChangeEvent<HTMLInputElement>) => void] {
   const { state, setState } = formState
   const value = state[key]
-  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setState((prev) => ({ ...prev, [key]: e.target.value }))
-  }, [])
+  const handleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setState((prev) => ({ ...prev, [key]: e.target.value }))
+    },
+    [key, setState]
+  )
   return [value, handleChange]
 }
 
@@ -31,9 +34,12 @@ export function useSelect<T, K extends keyof T>(
 ): [T[K], (e: ChangeEvent<HTMLSelectElement>) => void] {
   const { state, setState } = formState
   const value = state[key]
-  const handleChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
-    setState((prev) => ({ ...prev, [key]: e.target.value }))
-  }, [])
+  const handleChange = useCallback(
+    (e: ChangeEvent<HTMLSelectElement>) => {
+      setState((prev) => ({ ...prev, [key]: e.target.value }))
+    },
+    [key, setState]
+  )
   return [value, handleChange]
 }
 
@@ -43,8 +49,11 @@ export function useFormField<T, K extends keyof T>(
 ): [T[K], (value: T[K]) => void] {
   const { state, setState } = formState
   const value = state[key]
-  const handleChange = useCallback((value: T[K]) => {
-    setState((prev) => ({ ...prev, [key]: value }))
-  }, [])
+  const handleChange = useCallback(
+    (value: T[K]) => {
+      setState((prev) => ({ ...prev, [key]: value }))
+    },
+    [key, setState]
+  )
   return [value, handleChange]
 }

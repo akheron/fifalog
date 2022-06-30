@@ -1,5 +1,7 @@
 import React from 'react'
+
 import { MonthStats, useStatsQuery } from '../stats/statsApi'
+
 import * as styles from './Stats.scss'
 
 export default React.memo(function Stats() {

@@ -1,13 +1,16 @@
 import React, { useCallback } from 'react'
-import { useBooleanState } from '../utils/state'
+
 import {
+  FinishedType,
   Match,
   MatchResult,
   useDeleteMatchMutation,
 } from '../matches/matchesApi'
+import { useBooleanState } from '../utils/state'
+
 import EditMatch from './EditMatch'
-import MatchRowButtons from './MatchRowButtons'
 import * as styles from './MatchRow.scss'
+import MatchRowButtons from './MatchRowButtons'
 
 export interface Props {
   match: Match
@@ -17,9 +20,9 @@ export default React.memo(function MatchRow({ match }: Props) {
   const editing = useBooleanState(false)
   const [deleteMatch, { isLoading: isDeleting }] = useDeleteMatchMutation()
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (confirm('Really?')) {
-      deleteMatch(match.id)
+      await deleteMatch(match.id)
     }
   }, [deleteMatch, match.id])
 
@@ -82,7 +85,7 @@ const HighlightWinner = React.memo(function HighlightWinner({
 const MatchEndResult = React.memo(function MatchEndResult({
   finishedType,
 }: {
-  finishedType: MatchResult.FinishedType
+  finishedType: FinishedType
 }) {
   switch (finishedType.kind) {
     case 'fullTime':

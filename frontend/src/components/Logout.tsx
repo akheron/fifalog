@@ -1,6 +1,8 @@
 import React from 'react'
-import * as styles from './Logout.scss'
+
 import { useLogoutMutation } from '../auth/authApi'
+
+import * as styles from './Logout.scss'
 
 export default React.memo(function Logout() {
   const [logout, { isLoading }] = useLogoutMutation()

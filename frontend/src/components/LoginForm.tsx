@@ -1,9 +1,11 @@
-import React, { useCallback } from 'react'
 import classNames from 'classnames'
-import * as styles from './LoginForm.scss'
-import { useFormState, useTextField } from '../utils/formState'
+import React, { useCallback } from 'react'
+
 import { useLoginMutation } from '../auth/authApi'
 import { getErrorStatus } from '../utils/error'
+import { useFormState, useTextField } from '../utils/formState'
+
+import * as styles from './LoginForm.scss'
 
 interface State {
   username: string
@@ -21,8 +23,8 @@ export default React.memo(function LoginForm() {
   const [username, setUsername] = useTextField(credentials, 'username')
   const [password, setPassword] = useTextField(credentials, 'password')
 
-  const handleLogin = useCallback(() => {
-    login(credentials.state)
+  const handleLogin = useCallback(async () => {
+    await login(credentials.state)
   }, [login, credentials.state])
 
   return (

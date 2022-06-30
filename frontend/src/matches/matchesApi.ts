@@ -1,5 +1,5 @@
-import { User } from '../users/usersApi'
 import { api } from '../api'
+import { User } from '../users/usersApi'
 
 export interface MatchDay {
   date: string | undefined
@@ -22,28 +22,26 @@ export type Team = {
   name: string
 }
 
+export type FullTime = { kind: 'fullTime' }
+export type OverTime = { kind: 'overTime' }
+export type Penalties<T> = {
+  kind: 'penalties'
+  homeGoals: T
+  awayGoals: T
+}
+export type FinishedType = FullTime | OverTime | Penalties<number>
+
 export interface MatchResult {
   finishedDate: string
   homeScore: number
   awayScore: number
-  finishedType: MatchResult.FinishedType
-}
-
-export namespace MatchResult {
-  export type FullTime = { kind: 'fullTime' }
-  export type OverTime = { kind: 'overTime' }
-  export type Penalties<T> = {
-    kind: 'penalties'
-    homeGoals: T
-    awayGoals: T
-  }
-  export type FinishedType = FullTime | OverTime | Penalties<number>
+  finishedType: FinishedType
 }
 
 export interface MatchResultBody {
   homeScore: number
   awayScore: number
-  finishedType: MatchResult.FinishedType
+  finishedType: FinishedType
 }
 
 export const matchesApi = api.injectEndpoints({
@@ -77,7 +75,7 @@ export const matchesApi = api.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: (result, _error, body) =>
+      invalidatesTags: (result) =>
         result ? [{ type: 'Matches', id: 'LIST' }] : [],
     }),
     finishMatch: builder.mutation<

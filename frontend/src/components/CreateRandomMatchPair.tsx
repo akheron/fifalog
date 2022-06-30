@@ -1,7 +1,9 @@
 import React, { useCallback } from 'react'
+
+import { useCreateRandomMatchPairMutation } from '../matches/matchesApi'
 import { User } from '../users/usersApi'
 import { useFormField, useFormState } from '../utils/formState'
-import { useCreateRandomMatchPairMutation } from '../matches/matchesApi'
+
 import Select from './Select'
 
 export interface State {
@@ -24,11 +26,11 @@ export default React.memo(function CreateRandomMatchPair({ users }: Props) {
   const [user1, setUser1] = useFormField(formState, 'user1')
   const [user2, setUser2] = useFormField(formState, 'user2')
 
-  const randomize = useCallback(() => {
-    createRandomMatchPair({ ...formState.state, respectLeagues: false })
+  const randomize = useCallback(async () => {
+    await createRandomMatchPair({ ...formState.state, respectLeagues: false })
   }, [createRandomMatchPair, formState.state])
-  const randomizeInLeagues = useCallback(() => {
-    createRandomMatchPair({ ...formState.state, respectLeagues: true })
+  const randomizeInLeagues = useCallback(async () => {
+    await createRandomMatchPair({ ...formState.state, respectLeagues: true })
   }, [createRandomMatchPair, formState.state])
 
   return (

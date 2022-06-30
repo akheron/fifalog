@@ -1,5 +1,5 @@
-import { User } from '../users/usersApi'
 import { api } from '../api'
+import { User } from '../users/usersApi'
 
 export interface MonthStats {
   month: string

@@ -1,4 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
+
 import { authApi } from './authApi'
 
 // Server-side rendered

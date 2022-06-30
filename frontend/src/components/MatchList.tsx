@@ -1,8 +1,10 @@
 import React from 'react'
-import MatchRow from './MatchRow'
-import { useLatestMatchesQuery } from '../matches/matchesApi'
+
 import { groupMatchesByDay } from '../matches/matchUtils'
+import { useLatestMatchesQuery } from '../matches/matchesApi'
+
 import * as styles from './MatchList.scss'
+import MatchRow from './MatchRow'
 
 export default React.memo(function MatchList() {
   const { data, isLoading, isError } = useLatestMatchesQuery()
@@ -12,7 +14,7 @@ export default React.memo(function MatchList() {
   return (
     <>
       {groupMatchesByDay(data).map((matchDay) => {
-        let date =
+        const date =
           matchDay.date === undefined ? 'Not played yet' : matchDay.date
         return (
           <div key={date}>

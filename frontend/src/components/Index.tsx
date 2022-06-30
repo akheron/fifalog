@@ -1,8 +1,10 @@
 import React from 'react'
+
+import { useUsersQuery } from '../users/usersApi'
+
 import CreateRandomMatchPair from './CreateRandomMatchPair'
 import MatchList from './MatchList'
 import Stats from './Stats'
-import { useUsersQuery } from '../users/usersApi'
 
 export default React.memo(function Index() {
   const { data: users, isLoading } = useUsersQuery()

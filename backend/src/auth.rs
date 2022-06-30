@@ -1,4 +1,5 @@
-use crate::{response, Config, GenericResponse};
+use crate::utils::generic_error;
+use crate::{Config, GenericResponse};
 use async_trait::async_trait;
 use axum::extract::{FromRequest, RequestParts};
 use axum::http::StatusCode;
@@ -38,7 +39,10 @@ pub async fn login(
         cookies.signed(&config.secret).add(cookie);
         Ok(StatusCode::OK)
     } else {
-        Err(response(StatusCode::UNAUTHORIZED, "Unauthorized"))
+        Err(generic_error(
+            StatusCode::BAD_REQUEST,
+            "Invalid credentials",
+        ))
     }
 }
 

@@ -1,88 +1,56 @@
-import { Property, combine } from 'baconjs'
-import { Atom, Fragment, h, HarmajaOutput } from 'harmaja/bacon'
-import { User } from '../types'
-import { definedOr, editAtom } from '../atom-utils'
-import * as Effect from '../effect'
-import RandomizeButton from './RandomizeButton'
+import React, { useCallback } from 'react'
+import { User } from '../users/usersApi'
+import { useFormField, useFormState } from '../utils/formState'
+import { useCreateRandomMatchPairMutation } from '../matches/matchesApi'
 import Select from './Select'
 
-export type State = {
+export interface State {
   user1: number
   user2: number
 }
 
-function init(users: User[]): State | undefined {
-  if (users.length >= 2) {
-    return { user1: users[0].id, user2: users[1].id }
-  }
-  return undefined
+export interface Props {
+  users: User[]
 }
 
-export type Props = {
-  users: Property<User[]>
-  create: Effect.Effect<{
-    user1: number
-    user2: number
-    respectLeagues: boolean
-  }>
-}
+export default React.memo(function CreateRandomMatchPair({ users }: Props) {
+  const [createRandomMatchPair, { isLoading, isError }] =
+    useCreateRandomMatchPairMutation()
 
-export default ({ users, create }: Props) => {
-  const maybeState = editAtom(users.map(init))
-  return definedOr(
-    maybeState,
-    state => {
-      const randomize = (respectLeagues: boolean) => () => {
-        const { user1, user2 } = state.get()
-        create.run({ user1, user2, respectLeagues })
-      }
-      const disabled = combine(
-        state,
-        Effect.isPending(create),
-        ({ user1, user2 }, creating) => user1 === user2 || creating
-      )
-      return (
-        <>
-          {ifLongerThan(users, 2, () => (
-            <>
-              <Select items={users} value={state.view('user1')} />
-              {' vs. '}
-              <Select items={users} value={state.view('user2')} />{' '}
-            </>
-          ))}
-          <RandomizeButton
-            title="Randomize"
-            disabled={disabled}
-            onClick={randomize(false)}
-          />{' '}
-          <RandomizeButton
-            title="Randomize in leagues"
-            disabled={disabled}
-            onClick={randomize(true)}
-          />{' '}
-          {Effect.ifPending(
-            create,
-            () => '...',
-            () => null
-          )}
-          {Effect.ifError(
-            create,
-            () => 'Could not create match',
-            () => null
-          )}
-        </>
-      )
-    },
-    () => null
+  const formState = useFormState<State>({
+    user1: users[0].id,
+    user2: users[1].id,
+  })
+  const [user1, setUser1] = useFormField(formState, 'user1')
+  const [user2, setUser2] = useFormField(formState, 'user2')
+
+  const randomize = useCallback(() => {
+    createRandomMatchPair({ ...formState.state, respectLeagues: false })
+  }, [createRandomMatchPair, formState.state])
+  const randomizeInLeagues = useCallback(() => {
+    createRandomMatchPair({ ...formState.state, respectLeagues: true })
+  }, [createRandomMatchPair, formState.state])
+
+  return (
+    <>
+      <Select options={users} value={user1} onChange={setUser1} />
+      {' vs. '}
+      <Select options={users} value={user2} onChange={setUser2} />{' '}
+      <button
+        type="button"
+        disabled={isLoading || user1 === user2}
+        onClick={randomize}
+      >
+        Randomize
+      </button>{' '}
+      <button
+        type="button"
+        disabled={isLoading || user1 === user2}
+        onClick={randomizeInLeagues}
+      >
+        Randomize in leagues
+      </button>{' '}
+      {isError ? 'Could not create match' : null}
+    </>
   )
-}
-
-const ifLongerThan = (
-  obs: Property<unknown[]>,
-  len: number,
-  fn: () => HarmajaOutput
-): HarmajaOutput =>
-  obs
-    .map(value => value.length > len)
-    .skipDuplicates()
-    .map(show => (show ? fn() : null))
+})

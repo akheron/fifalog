@@ -1,25 +1,16 @@
-import { h, onUnmount } from 'harmaja/bacon'
-import * as Effect from '../effect'
+import React from 'react'
 import * as styles from './Logout.scss'
+import { useLogoutMutation } from '../auth/authApi'
 
-export type Props = {
-  logout: Effect.Effect<void>
-}
-
-export default ({ logout }: Props) => {
-  const unsub = Effect.onError(logout, () => alert('Error requesting server'))
-  onUnmount(unsub)
-
+export default React.memo(function Logout() {
+  const [logout, { isLoading }] = useLogoutMutation()
   return (
     <button
       className={styles.logout}
-      disabled={Effect.isPending(logout)}
-      onClick={e => {
-        e.preventDefault()
-        logout.run()
-      }}
+      disabled={isLoading}
+      onClick={() => logout()}
     >
       Sign out
     </button>
   )
-}
+})

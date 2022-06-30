@@ -1,57 +1,61 @@
+import React, { useCallback } from 'react'
 import classNames from 'classnames'
-import { atom, h } from 'harmaja/bacon'
-import * as Effect from '../effect'
-import Input from './Input'
 import * as styles from './LoginForm.scss'
+import { useFormState, useTextField } from '../utils/formState'
+import { useLoginMutation } from '../auth/authApi'
+import { getErrorStatus } from '../utils/error'
 
-export type Props = {
-  login: Effect.Effect<{ username: string; password: string }>
+interface State {
+  username: string
+  password: string
 }
 
-export default ({ login }: Props) => {
-  const state = atom({ username: '', password: '' })
+export default React.memo(function LoginForm() {
+  const [login, { isLoading, error }] = useLoginMutation()
+  const errorStatus = getErrorStatus(error)
+
+  const credentials = useFormState<State>({
+    username: '',
+    password: '',
+  })
+  const [username, setUsername] = useTextField(credentials, 'username')
+  const [password, setPassword] = useTextField(credentials, 'password')
+
+  const handleLogin = useCallback(() => {
+    login(credentials.state)
+  }, [login, credentials.state])
+
   return (
     <form
-      className={Effect.ifSuccess(
-        login,
-        ok => !ok,
-        () => false
-      ).map(invalid => classNames(styles.form, { [styles.invalid]: invalid }))}
-      onSubmit={e => {
-        e.preventDefault()
-        login.run(state.get())
-      }}
+      className={classNames(styles.form, {
+        [styles.invalid]: error !== undefined,
+      })}
     >
       <h2>Login</h2>
       <div>
         <label>
           <span>Username:</span>{' '}
-          <Input value={state.view('username')} />
+          <input value={username} onChange={setUsername} />
         </label>
       </div>
       <div>
         <label>
           <span>Password:</span>{' '}
-          <Input type="password" value={state.view('password')} />
+          <input type="password" value={password} onChange={setPassword} />
         </label>
       </div>
       <div>
-        <button disabled={Effect.isPending(login)}>Login</button>{' '}
-        {Effect.ifPending(
-          login,
-          () => (
-            <span>Loading...</span>
-          ),
-          () => null
-        )}
-        {Effect.ifError(
-          login,
-          () => (
-            <span>Error requesting server</span>
-          ),
-          () => null
-        )}
+        <button disabled={isLoading} onClick={handleLogin}>
+          Login
+        </button>{' '}
+        {isLoading ? (
+          <span>Loading...</span>
+        ) : errorStatus === 400 ? (
+          <span>Login failed</span>
+        ) : error ? (
+          <span>Error requesting server</span>
+        ) : null}
       </div>
     </form>
   )
-}
+})

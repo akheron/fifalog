@@ -1,25 +1,31 @@
-import { Property } from 'baconjs'
-import { Atom, ListView, h } from 'harmaja/bacon'
+import React, { useCallback } from 'react'
 
-export type Item = {
+export interface Option {
   id: number
   name: string
 }
 
 export type Props = {
-  items: Property<Item[]>
-  value: Atom<number>
+  options: Option[]
+  value: number
+  onChange: (value: number) => void
 }
 
-export default ({ items, value }: Props) => (
-  <select onChange={e => value.set(parseFloat(e.currentTarget.value))}>
-    <ListView
-      observable={items}
-      renderItem={user => (
-        <option selected={value.map(id => user.id === id)} value={user.id}>
-          {user.name}
+export default React.memo(function Select({ options, value, onChange }: Props) {
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      onChange(Number(e.target.value))
+    },
+    [onChange]
+  )
+
+  return (
+    <select onChange={handleChange} value={value.toString()}>
+      {options.map(({ id, name }) => (
+        <option key={id} value={id.toString()}>
+          {name}
         </option>
-      )}
-    />
-  </select>
-)
+      ))}
+    </select>
+  )
+})

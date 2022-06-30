@@ -14,7 +14,7 @@ use crate::config::Config;
 use crate::db::{database_layer, database_pool, Database};
 use crate::env::Env;
 use crate::randomize::{get_random_match_from_all, get_random_match_from_leagues, RandomMatch};
-use crate::utils::{response, GenericResponse};
+use crate::utils::GenericResponse;
 
 mod api_routes;
 mod api_types;

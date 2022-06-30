@@ -1,37 +1,22 @@
-import { Fragment, atom, h } from 'harmaja/bacon'
-import * as Effect from '../effect'
-import * as api from '../api'
-import { ifElse } from '../atom-utils'
+import React from 'react'
+import { useAppSelector } from '../store'
 import LoginForm from './LoginForm'
 import Logout from './Logout'
 import Index from './Index'
 import './App.scss'
 
-export type Props = { isLoggedIn: boolean }
-
-export default ({ isLoggedIn }: Props) => {
-  const state = atom(isLoggedIn)
-
-  const login = api.login()
-  Effect.syncSuccess(login, state)
-
-  const logout = api.logout()
-  Effect.syncSuccess(logout, () => false, state)
-
+export default React.memo(function App() {
+  const loggedIn = useAppSelector((state) => state.auth.loggedIn)
   return (
     <main>
-      {ifElse(
-        state,
-        () => (
-          <>
-            <Logout logout={logout} />
-            <Index />
-          </>
-        ),
-        () => (
-          <LoginForm login={login} />
-        )
+      {loggedIn ? (
+        <>
+          <Logout />
+          <Index />
+        </>
+      ) : (
+        <LoginForm />
       )}
     </main>
   )
-}
+})

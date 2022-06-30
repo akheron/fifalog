@@ -1,83 +1,22 @@
-import { Property } from 'baconjs'
-import { Atom, Fragment, h } from 'harmaja/bacon'
-import * as C from '..//types'
-import * as api from '../api'
-import { editAtom } from '../atom-utils'
-import * as Effect from '../effect'
-import * as ScopedEffect from '../scoped-effect'
-import * as L from '../lenses'
+import React from 'react'
 import CreateRandomMatchPair from './CreateRandomMatchPair'
 import MatchList from './MatchList'
 import Stats from './Stats'
+import { useUsersQuery } from '../users/usersApi'
 
-export type Data = {
-  users: C.User[]
-  stats: C.Stats[]
-  matches: C.Match[]
-}
-
-export default () => {
-  const initialData = api.initialData()
-  initialData.run()
-
-  return Effect.match(
-    initialData,
-    () => <div>Loading...</div>,
-    data => <Content data={data} />,
-    () => <div>Error fetching data</div>
-  )
-}
-
-type State = {
-  users: C.User[]
-  stats: C.Stats[]
-  matches: C.Match[]
-}
-
-const Content = (props: { data: Property<Data> }) => {
-  const state: Atom<State> = editAtom(props.data)
-
-  const users = state.view('users')
-  const stats = state.view('stats')
-  const matches = state.view('matches')
-
-  const createMatchPair = api.createRandomMatchPair()
-  Effect.syncSuccess(
-    createMatchPair,
-    (currentMatches, newPair) => [...newPair, ...currentMatches],
-    matches
-  )
-
-  const finishMatchAndRefresh = ScopedEffect.scope(
-    api.finishMatchAndRefresh,
-    (id: number) => (result: C.MatchResultBody) => ({ id, result })
-  )
-  ScopedEffect.syncSuccess(
-    finishMatchAndRefresh,
-    state.view(
-      L.pick<State, 'matches' | 'stats'>(['matches', 'stats'])
-    )
-  )
-
-  const deleteMatch = ScopedEffect.scope(api.deleteMatch)
-  ScopedEffect.syncSuccess(
-    deleteMatch,
-    (currentMatches, matchId) =>
-      currentMatches.filter(match => match.id !== matchId),
-    matches
-  )
-
+export default React.memo(function Index() {
+  const { data: users, isLoading } = useUsersQuery()
   return (
     <>
       <h2>Stats</h2>
-      <Stats stats={stats} />
+      <Stats />
       <h2>Latest matches</h2>
-      <CreateRandomMatchPair users={users} create={createMatchPair} />
-      <MatchList
-        matches={matches}
-        deleteMatch={deleteMatch}
-        finishMatch={finishMatchAndRefresh}
-      />
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : !users ? null : (
+        <CreateRandomMatchPair users={users} />
+      )}
+      <MatchList />
     </>
   )
-}
+})

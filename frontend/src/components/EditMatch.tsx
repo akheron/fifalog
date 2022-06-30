@@ -1,128 +1,118 @@
-import { either } from 'fp-ts'
-import { pipe } from 'fp-ts/es6/pipeable'
-import { combine } from 'baconjs'
-import { Atom, Lens, atom, h } from 'harmaja/bacon'
-import { MatchResult, MatchResultBody } from '../types'
-import { match } from '../atom-utils'
-import * as Effect from '../effect'
-import Input from './Input'
+import React, { useCallback, useMemo } from 'react'
+import { MatchResultBody, useFinishMatchMutation } from '../matches/matchesApi'
+import { useFormState, useSelect, useTextField } from '../utils/formState'
 import * as styles from './EditMatch.scss'
-import * as t from 'io-ts'
-import { IntFromString } from 'io-ts-types/lib/IntFromString'
 
-const fullTime = t.type({ kind: t.literal('fullTime') })
-const overTime = t.type({ kind: t.literal('overTime') })
-const penaltiesS = t.type({
-  kind: t.literal('penalties'),
-  homeGoals: IntFromString,
-  awayGoals: IntFromString,
-})
-
-const matchResultBodyS = t.type({
-  homeScore: IntFromString,
-  awayScore: IntFromString,
-  finishedType: t.union([fullTime, overTime, penaltiesS]),
-})
-
-export type State = {
+export interface State {
   homeScore: string
   awayScore: string
-  finishedType: MatchResult.FinishedTypeString
+  finishedType: FinishedType
+  homePenaltyGoals: string
+  awayPenaltyGoals: string
 }
 
 type FinishedType = 'fullTime' | 'overTime' | 'penalties'
 
-const finishedTypeLens: Lens<MatchResult.FinishedTypeString, FinishedType> = {
-  get(s) {
-    return s.kind
-  },
-  set(_, v) {
-    return v === 'fullTime' || v === 'overTime'
-      ? { kind: v }
-      : { kind: 'penalties', homeGoals: '', awayGoals: '' }
-  },
+export interface Props {
+  id: number
 }
 
-const penaltiesLens = (
-  field: 'homeGoals' | 'awayGoals'
-): Lens<MatchResult.Penalties<string>, string> => ({
-  get(s) {
-    return s[field]
-  },
-  set(s, v) {
-    return {
-      ...s,
-      kind: 'penalties',
-      [field]: v,
-    }
-  },
-})
-
-const convertEdit = (state: State): MatchResultBody | null =>
-  pipe(
-    matchResultBodyS.decode(state),
-    either.getOrElse((): MatchResultBody | null => null)
-  )
-
-export type Props = {
-  save: Effect.Effect<MatchResultBody>
-}
-
-export default ({ save }: Props) => {
-  const state = atom<State>({
+export default React.memo(function EditMatch({ id }: Props) {
+  const state = useFormState<State>({
     homeScore: '',
     awayScore: '',
-    finishedType: { kind: 'fullTime' },
+    finishedType: 'fullTime',
+    homePenaltyGoals: '',
+    awayPenaltyGoals: '',
   })
 
-  const homeScore = state.view('homeScore')
-  const awayScore = state.view('awayScore')
-  const finishedType = state.view('finishedType')
-  const disabled = combine(
-    Effect.isPending(save),
-    state.map(s => !convertEdit(s)),
-    (saving, invalid) => saving || invalid
+  const [homeScore, setHomeScore] = useTextField(state, 'homeScore')
+  const [awayScore, setAwayScore] = useTextField(state, 'awayScore')
+  const [finishedType, setFinishedType] = useSelect(state, 'finishedType')
+  const [homePenaltyGoals, setHomePenaltyGoals] = useTextField(
+    state,
+    'homePenaltyGoals'
   )
+  const [awayPenaltyGoals, setAwayPenaltyGoals] = useTextField(
+    state,
+    'awayPenaltyGoals'
+  )
+  const validatedData = useMemo(() => validate(state.state), [state.state])
+
+  const [finishMatch] = useFinishMatchMutation()
+  const handleSave = useCallback(() => {
+    if (!validatedData) return
+    finishMatch({ id, result: validatedData })
+  }, [validatedData, finishMatch])
 
   return (
     <div className={styles.editMatch}>
-      <Input inputMode="numeric" value={homeScore} />
+      <input inputMode="numeric" value={homeScore} onChange={setHomeScore} />
       {' - '}
-      <Input inputMode="numeric" value={awayScore} />{' '}
-      <FinishedTypeSelect value={finishedType.view(finishedTypeLens)} />
-      {match(
-        finishedType,
-        (f): f is MatchResult.Penalties<string> => f.kind === 'penalties',
-        f => (
-          <small>
-            {' ('}
-            <Input inputMode="numeric" value={f.view(penaltiesLens('homeGoals'))} />
-            {' - '}
-            <Input inputMode="numeric" value={f.view(penaltiesLens('awayGoals'))} />
-            {' P)'}
-          </small>
-        ),
-        () => null
-      )}{' '}
-      <button
-        disabled={disabled}
-        onClick={() => {
-          const result = convertEdit(state.get())
-          if (result) save.run(result)
-        }}
-      >
+      <input
+        inputMode="numeric"
+        value={awayScore}
+        onChange={setAwayScore}
+      />{' '}
+      <select value={finishedType} onChange={setFinishedType}>
+        <option value="fullTime">full time</option>
+        <option value="overTime">overtime</option>
+        <option value="penalties">penalties</option>
+      </select>
+      {finishedType === 'penalties' ? (
+        <small>
+          {' ('}
+          <input
+            inputMode="numeric"
+            value={homePenaltyGoals}
+            onChange={setHomePenaltyGoals}
+          />
+          {' - '}
+          <input
+            inputMode="numeric"
+            value={awayPenaltyGoals}
+            onChange={setAwayPenaltyGoals}
+          />
+          {' P)'}
+        </small>
+      ) : null}{' '}
+      <button disabled={!validatedData} onClick={handleSave}>
         save
       </button>
     </div>
   )
+})
+
+function stringToInt(s: string): number | undefined {
+  if (!/^\d+$/.test(s)) return undefined
+  return parseInt(s, 10)
 }
 
-const FinishedTypeSelect = (props: { value: Atom<FinishedType> }) => (
-  <select
-    onChange={e => props.value.set(e.currentTarget.value as FinishedType)}
-  >
-    <option value="fullTime">full time</option>
-    <option value="overTime">overtime</option>
-    <option value="penalties">penalties</option>
-  </select>
-)
+function validate(state: State): MatchResultBody | undefined {
+  const homeScore = stringToInt(state.homeScore)
+  const awayScore = stringToInt(state.awayScore)
+  if (homeScore === undefined || awayScore === undefined) return undefined
+
+  if (state.finishedType === 'penalties') {
+    const homePenaltyGoals = stringToInt(state.homePenaltyGoals)
+    const awayPenaltyGoals = stringToInt(state.awayPenaltyGoals)
+    if (homePenaltyGoals === undefined || awayPenaltyGoals === undefined) {
+      return undefined
+    }
+
+    return {
+      homeScore,
+      awayScore,
+      finishedType: {
+        kind: 'penalties',
+        homeGoals: homePenaltyGoals,
+        awayGoals: awayPenaltyGoals,
+      },
+    }
+  }
+  return {
+    homeScore: homeScore,
+    awayScore: awayScore,
+    finishedType: { kind: state.finishedType },
+  }
+}

@@ -1,15 +1,18 @@
-use crate::api_types::{Stats, UserStats};
-use crate::sql::sql_types::{MatchId, UserId};
-use crate::{
-    get_random_match_from_all, get_random_match_from_leagues, response, sql, Database,
-    FinishedType, GenericResponse, League, Match, RandomMatch, User,
-};
+use std::collections::HashSet;
+
 use axum::extract::Path;
 use axum::http::StatusCode;
 use axum::routing::{delete, get, post, put};
 use axum::{Json, Router};
 use serde::Deserialize;
-use std::collections::HashSet;
+
+use crate::api_types::{Stats, UserStats};
+use crate::sql::sql_types::{MatchId, UserId};
+use crate::utils::{generic_error, GenericResponse};
+use crate::{
+    get_random_match_from_all, get_random_match_from_leagues, sql, Database, FinishedType, League,
+    Match, RandomMatch, User,
+};
 
 async fn leagues(Database(dbc): Database) -> Result<Json<Vec<League>>, GenericResponse> {
     let rows = sql::leagues(&dbc).await?;
@@ -29,7 +32,7 @@ async fn delete_match(
     if result == 1 {
         Ok(StatusCode::NO_CONTENT)
     } else {
-        Err(response(
+        Err(generic_error(
             StatusCode::BAD_REQUEST,
             "This match cannot be deleted",
         ))
@@ -75,7 +78,7 @@ async fn finish_match(
     if result == 1 {
         Ok(Json(sql::match_(&dbc, id).await?.map(Match::from).unwrap()))
     } else {
-        Err(response(StatusCode::NOT_FOUND, "No such match"))
+        Err(generic_error(StatusCode::NOT_FOUND, "No such match"))
     }
 }
 
@@ -92,7 +95,7 @@ async fn create_random_match_pair(
     Json(body): Json<RandomMatchPairBody>,
 ) -> Result<Json<(Match, Match)>, GenericResponse> {
     if body.user1 == body.user2 {
-        return Err(response(
+        return Err(generic_error(
             StatusCode::BAD_REQUEST,
             "User 1 and user 2 cannot be the same",
         ));
@@ -122,7 +125,7 @@ async fn create_random_match_pair(
         home_id,
         away_id,
     } = random_match_opt.ok_or_else(|| {
-        response(
+        generic_error(
             StatusCode::BAD_REQUEST,
             "No teams available to create a match",
         )
@@ -209,7 +212,7 @@ pub fn api_routes() -> Router {
         .route("/matches", get(matches))
         .route("/matches/random_pair", post(create_random_match_pair))
         .route("/matches/:id", delete(delete_match))
-        .route("/matches/:id/finish", put(finish_match))
+        .route("/matches/:id/finish", post(finish_match))
         .route("/users", get(users))
         .route("/stats", get(stats))
 }

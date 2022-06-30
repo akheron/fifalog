@@ -1,36 +1,37 @@
-import { Property } from 'baconjs'
-import { Atom, Fragment, h } from 'harmaja/bacon'
-import { ifElse } from '../atom-utils'
+import React from 'react'
 import * as styles from './MatchRowButtons.scss'
 
-export type Props = {
-  editing: Atom<boolean>
-  disabled: Property<boolean>
+export interface Props {
+  isLoading: boolean
+  isEditing: boolean
+  onEdit: () => void
   onDelete: () => void
+  onCancel: () => void
 }
 
-export default ({ editing, disabled, onDelete }: Props) => (
-  <div className={styles.buttons}>
-    {ifElse(
-      editing,
-      () => (
-        <button disabled={disabled} onClick={() => editing.set(false)}>
+export default React.memo(function MatchRowButtons({
+  isLoading,
+  isEditing,
+  onEdit,
+  onDelete,
+  onCancel,
+}: Props) {
+  return (
+    <div className={styles.buttons}>
+      {isEditing ? (
+        <button disabled={isLoading} onClick={onCancel}>
           cancel
         </button>
-      ),
-      () => (
+      ) : (
         <>
-          <button disabled={disabled} onClick={() => editing.set(true)}>
+          <button disabled={isLoading} onClick={onEdit}>
             E
           </button>
-          <button
-            disabled={disabled}
-            onClick={() => confirm('Really?') && onDelete()}
-          >
+          <button disabled={isLoading} onClick={onDelete}>
             R
           </button>
         </>
-      )
-    )}
-  </div>
-)
+      )}
+    </div>
+  )
+})

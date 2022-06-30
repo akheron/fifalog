@@ -8,27 +8,24 @@
     "build": "webpack --mode production"
   },
   "devDependencies": {
+    "@reduxjs/toolkit": "^1.8.2",
     "@types/classnames": "^2.2.10",
-    "baconjs": "^3.0.16",
+    "@types/ramda": "^0.28.14",
+    "@types/react": "^18.0.14",
+    "@types/react-dom": "^18.0.5",
     "classnames": "^2.2.6",
     "css-loader": "^6.7.1",
-    "fp-ts": "^2.8.2",
-    "harmaja": "^0.24.0",
-    "io-ts": "^2.2.16",
-    "lonna": "^0.12.1",
     "mini-css-extract-plugin": "^2.6.0",
     "prettier": "^2.7.1",
     "ramda": "^0.28.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.0.2",
     "sass": "^1.50.1",
     "sass-loader": "^12.6.0",
     "ts-loader": "^9.2.8",
     "typescript": "^4.1.2",
     "webpack": "^5.72.0",
     "webpack-cli": "^4.9.2"
-  },
-  "dependencies": {
-    "@types/ramda": "^0.28.14",
-    "io-ts-types": "^0.5.16",
-    "ramda": "^0.28.0"
   }
 }

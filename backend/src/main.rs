@@ -1,7 +1,5 @@
 use std::net::SocketAddr;
 
-use axum::response::Html;
-use axum::routing::get;
 use axum::{Extension, Router};
 use axum_extra::routing::SpaRouter;
 use tower::ServiceBuilder;
@@ -9,7 +7,7 @@ use tower_cookies::CookieManagerLayer;
 
 use crate::api_routes::api_routes;
 use crate::api_types::{FinishedType, League, Match, User};
-use crate::auth::{auth_routes, login_required, IsLoggedIn};
+use crate::auth::{auth_routes, login_required};
 use crate::config::Config;
 use crate::db::{database_layer, database_pool, Database};
 use crate::env::Env;
@@ -38,7 +36,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = Router::new()
         .nest("/auth", auth_routes())
         .nest("/api", api_routes().layer(login_required()))
-        .route("/", get(index))
         .merge(SpaRouter::new("/assets", &env.asset_path))
         .layer(
             ServiceBuilder::new()
@@ -60,6 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 mod migrations {
     use deadpool_postgres::Pool;
     use refinery::embed_migrations;
+
     embed_migrations!();
 
     pub async fn run(pool: Pool) -> Result<(), Box<dyn std::error::Error>> {
@@ -69,24 +67,4 @@ mod migrations {
             .await?;
         Ok(())
     }
-}
-
-async fn index(IsLoggedIn(is_logged_in): IsLoggedIn) -> Html<String> {
-    Html(format!(
-        r#"<!DOCTYPE html>
-
-<head>
-  <title>FIFA log</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <link rel="stylesheet" type="text/css" href="/assets/index.css">
-</head>
-
-<body>
-  <div id="app"></div>
-  <script>var IS_LOGGED_IN = {is_logged_in};</script>
-  <script src="/assets/index.js"></script>
-</body>
-"#,
-        is_logged_in = is_logged_in
-    ))
 }

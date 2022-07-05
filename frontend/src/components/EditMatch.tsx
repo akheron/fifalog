@@ -3,7 +3,7 @@ import React, { useCallback, useMemo } from 'react'
 import { MatchResultBody, useFinishMatchMutation } from '../matches/matchesApi'
 import { useFormState, useSelect, useTextField } from '../utils/formState'
 
-import * as styles from './EditMatch.scss'
+import * as styles from './EditMatch.module.scss'
 
 export interface State {
   homeScore: string

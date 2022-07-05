@@ -1,8 +1,7 @@
 *
 !backend/
 backend/target
-!frontend/
-frontend/node_modules
-!package.json
-!tsconfig.json
-!yarn.lock
+!frontend/src
+!frontend/package.json
+!frontend/tsconfig.json
+!frontend/yarn.lock

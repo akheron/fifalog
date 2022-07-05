@@ -5,7 +5,7 @@ import { useLoginMutation } from '../auth/authApi'
 import { getErrorStatus } from '../utils/error'
 import { useFormState, useTextField } from '../utils/formState'
 
-import * as styles from './LoginForm.scss'
+import * as styles from './LoginForm.module.scss'
 
 interface State {
   username: string

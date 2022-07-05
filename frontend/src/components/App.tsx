@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { useAppSelector } from '../store'
+import { useAuthStatusQuery } from '../auth/authApi'
 
 import Index from './Index'
 import LoginForm from './LoginForm'
@@ -8,10 +8,12 @@ import Logout from './Logout'
 import './App.scss'
 
 export default React.memo(function App() {
-  const loggedIn = useAppSelector((state) => state.auth.loggedIn)
+  const { data: loggedIn, isLoading } = useAuthStatusQuery()
   return (
     <main>
-      {loggedIn ? (
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : loggedIn ? (
         <>
           <Logout />
           <Index />

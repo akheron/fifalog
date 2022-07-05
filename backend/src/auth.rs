@@ -15,6 +15,14 @@ use tower_cookies::Cookies;
 
 static COOKIE_NAME: &str = "session";
 
+pub async fn status(IsLoggedIn(is_logged_in): IsLoggedIn) -> StatusCode {
+    if is_logged_in {
+        StatusCode::OK
+    } else {
+        StatusCode::UNAUTHORIZED
+    }
+}
+
 #[derive(Deserialize)]
 pub struct LoginBody {
     username: String,
@@ -60,6 +68,7 @@ pub fn auth_routes() -> Router {
     Router::new()
         .route("/login", post(login))
         .route("/logout", get(logout))
+        .route("/status", get(status))
 }
 
 pub struct IsLoggedIn(pub bool);

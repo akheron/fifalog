@@ -9,7 +9,7 @@ import {
 import { useBooleanState } from '../utils/state'
 
 import EditMatch from './EditMatch'
-import * as styles from './MatchRow.scss'
+import * as styles from './MatchRow.module.scss'
 import MatchRowButtons from './MatchRowButtons'
 
 export interface Props {

@@ -6,7 +6,7 @@ import CreateRandomMatchPair from './CreateRandomMatchPair'
 import MatchList from './MatchList'
 import Stats from './Stats'
 
-export default React.memo(function Index() {
+export default React.memo(function Main() {
   const { data: users, isLoading } = useUsersQuery()
   return (
     <>

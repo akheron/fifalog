@@ -1,5 +1,6 @@
 import classNames from 'classnames'
-import React, { useCallback } from 'react'
+import React, { MouseEvent, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { useLoginMutation } from '../auth/authApi'
 import { getErrorStatus } from '../utils/error'
@@ -16,6 +17,8 @@ export default React.memo(function LoginForm() {
   const [login, { isLoading, error }] = useLoginMutation()
   const errorStatus = getErrorStatus(error)
 
+  const navigate = useNavigate()
+
   const credentials = useFormState<State>({
     username: '',
     password: '',
@@ -23,9 +26,16 @@ export default React.memo(function LoginForm() {
   const [username, setUsername] = useTextField(credentials, 'username')
   const [password, setPassword] = useTextField(credentials, 'password')
 
-  const handleLogin = useCallback(async () => {
-    await login(credentials.state)
-  }, [login, credentials.state])
+  const handleLogin = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      const result = await login(credentials.state)
+      if ('data' in result) {
+        navigate('/')
+      }
+    },
+    [login, credentials.state, navigate]
+  )
 
   return (
     <form

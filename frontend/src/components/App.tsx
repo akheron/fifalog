@@ -1,26 +1,44 @@
 import React from 'react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
 import { useAuthStatusQuery } from '../auth/authApi'
 
+import Layout from './Layout'
 import LoginForm from './LoginForm'
-import Logout from './Logout'
 import Main from './Main'
-import './App.scss'
 
 export default React.memo(function App() {
-  const { data: loggedIn, isLoading } = useAuthStatusQuery()
   return (
-    <main>
-      {isLoading ? (
-        <div>Loading...</div>
-      ) : loggedIn ? (
-        <>
-          <Logout />
-          <Main />
-        </>
-      ) : (
-        <LoginForm />
-      )}
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route path="/login" element={<LoginForm />} />
+          <Route
+            index
+            element={
+              <LoginRequired>
+                <Main />
+              </LoginRequired>
+            }
+          />
+          <Route path="*" element={<div>Not found :(</div>} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
+})
+
+const LoginRequired = React.memo(function LoginRequired({
+  children,
+}: {
+  children: JSX.Element
+}) {
+  const { data: loggedIn, isLoading } = useAuthStatusQuery()
+  if (isLoading) {
+    return null
+  }
+  if (!loggedIn) {
+    return <Navigate to="/login" />
+  }
+  return children
 })

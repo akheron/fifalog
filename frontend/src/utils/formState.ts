@@ -30,13 +30,29 @@ export function useTextField<
 
 export function useSelect<T, K extends keyof T>(
   formState: FormState<T>,
-  key: K
+  key: K,
+  toValue: (value: string) => T[K]
 ): [T[K], (e: ChangeEvent<HTMLSelectElement>) => void] {
   const { state, setState } = formState
   const value = state[key]
   const handleChange = useCallback(
     (e: ChangeEvent<HTMLSelectElement>) => {
-      setState((prev) => ({ ...prev, [key]: e.target.value }))
+      setState((prev) => ({ ...prev, [key]: toValue(e.target.value) }))
+    },
+    [key, setState, toValue]
+  )
+  return [value, handleChange]
+}
+
+export function useCheckbox<T, K extends keyof T>(
+  formState: FormState<T>,
+  key: K
+): [T[K], (e: ChangeEvent<HTMLInputElement>) => void] {
+  const { state, setState } = formState
+  const value = state[key]
+  const handleChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setState((prev) => ({ ...prev, [key]: e.target.checked }))
     },
     [key, setState]
   )

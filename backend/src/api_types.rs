@@ -1,7 +1,6 @@
 use crate::sql;
 use crate::sql::sql_types::{LeagueId, MatchId, TeamId, UserId};
 use serde::{Deserialize, Serialize};
-use tokio_postgres::types::Json;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -21,6 +20,15 @@ impl From<sql::users::Row> for User {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct Team {
+    pub id: TeamId,
+    pub name: String,
+    pub disabled: bool,
+    pub match_count: i32,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct League {
     pub id: LeagueId,
     pub name: String,
@@ -30,16 +38,18 @@ pub struct League {
 
 impl From<sql::leagues::Row> for League {
     fn from(row: sql::leagues::Row) -> Self {
-        let Json(teams) = row.teams();
         Self {
             id: row.id(),
             name: row.name(),
             exclude_random_all: row.exclude_random_all(),
-            teams: teams
+            teams: row
+                .teams()
                 .into_iter()
                 .map(|team| Team {
                     id: team.id,
                     name: team.name,
+                    disabled: team.disabled,
+                    match_count: team.match_count,
                 })
                 .collect(),
         }
@@ -48,7 +58,7 @@ impl From<sql::leagues::Row> for League {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Team {
+pub struct TeamStub {
     pub id: TeamId,
     pub name: String,
 }
@@ -59,8 +69,8 @@ pub struct Match {
     pub id: MatchId,
     pub league_id: Option<LeagueId>,
     pub league_name: Option<String>,
-    pub home: Team,
-    pub away: Team,
+    pub home: TeamStub,
+    pub away: TeamStub,
     pub home_user: User,
     pub away_user: User,
     pub result: Option<MatchResult>, // None means not finished
@@ -72,11 +82,11 @@ impl From<sql::latest_matches::Row> for Match {
             id: row.match_id(),
             league_id: row.league_id(),
             league_name: row.league_name(),
-            home: Team {
+            home: TeamStub {
                 id: row.home_id(),
                 name: row.home_name(),
             },
-            away: Team {
+            away: TeamStub {
                 id: row.away_id(),
                 name: row.away_name(),
             },
@@ -111,11 +121,11 @@ impl From<sql::match_::Row> for Match {
             id: row.match_id(),
             league_id: row.league_id(),
             league_name: row.league_name(),
-            home: Team {
+            home: TeamStub {
                 id: row.home_id(),
                 name: row.home_name(),
             },
-            away: Team {
+            away: TeamStub {
                 id: row.away_id(),
                 name: row.away_name(),
             },

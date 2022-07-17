@@ -64,7 +64,10 @@ export const matchesApi = api.injectEndpoints({
         url: `/api/matches/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: (_result, _error, id) => [{ type: 'Matches', id }],
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Matches', id },
+        { type: 'Leagues', id: 'LIST' },
+      ],
     }),
     createRandomMatchPair: builder.mutation<
       [Match, Match],
@@ -76,7 +79,12 @@ export const matchesApi = api.injectEndpoints({
         body,
       }),
       invalidatesTags: (result) =>
-        result ? [{ type: 'Matches', id: 'LIST' }] : [],
+        result
+          ? [
+              { type: 'Matches', id: 'LIST' },
+              { type: 'Leagues', id: 'LIST' },
+            ]
+          : [],
     }),
     finishMatch: builder.mutation<
       Match,

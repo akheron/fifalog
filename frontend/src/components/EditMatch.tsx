@@ -30,7 +30,11 @@ export default React.memo(function EditMatch({ id }: Props) {
 
   const [homeScore, setHomeScore] = useTextField(state, 'homeScore')
   const [awayScore, setAwayScore] = useTextField(state, 'awayScore')
-  const [finishedType, setFinishedType] = useSelect(state, 'finishedType')
+  const [finishedType, setFinishedType] = useSelect(
+    state,
+    'finishedType',
+    (t) => t as FinishedType
+  )
   const [homePenaltyGoals, setHomePenaltyGoals] = useTextField(
     state,
     'homePenaltyGoals'

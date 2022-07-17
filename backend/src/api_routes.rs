@@ -2,12 +2,13 @@ use std::collections::HashSet;
 
 use axum::extract::Path;
 use axum::http::StatusCode;
-use axum::routing::{delete, get, post};
+use axum::routing::{delete, get, post, put};
 use axum::{Json, Router};
 use serde::Deserialize;
 
 use crate::api_types::{Stats, UserStats};
-use crate::sql::sql_types::{MatchId, UserId};
+use crate::db::is_integrity_error;
+use crate::sql::sql_types::{LeagueId, MatchId, TeamId, UserId};
 use crate::utils::{generic_error, GenericResponse};
 use crate::{
     get_random_match_from_all, get_random_match_from_leagues, sql, Database, FinishedType, League,
@@ -17,6 +18,26 @@ use crate::{
 async fn leagues(Database(dbc): Database) -> Result<Json<Vec<League>>, GenericResponse> {
     let rows = sql::leagues(&dbc).await?;
     Ok(Json(rows.into_iter().map(League::from).collect()))
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct LeagueBody {
+    name: String,
+    exclude_random_all: bool,
+}
+
+async fn update_league(
+    Database(dbc): Database,
+    Path(id): Path<LeagueId>,
+    Json(body): Json<LeagueBody>,
+) -> Result<StatusCode, GenericResponse> {
+    let result = sql::update_league(&dbc, id, body.name, body.exclude_random_all).await?;
+    if result == 1 {
+        Ok(StatusCode::OK)
+    } else {
+        Err(generic_error(StatusCode::NOT_FOUND, "No such league"))
+    }
 }
 
 async fn matches(Database(dbc): Database) -> Result<Json<Vec<Match>>, GenericResponse> {
@@ -41,10 +62,10 @@ async fn delete_match(
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct MatchResultBody {
-    pub home_score: i32,
-    pub away_score: i32,
-    pub finished_type: FinishedType,
+struct MatchResultBody {
+    home_score: i32,
+    away_score: i32,
+    finished_type: FinishedType,
 }
 
 async fn finish_match(
@@ -171,6 +192,67 @@ fn group_user_stats_by_month(rows: Vec<sql::user_stats::Row>) -> Vec<Vec<UserSta
     user_stats_by_month
 }
 
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TeamBody {
+    league_id: LeagueId,
+    name: String,
+    disabled: bool,
+}
+
+async fn create_team(
+    Database(dbc): Database,
+    Json(body): Json<TeamBody>,
+) -> Result<StatusCode, GenericResponse> {
+    let result = sql::create_team(&dbc, body.league_id, body.name, body.disabled).await?;
+    if result == 1 {
+        Ok(StatusCode::OK)
+    } else {
+        Err(generic_error(
+            StatusCode::BAD_REQUEST,
+            "Could not create team",
+        ))
+    }
+}
+
+async fn update_team(
+    Database(dbc): Database,
+    Path(id): Path<TeamId>,
+    Json(body): Json<TeamBody>,
+) -> Result<StatusCode, GenericResponse> {
+    let result = sql::update_team(&dbc, id, body.league_id, body.name, body.disabled).await?;
+    if result == 1 {
+        Ok(StatusCode::OK)
+    } else {
+        Err(generic_error(StatusCode::NOT_FOUND, "No such team"))
+    }
+}
+
+async fn delete_team(
+    Database(dbc): Database,
+    Path(id): Path<TeamId>,
+) -> Result<StatusCode, GenericResponse> {
+    sql::delete_team(&dbc, id)
+        .await
+        .map(|row_count| {
+            if row_count == 1 {
+                StatusCode::OK
+            } else {
+                StatusCode::NOT_FOUND
+            }
+        })
+        .map_err(|error| {
+            if is_integrity_error(&error) {
+                generic_error(
+                    StatusCode::BAD_REQUEST,
+                    "Cannot delete team because it has existing matches",
+                )
+            } else {
+                error.into()
+            }
+        })
+}
+
 async fn stats(Database(dbc): Database) -> Result<Json<Vec<Stats>>, GenericResponse> {
     let last_user_stats = sql::user_stats(&dbc, 10).await?;
     let last_total_stats = sql::total_stats(&dbc, 10).await?;
@@ -209,10 +291,14 @@ async fn stats(Database(dbc): Database) -> Result<Json<Vec<Stats>>, GenericRespo
 pub fn api_routes() -> Router {
     Router::new()
         .route("/leagues", get(leagues))
+        .route("/leagues/:id", put(update_league))
         .route("/matches", get(matches))
         .route("/matches/random_pair", post(create_random_match_pair))
         .route("/matches/:id", delete(delete_match))
         .route("/matches/:id/finish", post(finish_match))
-        .route("/users", get(users))
+        .route("/teams", post(create_team))
+        .route("/teams/:id", put(update_team))
+        .route("/teams/:id", delete(delete_team))
         .route("/stats", get(stats))
+        .route("/users", get(users))
 }

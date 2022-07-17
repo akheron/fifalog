@@ -6,6 +6,7 @@ import { useAuthStatusQuery } from '../auth/authApi'
 import Layout from './Layout'
 import LoginForm from './LoginForm'
 import Main from './Main'
+import Teams from './Teams'
 
 export default React.memo(function App() {
   return (
@@ -18,6 +19,14 @@ export default React.memo(function App() {
             element={
               <LoginRequired>
                 <Main />
+              </LoginRequired>
+            }
+          />
+          <Route
+            path="/teams"
+            element={
+              <LoginRequired>
+                <Teams />
               </LoginRequired>
             }
           />

@@ -4,6 +4,7 @@ use axum::extract::{FromRequest, RequestParts};
 use axum::Extension;
 use deadpool_postgres::{Manager, ManagerConfig, Pool, RecyclingMethod};
 use std::str::FromStr;
+use tokio_postgres::error::{Error, SqlState};
 use tokio_postgres::NoTls;
 
 use crate::utils::internal_error;
@@ -40,9 +41,14 @@ pub fn database_pool(url: &str, pool_size: usize) -> Result<Pool, tokio_postgres
     Ok(Pool::builder(mgr).max_size(pool_size).build().unwrap())
 }
 
-
 pub type DatabaseLayer = Extension<Pool>;
 
 pub fn database_layer(pool: Pool) -> DatabaseLayer {
     Extension(pool)
+}
+
+pub fn is_integrity_error(err: &Error) -> bool {
+    err.code()
+        .map(|s| s == &SqlState::INTEGRITY_CONSTRAINT_VIOLATION)
+        .unwrap_or(false)
 }

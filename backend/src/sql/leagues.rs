@@ -7,6 +7,8 @@ use tokio_postgres::Client;
 pub struct Team {
     pub id: TeamId,
     pub name: String,
+    pub disabled: bool,
+    pub match_count: i32,
 }
 
 pub struct Row(tokio_postgres::Row);
@@ -21,8 +23,9 @@ impl Row {
     pub fn exclude_random_all(&self) -> bool {
         self.0.get(2)
     }
-    pub fn teams(&self) -> Json<Vec<Team>> {
-        self.0.get(3)
+    pub fn teams(&self) -> Vec<Team> {
+        let Json(teams) = self.0.get(3);
+        teams
     }
 }
 
@@ -35,10 +38,23 @@ SELECT
     league.id,
     league.name,
     league.exclude_random_all,
-    json_agg(json_build_object('id', team.id, 'name', team.name) ORDER BY team.name) as teams
+    coalesce(
+        json_agg(
+            json_build_object(
+                'id', team.id,
+                'name', team.name,
+                'disabled', team.disabled,
+                'match_count', (
+                    SELECT count(*)
+                    FROM match
+                    WHERE home_id = team.id OR away_id = team.id
+                )
+            )
+            ORDER BY team.name
+        ) FILTER (WHERE team.id IS NOT NULL),
+    '[]'::json) AS teams
 FROM league
-JOIN team ON team.league_id = league.id
-WHERE NOT team.disabled
+LEFT JOIN team ON team.league_id = league.id
 GROUP BY league.id, league.name, league.exclude_random_all
 ORDER BY league.name
 "#,

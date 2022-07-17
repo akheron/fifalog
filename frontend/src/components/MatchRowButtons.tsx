@@ -27,7 +27,7 @@ export default React.memo(function MatchRowButtons({
         <>
           <button disabled={isLoading} onClick={onEdit}>
             E
-          </button>
+          </button>{' '}
           <button disabled={isLoading} onClick={onDelete}>
             R
           </button>

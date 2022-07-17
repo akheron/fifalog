@@ -58,7 +58,11 @@ fn num_team_pairs(leagues: &[League], exclude_teams: &HashSet<TeamId>) -> usize 
             .iter()
             .filter(|t| !exclude_teams.contains(&t.id))
             .count();
-        num += binomial_coefficient(num_teams, 2);
+        num += if num_teams > 0 {
+            binomial_coefficient(num_teams, 2)
+        } else {
+            0
+        };
     }
     num
 }

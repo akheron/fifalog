@@ -7,6 +7,7 @@ import { getErrorStatus } from '../utils/error'
 import { useFormState, useTextField } from '../utils/formState'
 
 import * as styles from './LoginForm.module.css'
+import { HGap } from './whitespace'
 
 interface State {
   username: string
@@ -46,20 +47,23 @@ export default React.memo(function LoginForm() {
       <h2>Login</h2>
       <div className={styles.row}>
         <label>
-          <span className={styles.name}>Username:</span>{' '}
+          <span className={styles.name}>Username:</span>
+          <HGap />
           <input value={username} onChange={setUsername} />
         </label>
       </div>
       <div className={styles.row}>
         <label>
-          <span className={styles.name}>Password:</span>{' '}
+          <span className={styles.name}>Password:</span>
+          <HGap />
           <input type="password" value={password} onChange={setPassword} />
         </label>
       </div>
       <div className={styles.actions}>
         <button disabled={isLoading} onClick={handleLogin}>
           Login
-        </button>{' '}
+        </button>
+        <HGap />
         {isLoading ? (
           <span>Loading...</span>
         ) : errorStatus === 400 ? (

@@ -1,0 +1,16 @@
+.row {
+  margin-top: 0.5em;
+}
+
+.actions {
+  margin-top: 1em;
+}
+
+.name {
+  display: inline-block;
+  min-width: 5em;
+}
+
+.invalid {
+  color: #f00;
+}

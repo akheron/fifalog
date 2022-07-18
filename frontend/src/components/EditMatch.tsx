@@ -3,7 +3,7 @@ import React, { useCallback, useMemo } from 'react'
 import { MatchResultBody, useFinishMatchMutation } from '../matches/matchesApi'
 import { useFormState, useSelect, useTextField } from '../utils/formState'
 
-import * as styles from './EditMatch.module.scss'
+import * as styles from './EditMatch.module.css'
 
 export interface State {
   homeScore: string
@@ -52,7 +52,7 @@ export default React.memo(function EditMatch({ id }: Props) {
   }, [validatedData, finishMatch, id])
 
   return (
-    <div className={styles.editMatch}>
+    <div className={styles.edit}>
       <input inputMode="numeric" value={homeScore} onChange={setHomeScore} />
       {' - '}
       <input
@@ -66,7 +66,7 @@ export default React.memo(function EditMatch({ id }: Props) {
         <option value="penalties">penalties</option>
       </select>
       {finishedType === 'penalties' ? (
-        <small>
+        <span className={styles.penalties}>
           {' ('}
           <input
             inputMode="numeric"
@@ -80,7 +80,7 @@ export default React.memo(function EditMatch({ id }: Props) {
             onChange={setAwayPenaltyGoals}
           />
           {' P)'}
-        </small>
+        </span>
       ) : null}{' '}
       <button disabled={!validatedData} onClick={handleSave}>
         save

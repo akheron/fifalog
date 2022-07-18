@@ -3,7 +3,7 @@ import React from 'react'
 import { groupMatchesByDay } from '../matches/matchUtils'
 import { useLatestMatchesQuery } from '../matches/matchesApi'
 
-import * as styles from './MatchList.module.scss'
+import * as styles from './MatchList.module.css'
 import MatchRow from './MatchRow'
 
 export default React.memo(function MatchList() {

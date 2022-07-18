@@ -6,7 +6,7 @@ import { useLoginMutation } from '../auth/authApi'
 import { getErrorStatus } from '../utils/error'
 import { useFormState, useTextField } from '../utils/formState'
 
-import * as styles from './LoginForm.module.scss'
+import * as styles from './LoginForm.module.css'
 
 interface State {
   username: string
@@ -39,24 +39,24 @@ export default React.memo(function LoginForm() {
 
   return (
     <form
-      className={classNames(styles.form, {
+      className={classNames({
         [styles.invalid]: error !== undefined,
       })}
     >
       <h2>Login</h2>
-      <div>
+      <div className={styles.row}>
         <label>
-          <span>Username:</span>{' '}
+          <span className={styles.name}>Username:</span>{' '}
           <input value={username} onChange={setUsername} />
         </label>
       </div>
-      <div>
+      <div className={styles.row}>
         <label>
-          <span>Password:</span>{' '}
+          <span className={styles.name}>Password:</span>{' '}
           <input type="password" value={password} onChange={setPassword} />
         </label>
       </div>
-      <div>
+      <div className={styles.actions}>
         <button disabled={isLoading} onClick={handleLogin}>
           Login
         </button>{' '}

@@ -4,6 +4,7 @@ import { MatchResultBody, useFinishMatchMutation } from '../matches/matchesApi'
 import { useFormState, useSelect, useTextField } from '../utils/formState'
 
 import * as styles from './EditMatch.module.css'
+import { HGap } from './whitespace'
 
 export interface State {
   homeScore: string
@@ -55,11 +56,8 @@ export default React.memo(function EditMatch({ id }: Props) {
     <div className={styles.edit}>
       <input inputMode="numeric" value={homeScore} onChange={setHomeScore} />
       {' - '}
-      <input
-        inputMode="numeric"
-        value={awayScore}
-        onChange={setAwayScore}
-      />{' '}
+      <input inputMode="numeric" value={awayScore} onChange={setAwayScore} />
+      <HGap />
       <select value={finishedType} onChange={setFinishedType}>
         <option value="fullTime">full time</option>
         <option value="overTime">overtime</option>
@@ -81,7 +79,8 @@ export default React.memo(function EditMatch({ id }: Props) {
           />
           {' P)'}
         </span>
-      ) : null}{' '}
+      ) : null}
+      <HGap />
       <button disabled={!validatedData} onClick={handleSave}>
         save
       </button>

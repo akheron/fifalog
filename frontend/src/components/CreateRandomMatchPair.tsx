@@ -5,6 +5,7 @@ import { User } from '../users/usersApi'
 import { useFormField, useFormState } from '../utils/formState'
 
 import Select from './Select'
+import { HGap } from './whitespace'
 
 export interface State {
   user1: number
@@ -37,22 +38,29 @@ export default React.memo(function CreateRandomMatchPair({ users }: Props) {
     <>
       <Select options={users} value={user1} onChange={setUser1} />
       {' vs. '}
-      <Select options={users} value={user2} onChange={setUser2} />{' '}
+      <Select options={users} value={user2} onChange={setUser2} />
+      <HGap />
       <button
         type="button"
         disabled={isLoading || user1 === user2}
         onClick={randomize}
       >
         Randomize
-      </button>{' '}
+      </button>
+      <HGap />
       <button
         type="button"
         disabled={isLoading || user1 === user2}
         onClick={randomizeInLeagues}
       >
-        Randomize in leagues
-      </button>{' '}
-      {isError ? 'Could not create match' : null}
+        In leagues
+      </button>
+      {isError ? (
+        <>
+          <HGap />
+          <span>Could not create match</span>
+        </>
+      ) : null}
     </>
   )
 })

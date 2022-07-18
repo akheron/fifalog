@@ -1,6 +1,7 @@
 import React from 'react'
 
 import * as styles from './MatchRowButtons.module.css'
+import { HGap } from './whitespace'
 
 export interface Props {
   isLoading: boolean
@@ -28,7 +29,7 @@ export default React.memo(function MatchRowButtons({
           <button disabled={isLoading} onClick={onEdit}>
             E
           </button>
-          <span className={styles.gap} />
+          <HGap />
           <button disabled={isLoading} onClick={onDelete}>
             R
           </button>

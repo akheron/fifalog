@@ -2,7 +2,7 @@ import React from 'react'
 
 import { MonthStats, useStatsQuery } from '../stats/statsApi'
 
-import * as styles from './Stats.module.scss'
+import * as styles from './Stats.module.css'
 
 export default React.memo(function Stats() {
   const { data, isLoading } = useStatsQuery()

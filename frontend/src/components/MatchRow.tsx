@@ -9,7 +9,7 @@ import {
 import { useBooleanState } from '../utils/state'
 
 import EditMatch from './EditMatch'
-import * as styles from './MatchRow.module.scss'
+import * as styles from './MatchRow.module.css'
 import MatchRowButtons from './MatchRowButtons'
 
 export interface Props {
@@ -28,7 +28,7 @@ export default React.memo(function MatchRow({ match }: Props) {
 
   return (
     <div className={styles.match}>
-      <div className={styles.matchInfo}>
+      <div>
         <strong>{match.home.name}</strong> (
         <HighlightWinner match={match} which="home" />){' - '}
         <strong>{match.away.name}</strong> (
@@ -79,7 +79,11 @@ const HighlightWinner = React.memo(function HighlightWinner({
   const userProp =
     which === 'home' ? ('homeUser' as const) : ('awayUser' as const)
   const userName = match[userProp].name
-  return isWinner(match.result, which) ? <em>{userName}</em> : <>{userName}</>
+  return isWinner(match.result, which) ? (
+    <em className={styles.winner}>{userName}</em>
+  ) : (
+    <>{userName}</>
+  )
 })
 
 const MatchEndResult = React.memo(function MatchEndResult({

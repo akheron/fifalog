@@ -1,6 +1,6 @@
 import React from 'react'
 
-import * as styles from './MatchRowButtons.scss'
+import * as styles from './MatchRowButtons.module.css'
 
 export interface Props {
   isLoading: boolean
@@ -27,7 +27,8 @@ export default React.memo(function MatchRowButtons({
         <>
           <button disabled={isLoading} onClick={onEdit}>
             E
-          </button>{' '}
+          </button>
+          <span className={styles.gap} />
           <button disabled={isLoading} onClick={onDelete}>
             R
           </button>

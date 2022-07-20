@@ -1,4 +1,11 @@
-import React, { useCallback, useMemo } from 'react'
+import classNames from 'classnames'
+import React, {
+  ChangeEvent,
+  useCallback,
+  useMemo,
+  useReducer,
+  useState,
+} from 'react'
 
 import {
   League,
@@ -7,15 +14,13 @@ import {
   useDeleteTeamMutation,
   useLeaguesQuery,
   useUpdateLeagueMutation,
-  useUpdateTeamMutation,
+  usePatchTeamMutation,
 } from '../teams/teamsApi'
-import {
-  useCheckbox,
-  useFormState,
-  useSelect,
-  useTextField,
-} from '../utils/formState'
+import { useCheckbox, useFormState, useTextField } from '../utils/formState'
 import { useBooleanState } from '../utils/state'
+
+import * as styles from './Teams.module.css'
+import { HGap, VGap } from './whitespace'
 
 export default React.memo(function Teams() {
   const { data: leagues, isLoading } = useLeaguesQuery()
@@ -29,6 +34,8 @@ export default React.memo(function Teams() {
           {leagues.map((league) => (
             <LeagueTable key={league.id} league={league} />
           ))}
+          <VGap size="M" />
+          <Legend />
         </div>
       )}
     </div>
@@ -44,22 +51,21 @@ const LeagueTable = React.memo(function League({ league }: { league: League }) {
   } = useBooleanState(false)
 
   const save = useCallback(
-    async (data: TeamEditState) => {
-      await createTeam(data)
+    async (name: string) => {
+      await createTeam({ name, leagueId: league.id, disabled: false })
       createOff()
     },
-    [createOff, createTeam]
+    [createOff, createTeam, league.id]
   )
 
   return (
     <div>
       <LeagueDetails league={league} />
-      <table key={league.id}>
+      <table key={league.id} className={styles.table}>
         <thead>
           <tr>
-            <th>Name</th>
-            <th>Disabled?</th>
-            <th>Matches</th>
+            <th className={styles.name}>Name</th>
+            <th className={styles.matches}>M</th>
           </tr>
         </thead>
         <tbody>
@@ -67,8 +73,7 @@ const LeagueTable = React.memo(function League({ league }: { league: League }) {
             <TeamRow key={team.id} leagueId={league.id} team={team} />
           ))}
           {creating ? (
-            <TeamEdit
-              leagueId={league.id}
+            <CreateTeam
               onSave={save}
               onCancel={createOff}
               isLoading={isLoading}
@@ -123,12 +128,11 @@ const LeagueDetailsView = React.memo(function LeagueDetailsView({
   return (
     <>
       <h3>
-        {league.name} <button onClick={onEdit}>E</button>
+        {league.name}
+        <HGap />
+        <button onClick={onEdit}>E</button>
       </h3>
-      <p>
-        Excluded from randomize:{' '}
-        {league.excludeRandomAll ? 'Yes' : 'No'}
-      </p>
+      <p>Excluded from randomize: {league.excludeRandomAll ? 'Yes' : 'No'}</p>
     </>
   )
 })
@@ -167,12 +171,14 @@ const LeagueDetailsEdit = React.memo(function LeagueDetailsEdit({
           value={name}
           onChange={setName}
           disabled={isLoading}
-        />{' '}
+        />
+        <HGap />
         <button onClick={() => onSave(state.state)} disabled={isLoading}>
-          OK
-        </button>{' '}
+          save
+        </button>
+        <HGap />
         <button onClick={onCancel} disabled={isLoading}>
-          X
+          cancel
         </button>
       </h3>
       <p>
@@ -188,92 +194,205 @@ const LeagueDetailsEdit = React.memo(function LeagueDetailsEdit({
   )
 })
 
-const TeamRow = React.memo(function Team({
+type TeamState =
+  | { state: 'view' }
+  | { state: 'edit'; name: string }
+  | { state: 'changeLeague'; leagueId: number }
+
+type TeamAction =
+  | { type: 'cancel' }
+  | { type: 'setName'; name: string }
+  | { type: 'setLeague'; leagueId: number }
+
+function teamStateReducer(state: TeamState, action: TeamAction): TeamState {
+  switch (action.type) {
+    case 'cancel':
+      return { state: 'view' }
+    case 'setName':
+      return { state: 'edit', name: action.name }
+    case 'setLeague':
+      return { state: 'changeLeague', leagueId: action.leagueId }
+  }
+}
+
+function useTeamState(leagueId: number, team: Team) {
+  const [patchTeam, { isLoading: isUpdating }] = usePatchTeamMutation()
+  const [deleteTeam, { isLoading: isDeleting }] = useDeleteTeamMutation()
+  const isLoading = isUpdating || isDeleting
+
+  const [state, dispatch] = useReducer(teamStateReducer, { state: 'view' })
+
+  const cancel = useCallback(() => {
+    dispatch({ type: 'cancel' })
+  }, [])
+  const edit = useCallback(() => {
+    dispatch({ type: 'setName', name: team.name })
+  }, [team.name])
+  const setName = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    dispatch({ type: 'setName', name: e.target.value })
+  }, [])
+  const save = async () => {
+    switch (state.state) {
+      case 'edit':
+        await patchTeam({ id: team.id, name: state.name }).unwrap()
+        break
+      case 'changeLeague':
+        await patchTeam({ id: team.id, leagueId: state.leagueId }).unwrap()
+        break
+    }
+    cancel()
+  }
+  const delete_ = useCallback(() => {
+    if (confirm('Really?')) {
+      void deleteTeam(team.id)
+    }
+  }, [deleteTeam, team.id])
+
+  const toggleDisable = useCallback(() => {
+    void patchTeam({ id: team.id, disabled: !team.disabled }).unwrap()
+  }, [patchTeam, team.id, team.disabled])
+
+  const changeLeague = useCallback(() => {
+    dispatch({ type: 'setLeague', leagueId })
+  }, [leagueId])
+  const setLeague = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
+    dispatch({ type: 'setLeague', leagueId: strToInt(e.target.value) })
+  }, [])
+
+  return {
+    state,
+    isLoading,
+    edit,
+    setName,
+    delete_,
+    toggleDisable,
+    changeLeague,
+    setLeague,
+    save,
+    cancel,
+  }
+}
+
+const TeamRow = React.memo(function TeamView({
   leagueId,
   team,
 }: {
   leagueId: number
   team: Team
 }) {
-  const [updateTeam, { isLoading }] = useUpdateTeamMutation()
+  const {
+    state,
+    isLoading,
+    edit,
+    setName,
+    delete_,
+    toggleDisable,
+    changeLeague,
+    setLeague,
+    save,
+    cancel,
+  } = useTeamState(leagueId, team)
 
-  const { value: editing, on, off } = useBooleanState(false)
-  const save = useCallback(
-    async (update: TeamEditState) => {
-      try {
-        await updateTeam({
-          id: team.id,
-          ...update,
-        }).unwrap()
-        off()
-      } catch (_err) {
-        // TODO: show error state
-      }
-    },
-    [off, team.id, updateTeam]
-  )
-
-  return editing ? (
-    <TeamEdit
-      leagueId={leagueId}
-      team={team}
-      onSave={save}
-      onCancel={off}
-      isLoading={isLoading}
-    />
-  ) : (
-    <TeamView team={team} onEdit={on} />
-  )
-})
-
-const TeamView = React.memo(function TeamView({
-  team,
-  onEdit,
-}: {
-  team: Team
-  onEdit: () => void
-}) {
-  const [deleteTeam, { isLoading }] = useDeleteTeamMutation()
-  const onDelete = useCallback(() => {
-    if (confirm('Really?')) {
-      void deleteTeam(team.id)
-    }
-  }, [deleteTeam, team.id])
   return (
-    <tr>
-      <td>{team.name}</td>
-      <td>{team.disabled ? 'Yes' : 'No'}</td>
+    <tr className={classNames({ [styles.disabled]: team.disabled })}>
+      <td>
+        {state.state === 'edit' ? (
+          <input type="text" value={state.name} onChange={setName} />
+        ) : (
+          team.name
+        )}
+      </td>
       <td>{team.matchCount}</td>
       <td>
-        <button onClick={onEdit} disabled={isLoading}>
-          E
-        </button>{' '}
-        {team.matchCount === 0 ? (
-          <button onClick={onDelete} disabled={isLoading}>
-            R
-          </button>
-        ) : null}
+        {state.state === 'view' ? (
+          <TeamViewActions
+            deletable={team.matchCount === 0}
+            onEdit={edit}
+            onDelete={delete_}
+            onToggleDisable={toggleDisable}
+            onChangeLeague={changeLeague}
+            isLoading={isLoading}
+          />
+        ) : state.state === 'edit' ? (
+          <TeamEditActions onSave={save} onCancel={cancel} />
+        ) : (
+          <ChangeLeague
+            league={state.leagueId}
+            setLeague={setLeague}
+            onSave={save}
+            onCancel={cancel}
+            isLoading={isLoading}
+          />
+        )}
       </td>
     </tr>
   )
 })
 
-interface TeamEditState {
-  name: string
-  leagueId: number
-  disabled: boolean
-}
-
-const TeamEdit = React.memo(function TeamEdit({
-  leagueId,
-  team,
-  onSave,
-  onCancel,
+const TeamViewActions = React.memo(function TeamActions({
+  deletable,
+  onEdit,
+  onDelete,
+  onToggleDisable,
+  onChangeLeague,
   isLoading,
 }: {
-  leagueId: number
-  team?: Team | undefined
-  onSave: (update: TeamEditState) => void
+  deletable: boolean
+  onEdit: () => void
+  onDelete: () => void
+  onToggleDisable: () => void
+  onChangeLeague: () => void
+  isLoading: boolean
+}) {
+  return (
+    <>
+      <button onClick={onEdit} disabled={isLoading}>
+        E
+      </button>
+      <HGap />
+      {deletable ? (
+        <button onClick={onDelete} disabled={isLoading}>
+          R
+        </button>
+      ) : (
+        <button onClick={onToggleDisable} disabled={isLoading}>
+          D
+        </button>
+      )}
+      <HGap />
+      <button onClick={onChangeLeague} disabled={isLoading}>
+        ⭢
+      </button>
+    </>
+  )
+})
+
+const TeamEditActions = React.memo(function TeamActions({
+  onSave,
+  onCancel,
+}: {
+  onSave: () => void
+  onCancel: () => void
+}) {
+  return (
+    <>
+      <button onClick={onSave}>save</button>
+      <HGap />
+      <button onClick={onCancel}>cancel</button>
+    </>
+  )
+})
+
+const ChangeLeague = React.memo(function ChangeLeague({
+  onSave,
+  onCancel,
+  league,
+  setLeague,
+  isLoading,
+}: {
+  league: number
+  setLeague: (e: ChangeEvent<HTMLSelectElement>) => void
+  onSave: () => void
   onCancel: () => void
   isLoading: boolean
 }) {
@@ -288,53 +407,67 @@ const TeamEdit = React.memo(function TeamEdit({
         : [],
     [leagues]
   )
-  const state = useFormState<TeamEditState>({
-    name: team ? team.name : '',
-    leagueId,
-    disabled: team ? team.disabled : false,
-  })
-  const [name, setName] = useTextField(state, 'name')
-  const [disabled, setDisabled] = useCheckbox(state, 'disabled')
-  const [leagueId_, setLeagueId] = useSelect(state, 'leagueId', strToInt)
+
   return (
-    <tr>
-      <td>
-        <input
-          value={name}
-          onChange={setName}
-          placeholder="Name"
-          disabled={isLoading}
-        />
-      </td>
-      <td>
-        <input
-          type="checkbox"
-          checked={disabled}
-          onChange={setDisabled}
-          disabled={isLoading}
-        />
-      </td>
-      <td>
-        <select value={leagueId_} disabled={isLoading} onChange={setLeagueId}>
+    <>
+      <div>
+        <select value={league} disabled={isLoading} onChange={setLeague}>
           {leagueOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
           ))}
         </select>
+      </div>
+      <div>
+        <button onClick={onSave}>save</button>
+        <HGap />
+        <button onClick={onCancel}>cancel</button>
+      </div>
+    </>
+  )
+})
+
+const CreateTeam = React.memo(function CreateTeam({
+  onSave,
+  onCancel,
+  isLoading,
+}: {
+  onSave: (name: string) => void
+  onCancel: () => void
+  isLoading: boolean
+}) {
+  const [name, setName] = useState('')
+  const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setName(e.target.value)
+  }, [])
+  return (
+    <tr>
+      <td colSpan={2}>
+        <input value={name} onChange={onChange} placeholder="Name" />
       </td>
       <td>
-        <button
-          onClick={() => onSave({ name, leagueId: leagueId_, disabled })}
-          disabled={isLoading}
-        >
-          OK
-        </button>{' '}
+        <button onClick={() => onSave(name)} disabled={isLoading}>
+          create
+        </button>
+        <HGap />
         <button onClick={onCancel} disabled={isLoading}>
-          X
+          cancel
         </button>
       </td>
     </tr>
+  )
+})
+
+const Legend = React.memo(function Legend() {
+  return (
+    <div>
+      <div>M = Matches</div>
+      <div>E = Edit</div>
+      <div>R = Remove</div>
+      <div>D = Disable/Enable</div>
+      <div>⭢ = Move to another league</div>
+    </div>
   )
 })
 

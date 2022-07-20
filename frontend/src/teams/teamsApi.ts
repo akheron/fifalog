@@ -28,9 +28,9 @@ export interface TeamCreate {
 
 export interface TeamUpdate {
   id: number
-  name: string
-  leagueId: number
-  disabled: boolean
+  name?: string
+  leagueId?: number
+  disabled?: boolean
 }
 
 export const teamsApi = api.injectEndpoints({
@@ -58,12 +58,12 @@ export const teamsApi = api.injectEndpoints({
       }),
       invalidatesTags: [{ type: 'Leagues', id: 'LIST' }],
     }),
-    updateTeam: builder.mutation<void, TeamUpdate>({
+    patchTeam: builder.mutation<void, TeamUpdate>({
       query: (update) => {
         const { id, ...body } = update
         return {
           url: `/api/teams/${id}`,
-          method: 'PUT',
+          method: 'PATCH',
           body,
         }
       },
@@ -83,6 +83,6 @@ export const {
   useLeaguesQuery,
   useUpdateLeagueMutation,
   useCreateTeamMutation,
-  useUpdateTeamMutation,
+  usePatchTeamMutation,
   useDeleteTeamMutation,
 } = teamsApi

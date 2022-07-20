@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use axum::extract::Path;
 use axum::http::StatusCode;
-use axum::routing::{delete, get, post, put};
+use axum::routing::{delete, get, patch, post, put};
 use axum::{Json, Router};
 use serde::Deserialize;
 
@@ -194,7 +194,7 @@ fn group_user_stats_by_month(rows: Vec<sql::user_stats::Row>) -> Vec<Vec<UserSta
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct TeamBody {
+struct CreateTeamBody {
     league_id: LeagueId,
     name: String,
     disabled: bool,
@@ -202,7 +202,7 @@ struct TeamBody {
 
 async fn create_team(
     Database(dbc): Database,
-    Json(body): Json<TeamBody>,
+    Json(body): Json<CreateTeamBody>,
 ) -> Result<StatusCode, GenericResponse> {
     let result = sql::create_team(&dbc, body.league_id, body.name, body.disabled).await?;
     if result == 1 {
@@ -215,10 +215,18 @@ async fn create_team(
     }
 }
 
-async fn update_team(
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct UpdateTeamBody {
+    league_id: Option<LeagueId>,
+    name: Option<String>,
+    disabled: Option<bool>,
+}
+
+async fn patch_team(
     Database(dbc): Database,
     Path(id): Path<TeamId>,
-    Json(body): Json<TeamBody>,
+    Json(body): Json<UpdateTeamBody>,
 ) -> Result<StatusCode, GenericResponse> {
     let result = sql::update_team(&dbc, id, body.league_id, body.name, body.disabled).await?;
     if result == 1 {
@@ -297,7 +305,7 @@ pub fn api_routes() -> Router {
         .route("/matches/:id", delete(delete_match))
         .route("/matches/:id/finish", post(finish_match))
         .route("/teams", post(create_team))
-        .route("/teams/:id", put(update_team))
+        .route("/teams/:id", patch(patch_team))
         .route("/teams/:id", delete(delete_team))
         .route("/stats", get(stats))
         .route("/users", get(users))

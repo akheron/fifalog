@@ -1,0 +1,15 @@
+.table th {
+    text-align: left;
+}
+
+.name {
+    width: 160px;
+}
+
+.matches {
+    width: 30px;
+}
+
+.disabled {
+    color: #ccc;
+}

@@ -1,6 +1,5 @@
 import React from 'react'
 
-import * as styles from './MatchRowButtons.module.css'
 import { HGap } from './whitespace'
 
 export interface Props {
@@ -19,7 +18,7 @@ export default React.memo(function MatchRowButtons({
   onCancel,
 }: Props) {
   return (
-    <div className={styles.buttons}>
+    <div>
       {isEditing ? (
         <button disabled={isLoading} onClick={onCancel}>
           cancel

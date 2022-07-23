@@ -1,9 +1,9 @@
 import React from 'react'
 
 import { MonthStats, useStatsQuery } from '../stats/statsApi'
+import { useBooleanState } from '../utils/state'
 
 import * as styles from './Stats.module.css'
-import { useBooleanState } from '../utils/state'
 import { VGap } from './whitespace'
 
 export default React.memo(function Stats() {

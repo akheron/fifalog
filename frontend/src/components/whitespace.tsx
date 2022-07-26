@@ -16,11 +16,11 @@ function getSize(size: GapSize | undefined): number {
   return sizes[size ?? 'S']
 }
 
-export const VGap = React.memo(function Gap({ size }: Props) {
+export const VGap = React.memo(function VGap({ size }: Props) {
   return <div style={{ marginBottom: getSize(size) }} />
 })
 
-export const HGap = React.memo(function Gap({ size }: Props) {
+export const HGap = React.memo(function HGap({ size }: Props) {
   return <span style={{ marginRight: getSize(size) }} />
 })
 

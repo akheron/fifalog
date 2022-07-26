@@ -76,8 +76,8 @@ pub struct Match {
     pub result: Option<MatchResult>, // None means not finished
 }
 
-impl From<sql::latest_matches::Row> for Match {
-    fn from(row: sql::latest_matches::Row) -> Self {
+impl From<sql::matches::Row> for Match {
+    fn from(row: sql::matches::Row) -> Self {
         Self {
             id: row.match_id(),
             league_id: row.league_id(),

@@ -58,7 +58,11 @@ impl Row {
     }
 }
 
-pub async fn latest_matches(dbc: &Client, count: i32) -> Result<Vec<Row>, tokio_postgres::Error> {
+pub async fn matches(
+    dbc: &Client,
+    page: i64,
+    count: i64,
+) -> Result<Vec<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
             // language=SQL
@@ -88,9 +92,9 @@ JOIN team away ON (away.id = away_id)
 JOIN "user" home_user ON (home_user.id = home_user_id)
 JOIN "user" away_user ON (away_user.id = away_user_id)
 ORDER BY finished_time DESC, match.id DESC
-LIMIT $1::integer
+LIMIT $1 OFFSET $2
 "#,
-            &[&count],
+            &[&count, &((page - 1) * count)],
         )
         .await?
         .into_iter()

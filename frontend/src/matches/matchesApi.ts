@@ -46,18 +46,21 @@ export interface MatchResultBody {
 
 export const matchesApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    latestMatches: builder.query<Match[], void>({
-      query: () => '/api/matches',
+    matches: builder.query<
+      { data: Match[]; total: number },
+      { page: number; pageSize: number }
+    >({
+      query: (arg) => `/api/matches?page=${arg.page}&pageSize=${arg.pageSize}`,
       providesTags: (result) =>
         result
           ? [
-              ...result.map((match) => ({
+              ...result.data.map((match) => ({
                 type: 'Matches' as const,
                 id: match.id,
               })),
-              { type: 'Matches', id: 'LIST' },
+              { type: 'Matches', id: 'PARTIAL-LIST' },
             ]
-          : [{ type: 'Matches', id: 'LIST' }],
+          : [{ type: 'Matches', id: 'PARTIAL-LIST' }],
     }),
     deleteMatch: builder.mutation<void, number>({
       query: (id) => ({
@@ -66,6 +69,7 @@ export const matchesApi = api.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, id) => [
         { type: 'Matches', id },
+        { type: 'Matches', id: 'PARTIAL-LIST' },
         { type: 'Leagues', id: 'LIST' },
       ],
     }),
@@ -81,7 +85,7 @@ export const matchesApi = api.injectEndpoints({
       invalidatesTags: (result) =>
         result
           ? [
-              { type: 'Matches', id: 'LIST' },
+              { type: 'Matches', id: 'PARTIAL-LIST' },
               { type: 'Leagues', id: 'LIST' },
             ]
           : [],
@@ -97,6 +101,7 @@ export const matchesApi = api.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'Matches', id },
+        { type: 'Matches', id: 'PARTIAL-LIST' },
         { type: 'Stats', id: 'LIST' },
       ],
     }),
@@ -104,7 +109,7 @@ export const matchesApi = api.injectEndpoints({
 })
 
 export const {
-  useLatestMatchesQuery,
+  useMatchesQuery,
   useDeleteMatchMutation,
   useCreateRandomMatchPairMutation,
   useFinishMatchMutation,

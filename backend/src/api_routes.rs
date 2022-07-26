@@ -1,10 +1,10 @@
 use std::collections::HashSet;
 
-use axum::extract::Path;
+use axum::extract::{Path, Query};
 use axum::http::StatusCode;
 use axum::routing::{delete, get, patch, post, put};
 use axum::{Json, Router};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::api_types::{Stats, UserStats};
 use crate::db::is_integrity_error;
@@ -40,9 +40,30 @@ async fn update_league(
     }
 }
 
-async fn matches(Database(dbc): Database) -> Result<Json<Vec<Match>>, GenericResponse> {
-    let rows = sql::latest_matches(&dbc, 20).await?;
-    Ok(Json(rows.into_iter().map(Match::from).collect()))
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct MatchesQuery {
+    page: Option<i64>,
+    page_size: Option<i64>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MatchesResult {
+    data: Vec<Match>,
+    total: i64,
+}
+
+async fn matches(
+    Query(query): Query<MatchesQuery>,
+    Database(dbc): Database,
+) -> Result<Json<MatchesResult>, GenericResponse> {
+    let rows = sql::matches(&dbc, query.page.unwrap_or(1), query.page_size.unwrap_or(20)).await?;
+    let data = rows.into_iter().map(Match::from).collect();
+
+    let total = sql::match_count(&dbc).await?.count();
+
+    Ok(Json(MatchesResult { data, total }))
 }
 
 async fn delete_match(
@@ -122,7 +143,7 @@ async fn create_random_match_pair(
         ));
     }
 
-    let matches = sql::latest_matches(&dbc, 10).await?;
+    let matches = sql::matches(&dbc, 1, 10).await?;
     let last_teams = matches
         .iter()
         .map(|m| m.home_id())

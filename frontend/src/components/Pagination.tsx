@@ -10,54 +10,48 @@ export interface Props {
   total: number
 }
 
+const ellipsis = Symbol()
+
 export default React.memo(function Pagination({
   page,
   setPage,
   pageSize,
   total,
 }: Props) {
+  const adjacent = 2
+
   const totalPages = Math.ceil(total / pageSize)
-  const start = Math.max(1, page - 2)
-  const end = Math.min(totalPages, page + 2)
-  const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i)
+  if (totalPages == 1) return null
+
+  const start = Math.max(1, page - adjacent)
+  const end = Math.min(totalPages, page + adjacent)
 
   const elems = [
-    page > 1 ? (
-      <TextButton key="first" onClick={() => setPage(1)}>
-        &laquo;
-      </TextButton>
-    ) : null,
-    page > start ? (
-      <TextButton key="prev" onClick={() => setPage(page - 1)}>
-        &lsaquo;
-      </TextButton>
-    ) : null,
-    ...pages.map((p) =>
-      p === page ? (
-        <span key={`page${p}`}>{p}</span>
-      ) : (
-        <TextButton key={`page${p}`} onClick={() => setPage(p)}>
-          {p}
-        </TextButton>
-      )
-    ),
-    page < end ? (
-      <TextButton key="next" onClick={() => setPage(page + 1)}>
-        &rsaquo;
-      </TextButton>
-    ) : null,
-    page < totalPages ? (
-      <TextButton key="last" onClick={() => setPage(totalPages)}>
-        &raquo;
-      </TextButton>
-    ) : null,
+    1 < page - adjacent ? 1 : null,
+    2 < page - adjacent - 1 ? ellipsis : null,
+    2 === page - adjacent - 1 ? 2 : null,
+    ...Array.from({ length: end - start + 1 }, (_, i) => start + i),
+    page + adjacent + 1 == totalPages - 1 ? totalPages - 1 : null,
+    page + adjacent + 1 < totalPages - 1 ? ellipsis : null,
+    page + adjacent < totalPages ? totalPages : null,
   ]
 
   return (
     <div>
       {elems
-        .filter((elem) => elem != null)
-        .flatMap((elem, i) => [elem, <HGap key={`gap${i}`} />])
+        .filter((p) => p != null)
+        .flatMap((p, i) => [
+          typeof p === 'symbol' ? (
+            '...'
+          ) : p === page ? (
+            <span key={p}>{p}</span>
+          ) : (
+            <TextButton key={p} onClick={() => setPage(p)}>
+              {p}
+            </TextButton>
+          ),
+          <HGap key={`gap${i}`} />,
+        ])
         .slice(0, -1)}
     </div>
   )

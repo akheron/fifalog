@@ -26,7 +26,7 @@ export default React.memo(function Pagination({
   const start = Math.max(1, page - adjacent)
   const end = Math.min(totalPages, page + adjacent)
 
-  const elems = [
+  const pages = [
     1 < page - adjacent ? 1 : null,
     2 < page - adjacent - 1 ? ellipsis : null,
     2 === page - adjacent - 1 ? 2 : null,
@@ -34,12 +34,11 @@ export default React.memo(function Pagination({
     page + adjacent + 1 == totalPages - 1 ? totalPages - 1 : null,
     page + adjacent + 1 < totalPages - 1 ? ellipsis : null,
     page + adjacent < totalPages ? totalPages : null,
-  ]
+  ].flatMap((p) => (p == null ? [] : p))
 
   return (
     <div>
-      {elems
-        .filter((p) => p != null)
+      {pages
         .flatMap((p, i) => [
           typeof p === 'symbol' ? (
             '...'

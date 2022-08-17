@@ -29,11 +29,15 @@ impl Row {
     }
 }
 
-pub async fn leagues(dbc: &Client) -> Result<Vec<Row>, tokio_postgres::Error> {
+pub async fn leagues(
+    dbc: &Client,
+    include_disabled: bool,
+) -> Result<Vec<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
             // language=SQL
-            r#"
+            format!(
+                r#"
 SELECT
     league.id,
     league.name,
@@ -55,9 +59,17 @@ SELECT
     '[]'::json) AS teams
 FROM league
 LEFT JOIN team ON team.league_id = league.id
+{}
 GROUP BY league.id, league.name, league.exclude_random_all
 ORDER BY league.name
 "#,
+                if include_disabled {
+                    ""
+                } else {
+                    "WHERE NOT team.disabled"
+                }
+            )
+            .as_str(),
             &[],
         )
         .await?

@@ -16,7 +16,7 @@ use crate::{
 };
 
 async fn leagues(Database(dbc): Database) -> Result<Json<Vec<League>>, GenericResponse> {
-    let rows = sql::leagues(&dbc).await?;
+    let rows = sql::leagues(&dbc, true).await?;
     Ok(Json(rows.into_iter().map(League::from).collect()))
 }
 
@@ -150,7 +150,7 @@ async fn create_random_match_pair(
         .chain(matches.iter().map(|m| m.away_id()))
         .collect::<HashSet<_>>();
 
-    let leagues = sql::leagues(&dbc)
+    let leagues = sql::leagues(&dbc, false)
         .await?
         .into_iter()
         .map(League::from)

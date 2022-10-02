@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import React, { useCallback, useRef, useState } from 'react'
 
 import { groupMatchesByDay } from '../matches/matchUtils'
@@ -29,12 +30,18 @@ export default React.memo(function MatchList() {
   return (
     <div className={styles.matchList} ref={matchListRef}>
       {isFetching ? <div className={styles.loadingOverlay} /> : null}
-      {groupMatchesByDay(matches.data).map((matchDay) => {
+      {groupMatchesByDay(matches.data).map((matchDay, index) => {
         const date =
           matchDay.date === undefined ? 'Not played yet' : matchDay.date
         return (
           <div key={date}>
-            <div className={styles.date}>{date}</div>
+            <div
+              className={classNames(styles.date, {
+                [styles.first]: index === 0,
+              })}
+            >
+              {date}
+            </div>
             {matchDay.matches.map((match) => (
               <MatchRow key={match.id} match={match} />
             ))}

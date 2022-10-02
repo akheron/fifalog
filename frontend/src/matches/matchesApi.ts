@@ -8,7 +8,7 @@ export interface MatchDay {
 
 export interface Match {
   id: number
-  index: number
+  index: number | null
   leagueId: number | null
   leagueName: string | null
   home: Team

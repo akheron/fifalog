@@ -18,9 +18,10 @@ type FinishedType = 'fullTime' | 'overTime' | 'penalties'
 
 export interface Props {
   id: number
+  onCancel: () => void
 }
 
-export default React.memo(function EditMatch({ id }: Props) {
+export default React.memo(function EditMatch({ id, onCancel }: Props) {
   const state = useFormState<State>({
     homeScore: '',
     awayScore: '',
@@ -83,7 +84,8 @@ export default React.memo(function EditMatch({ id }: Props) {
       <HGap />
       <button disabled={!validatedData} onClick={handleSave}>
         save
-      </button>
+      </button>{' '}
+      <button onClick={onCancel}>cancel</button>
     </div>
   )
 })

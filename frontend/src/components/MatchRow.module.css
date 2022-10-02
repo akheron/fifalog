@@ -1,24 +1,45 @@
 .match {
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid black;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    padding-bottom: 25px;
 }
 
-.winner {
-    color: #008000;
-}
-
-.result {
-    width: 50px;
+.index {
     text-align: center;
+    font-size: 13px;
+    color: #999;
+    padding-bottom: 4px;
 }
 
-.small {
-    opacity: 0.3;
-    font-size: 10px;
+.row {
+    display: flex;
+}
+
+.row > :nth-child(1) {
+    width: 40%;
+    text-align: right;
+}
+
+.row > :nth-child(2) {
+    text-align: center;
+    width: 20%;
+}
+
+.row > :nth-child(3) {
+    width: 40%;
+}
+
+.score {
+    font-size: 18px;
+}
+
+.overtime {
+    font-size: 13px;
+}
+
+.player {
+    font-size: 13px;
+    color: #999;
+}
+
+.player strong {
+    color: #008000;
 }

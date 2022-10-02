@@ -28,30 +28,50 @@ export default React.memo(function MatchRow({ match }: Props) {
 
   return (
     <div className={styles.match}>
-      <div>
-        <strong>{match.home.name}</strong> (
-        <HighlightWinner match={match} which="home" />){' - '}
-        <strong>{match.away.name}</strong> (
-        <HighlightWinner match={match} which="away" />)
-      </div>
-      {match.result !== null ? (
-        <div className={styles.result}>
-          <strong>{match.result.homeScore}</strong> -{' '}
-          <strong>{match.result.awayScore}</strong>
-          <MatchEndResult finishedType={match.result.finishedType} />
+      {match.index !== null ? (
+        <div className={styles.index}>Match {match.index}</div>
+      ) : null}
+      <div className={styles.row}>
+        <div>{match.home.name}</div>
+        <div>
+          <div className={styles.score}>
+            {match.result !== null ? (
+              <>
+                <strong>{match.result.homeScore}</strong> -{' '}
+                <strong>{match.result.awayScore}</strong>
+              </>
+            ) : (
+              '-'
+            )}
+          </div>
         </div>
-      ) : (
+        <div>
+          {match.away.name}
+          <br />
+        </div>
+      </div>
+      <div className={styles.row}>
+        <HighlightWinner match={match} which="home" />
+        <div className={styles.overtime}>
+          {match.result !== null ? (
+            <OvertimeResult finishedType={match.result.finishedType} />
+          ) : null}
+        </div>
+        <HighlightWinner match={match} which="away" />
+      </div>
+      {match.result === null ? (
         <>
-          <MatchRowButtons
-            isEditing={editing.value}
-            isLoading={isDeleting}
-            onEdit={editing.on}
-            onDelete={handleDelete}
-            onCancel={editing.off}
-          />
-          {editing.value ? <EditMatch id={match.id} /> : null}
+          {editing.value ? (
+            <EditMatch id={match.id} onCancel={editing.off} />
+          ) : (
+            <MatchRowButtons
+              isLoading={isDeleting}
+              onEdit={editing.on}
+              onDelete={handleDelete}
+            />
+          )}
         </>
-      )}
+      ) : null}
     </div>
   )
 })
@@ -79,14 +99,18 @@ const HighlightWinner = React.memo(function HighlightWinner({
   const userProp =
     which === 'home' ? ('homeUser' as const) : ('awayUser' as const)
   const userName = match[userProp].name
-  return isWinner(match.result, which) ? (
-    <em className={styles.winner}>{userName}</em>
-  ) : (
-    <>{userName}</>
+  return (
+    <div className={styles.player}>
+      {isWinner(match.result, which) ? (
+        <strong>{userName}</strong>
+      ) : (
+        <>{userName}</>
+      )}
+    </div>
   )
 })
 
-const MatchEndResult = React.memo(function MatchEndResult({
+const OvertimeResult = React.memo(function MatchEndResult({
   finishedType,
 }: {
   finishedType: FinishedType
@@ -95,12 +119,12 @@ const MatchEndResult = React.memo(function MatchEndResult({
     case 'fullTime':
       return null
     case 'overTime':
-      return <div className={styles.small}>(OT)</div>
+      return <div>OT</div>
     case 'penalties': {
       const { homeGoals, awayGoals } = finishedType
       return (
-        <div className={styles.small}>
-          ({homeGoals} - {awayGoals} P)
+        <div>
+          {homeGoals} - {awayGoals} P
         </div>
       )
     }

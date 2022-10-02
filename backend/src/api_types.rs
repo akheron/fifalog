@@ -67,7 +67,7 @@ pub struct TeamStub {
 #[serde(rename_all = "camelCase")]
 pub struct Match {
     pub id: MatchId,
-    pub index: i64,
+    pub index: Option<i64>,
     pub league_id: Option<LeagueId>,
     pub league_name: Option<String>,
     pub home: TeamStub,
@@ -81,7 +81,7 @@ impl From<sql::matches::Row> for Match {
     fn from(row: sql::matches::Row) -> Self {
         Self {
             id: row.match_id(),
-            index: row.index(),
+            index: row.finished_type().map(|_| row.index()),
             league_id: row.league_id(),
             league_name: row.league_name(),
             home: TeamStub {
@@ -121,7 +121,7 @@ impl From<sql::match_::Row> for Match {
     fn from(row: sql::match_::Row) -> Self {
         Self {
             id: row.match_id(),
-            index: row.index(),
+            index: row.finished_type().map(|_| row.index()),
             league_id: row.league_id(),
             league_name: row.league_name(),
             home: TeamStub {

@@ -56,6 +56,9 @@ impl Row {
     pub fn finished_date(&self) -> Option<String> {
         self.0.get(16)
     }
+    pub fn index(&self) -> i64 {
+        self.0.get(17)
+    }
 }
 
 pub async fn match_(dbc: &Client, match_id: MatchId) -> Result<Option<Row>, tokio_postgres::Error> {
@@ -80,7 +83,8 @@ SELECT
     finished_type,
     home_penalty_goals,
     away_penalty_goals,
-    to_char(finished_time, 'DayYYYY-MM-DD') AS finished_date
+    to_char(finished_time, 'DayYYYY-MM-DD') AS finished_date,
+    row_number() over (ORDER BY finished_time, match.id) AS index
 FROM match
 LEFT JOIN league ON league.id = league_id
 JOIN team AS home ON home.id = home_id

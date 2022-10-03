@@ -43,7 +43,12 @@ export default React.memo(function MatchList() {
               {date}
             </div>
             {matchDay.matches.map((match) => (
-              <MatchRow key={match.id} match={match} />
+              <>
+                <MatchRow key={match.id} match={match} />
+                {match.index === matches.last10 ? (
+                  <div className={styles.last10} />
+                ) : null}
+              </>
             ))}
           </div>
         )

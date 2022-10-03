@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::api_types::{Stats, UserStats};
 use crate::db::is_integrity_error;
+use crate::sql::finished_match_count;
 use crate::sql::sql_types::{LeagueId, MatchId, TeamId, UserId};
 use crate::utils::{generic_error, GenericResponse};
 use crate::{
@@ -51,6 +52,7 @@ struct MatchesQuery {
 #[serde(rename_all = "camelCase")]
 struct MatchesResult {
     data: Vec<Match>,
+    last10: i64,
     total: i64,
 }
 
@@ -58,12 +60,19 @@ async fn matches(
     Query(query): Query<MatchesQuery>,
     Database(dbc): Database,
 ) -> Result<Json<MatchesResult>, GenericResponse> {
+    let finished_count = finished_match_count(&dbc).await?.count();
+    let last10 = finished_count - 9;
+
     let rows = sql::matches(&dbc, query.page.unwrap_or(1), query.page_size.unwrap_or(20)).await?;
     let data = rows.into_iter().map(Match::from).collect();
 
     let total = sql::match_count(&dbc).await?.count();
 
-    Ok(Json(MatchesResult { data, total }))
+    Ok(Json(MatchesResult {
+        data,
+        last10,
+        total,
+    }))
 }
 
 async fn delete_match(

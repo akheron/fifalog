@@ -53,7 +53,7 @@ impl Row {
     pub fn away_penalty_goals(&self) -> Option<i32> {
         self.0.get(15)
     }
-    pub fn finished_date(&self) -> Option<String> {
+    pub fn finished_time(&self) -> Option<time::OffsetDateTime> {
         self.0.get(16)
     }
     pub fn index(&self) -> i64 {
@@ -83,7 +83,7 @@ SELECT
     finished_type,
     home_penalty_goals,
     away_penalty_goals,
-    to_char(finished_time, 'DayYYYY-MM-DD') AS finished_date,
+    finished_time,
     row_number() over (ORDER BY finished_time, match.id) AS index
 FROM match
 LEFT JOIN league ON league.id = league_id

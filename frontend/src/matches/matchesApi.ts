@@ -48,7 +48,7 @@ export interface MatchResultBody {
 export const matchesApi = api.injectEndpoints({
   endpoints: (builder) => ({
     matches: builder.query<
-      { data: Match[]; last10: number, total: number },
+      { data: Match[]; last10: number; total: number },
       { page: number; pageSize: number }
     >({
       query: (arg) => `/api/matches?page=${arg.page}&pageSize=${arg.pageSize}`,

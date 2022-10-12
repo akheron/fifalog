@@ -43,3 +43,22 @@
 .player strong {
     color: #008000;
 }
+
+.buttons {
+    text-align: center;
+}
+
+.buttons button {
+    font-size: 12px;
+    line-height: 12px;
+}
+
+.stats {
+    font-size: 13px;
+}
+
+.stats span.dimmed {
+    display: inline-block;
+    margin: 0 6px;
+    color: #999;
+}

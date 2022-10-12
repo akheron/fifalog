@@ -45,6 +45,31 @@ export interface MatchResultBody {
   finishedType: FinishedType
 }
 
+export interface TeamTotalStats {
+  wins: number
+  losses: number
+  matches: number
+  goalsFor: number
+  goalsAgainst: number
+}
+
+export interface TeamPairStats {
+  wins: number
+  losses: number
+  matches: number
+}
+
+export interface MatchTeamStats {
+  team_id: number
+  total: TeamTotalStats | null
+  pair: TeamPairStats | null
+}
+
+export interface MatchStats {
+  home: MatchTeamStats
+  away: MatchTeamStats
+}
+
 export const matchesApi = api.injectEndpoints({
   endpoints: (builder) => ({
     matches: builder.query<
@@ -62,6 +87,9 @@ export const matchesApi = api.injectEndpoints({
               { type: 'Matches', id: 'PARTIAL-LIST' },
             ]
           : [{ type: 'Matches', id: 'PARTIAL-LIST' }],
+    }),
+    matchTeamStats: builder.query<MatchStats, number>({
+      query: (matchId) => `/api/matches/${matchId}/team-stats`,
     }),
     deleteMatch: builder.mutation<void, number>({
       query: (id) => ({
@@ -111,6 +139,7 @@ export const matchesApi = api.injectEndpoints({
 
 export const {
   useMatchesQuery,
+  useMatchTeamStatsQuery,
   useDeleteMatchMutation,
   useCreateRandomMatchPairMutation,
   useFinishMatchMutation,

@@ -5,18 +5,20 @@ import {
   Match,
   MatchResult,
   useDeleteMatchMutation,
+  useMatchTeamStatsQuery,
 } from '../matches/matchesApi'
 import { useBooleanState } from '../utils/state'
 
 import EditMatch from './EditMatch'
 import * as styles from './MatchRow.module.css'
-import MatchRowButtons from './MatchRowButtons'
+import { HGap, VGap } from './whitespace'
 
 export interface Props {
   match: Match
 }
 
 export default React.memo(function MatchRow({ match }: Props) {
+  const stats = useBooleanState(false)
   const editing = useBooleanState(false)
   const [deleteMatch, { isLoading: isDeleting }] = useDeleteMatchMutation()
 
@@ -61,20 +63,151 @@ export default React.memo(function MatchRow({ match }: Props) {
       </div>
       {match.result === null ? (
         <>
+          <VGap />
           {editing.value ? (
             <EditMatch id={match.id} onCancel={editing.off} />
           ) : (
-            <MatchRowButtons
-              isLoading={isDeleting}
-              onEdit={editing.on}
-              onDelete={handleDelete}
-            />
+            <div className={styles.buttons}>
+              <button disabled={isDeleting} onClick={stats.toggle}>
+                stats {stats.value ? '△' : '▽'}
+              </button>
+              <HGap />
+              <button disabled={isDeleting} onClick={editing.on}>
+                edit
+              </button>
+              <HGap />
+              <button disabled={isDeleting} onClick={handleDelete}>
+                x
+              </button>
+            </div>
           )}
+        </>
+      ) : null}
+      {stats.value ? <MatchStats matchId={match.id} /> : null}
+    </div>
+  )
+})
+
+const MatchStats = React.memo(function MatchStats({
+  matchId,
+}: {
+  matchId: number
+}) {
+  const { data: stats, isLoading, isError } = useMatchTeamStatsQuery(matchId)
+  return (
+    <div className={styles.stats}>
+      <VGap />
+      {isLoading ? <div style={{ textAlign: 'center' }}>Loading...</div> : null}
+      {isError ? (
+        <div style={{ textAlign: 'center' }}>Error loading stats</div>
+      ) : null}
+      {stats ? (
+        <>
+          <div className={styles.row}>
+            <div>
+              {stats.home.pair ? (
+                <>
+                  <span className={styles.dimmed}>
+                    {stats.home.pair.wins}/{stats.home.pair.matches}
+                  </span>{' '}
+                  {percentage(stats.home.pair.wins, stats.home.pair.matches)}
+                </>
+              ) : (
+                '-'
+              )}
+            </div>
+            <div>
+              <strong>pair</strong>
+            </div>
+            <div>
+              {stats.away.pair ? (
+                <>
+                  {percentage(stats.away.pair.wins, stats.away.pair.matches)}{' '}
+                  <span className={styles.dimmed}>
+                    {stats.away.pair.wins}/{stats.away.pair.matches}
+                  </span>
+                </>
+              ) : (
+                '-'
+              )}
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div>
+              {stats.home.total ? (
+                <>
+                  <span className={styles.dimmed}>
+                    {stats.home.total.wins}/{stats.home.total.matches}
+                  </span>{' '}
+                  {percentage(stats.home.total.wins, stats.home.total.matches)}
+                </>
+              ) : (
+                '-'
+              )}
+            </div>
+            <div>
+              <strong>total</strong>
+            </div>
+            <div>
+              {stats.away.total ? (
+                <>
+                  {percentage(stats.away.total.wins, stats.away.total.matches)}{' '}
+                  <span className={styles.dimmed}>
+                    {stats.away.total.wins}/{stats.away.total.matches}
+                  </span>
+                </>
+              ) : (
+                '-'
+              )}
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div>
+              {stats.home.total
+                ? round(stats.home.total.goalsFor / stats.home.total.matches)
+                : '-'}
+            </div>
+            <div>
+              <strong>gf</strong>
+            </div>
+            <div>
+              {stats.away.total
+                ? round(stats.away.total.goalsFor / stats.away.total.matches)
+                : '-'}
+            </div>
+          </div>
+          <div className={styles.row}>
+            <div>
+              {stats.home.total
+                ? round(
+                    stats.home.total.goalsAgainst / stats.home.total.matches
+                  )
+                : '-'}
+            </div>
+            <div>
+              <strong>ga</strong>
+            </div>
+            <div>
+              {stats.away.total
+                ? round(
+                    stats.away.total.goalsAgainst / stats.away.total.matches
+                  )
+                : '-'}
+            </div>
+          </div>
         </>
       ) : null}
     </div>
   )
 })
+
+function percentage(numerator: number, denominator: number): string {
+  return `${Math.round((numerator / denominator) * 100)} %`
+}
+
+function round(n: number): string {
+  return (Math.round(n * 100) / 100).toFixed(2)
+}
 
 function isWinner(result: MatchResult | null, which: 'home' | 'away'): boolean {
   const winner: 'home' | 'away' | null =

@@ -90,6 +90,80 @@ async fn delete_match(
     }
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TeamTotalStats {
+    wins: i64,
+    losses: i64,
+    matches: i64,
+    goals_for: i64,
+    goals_against: i64,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct TeamPairStats {
+    wins: i64,
+    losses: i64,
+    matches: i64,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MatchTeamStats {
+    team_id: TeamId,
+    total: Option<TeamTotalStats>,
+    pair: Option<TeamPairStats>,
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MatchStats {
+    home: MatchTeamStats,
+    away: MatchTeamStats,
+}
+
+async fn match_team_stats(
+    Database(dbc): Database,
+    Path(id): Path<MatchId>,
+) -> Result<Json<MatchStats>, GenericResponse> {
+    let stats = sql::match_team_stats(&dbc, id)
+        .await?
+        .ok_or_else(|| generic_error(StatusCode::NOT_FOUND, "No such match"))?;
+    Ok(Json(MatchStats {
+        home: MatchTeamStats {
+            team_id: stats.home_id(),
+            total: stats.total_wins_home().map(|wins| TeamTotalStats {
+                wins,
+                losses: stats.total_losses_home().unwrap(),
+                matches: stats.total_matches_home().unwrap(),
+                goals_for: stats.total_goals_for_home().unwrap(),
+                goals_against: stats.total_goals_against_home().unwrap(),
+            }),
+            pair: stats.pair_wins_home().map(|wins| TeamPairStats {
+                wins,
+                losses: stats.pair_losses_home().unwrap(),
+                matches: stats.pair_matches().unwrap(),
+            }),
+        },
+        away: MatchTeamStats {
+            team_id: stats.away_id(),
+            total: stats.total_wins_away().map(|wins| TeamTotalStats {
+                wins,
+                losses: stats.total_losses_away().unwrap(),
+                matches: stats.total_matches_away().unwrap(),
+                goals_for: stats.total_goals_for_away().unwrap(),
+                goals_against: stats.total_goals_against_away().unwrap(),
+            }),
+            pair: stats.pair_wins_away().map(|wins| TeamPairStats {
+                wins,
+                losses: stats.pair_losses_away().unwrap(),
+                matches: stats.pair_matches().unwrap(),
+            }),
+        },
+    }))
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct MatchResultBody {
@@ -333,6 +407,7 @@ pub fn api_routes() -> Router {
         .route("/matches", get(matches))
         .route("/matches/random_pair", post(create_random_match_pair))
         .route("/matches/:id", delete(delete_match))
+        .route("/matches/:id/team-stats", get(match_team_stats))
         .route("/matches/:id/finish", post(finish_match))
         .route("/teams", post(create_team))
         .route("/teams/:id", patch(patch_team))

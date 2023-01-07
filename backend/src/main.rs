@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 
-use axum::{Extension, Router};
+use axum::Router;
 use axum_extra::routing::SpaRouter;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
@@ -35,14 +35,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = Router::new()
         .nest("/auth", auth_routes())
-        .nest("/api", api_routes().layer(login_required()))
+        .nest(
+            "/api",
+            api_routes()
+                .with_state(())
+                .route_layer(login_required(config.clone())),
+        )
         .merge(SpaRouter::new("/assets", &env.asset_path))
         .layer(
             ServiceBuilder::new()
-                .layer(Extension(config))
                 .layer(database_layer(dbc_pool))
                 .layer(CookieManagerLayer::new()),
-        );
+        )
+        .with_state(config);
 
     let bind: SocketAddr = env.bind.unwrap_or_else(|| "0.0.0.0:8080".parse().unwrap());
     println!("Starting server on {}", &bind);

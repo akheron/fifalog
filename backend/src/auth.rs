@@ -1,7 +1,8 @@
 use crate::utils::generic_error;
 use crate::{Config, GenericResponse};
 use async_trait::async_trait;
-use axum::extract::{FromRequest, RequestParts};
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
 use axum::http::StatusCode;
 use axum::middleware::FromExtractorLayer;
 use axum::routing::{get, post};
@@ -31,8 +32,8 @@ pub struct LoginBody {
 
 pub async fn login(
     Extension(config): Extension<Config>,
-    Json(body): Json<LoginBody>,
     cookies: Cookies,
+    Json(body): Json<LoginBody>,
 ) -> Result<StatusCode, GenericResponse> {
     if body.username == config.username && body.password == config.password {
         let since_epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap();
@@ -74,15 +75,19 @@ pub fn auth_routes() -> Router {
 pub struct IsLoggedIn(pub bool);
 
 #[async_trait]
-impl<B> FromRequest<B> for IsLoggedIn
+impl<S> FromRequestParts<S> for IsLoggedIn
 where
-    B: Send,
+    S: Send + Sync,
 {
     type Rejection = Infallible;
 
-    async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
-        let Extension(config) = Extension::<Config>::from_request(req).await.unwrap();
-        let Extension(cookies) = Extension::<Cookies>::from_request(req).await.unwrap();
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let Extension(config) = Extension::<Config>::from_request_parts(parts, state)
+            .await
+            .unwrap();
+        let Extension(cookies) = Extension::<Cookies>::from_request_parts(parts, state)
+            .await
+            .unwrap();
         let cookie = cookies.signed(&config.secret).get(COOKIE_NAME);
         if cookie.is_none() {
             return Ok(Self(false));
@@ -106,14 +111,14 @@ where
 pub struct LoginRequired;
 
 #[async_trait]
-impl<B> FromRequest<B> for LoginRequired
+impl<S> FromRequestParts<S> for LoginRequired
 where
-    B: Send,
+    S: Send + Sync,
 {
     type Rejection = StatusCode;
 
-    async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
-        let IsLoggedIn(is_logged_in) = IsLoggedIn::from_request(req).await.unwrap();
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let IsLoggedIn(is_logged_in) = IsLoggedIn::from_request_parts(parts, state).await.unwrap();
         if is_logged_in {
             Ok(Self)
         } else {
@@ -122,6 +127,6 @@ where
     }
 }
 
-pub fn login_required() -> FromExtractorLayer<LoginRequired> {
+pub fn login_required() -> FromExtractorLayer<LoginRequired, ()> {
     axum::middleware::from_extractor::<LoginRequired>()
 }

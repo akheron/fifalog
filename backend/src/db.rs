@@ -1,6 +1,7 @@
 use crate::GenericResponse;
 use async_trait::async_trait;
-use axum::extract::{FromRequest, RequestParts};
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
 use axum::Extension;
 use deadpool_postgres::{Manager, ManagerConfig, Pool, RecyclingMethod};
 use std::str::FromStr;
@@ -12,14 +13,14 @@ use crate::utils::internal_error;
 pub struct Database(pub deadpool::managed::Object<Manager>);
 
 #[async_trait]
-impl<B> FromRequest<B> for Database
+impl<S> FromRequestParts<S> for Database
 where
-    B: Send,
+    S: Send + Sync,
 {
     type Rejection = GenericResponse;
 
-    async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
-        let Extension(pool) = Extension::<Pool>::from_request(req)
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let Extension(pool) = Extension::<Pool>::from_request_parts(parts, state)
             .await
             .map_err(internal_error)?;
 

@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1.61"
-axum = "0.6.1"
+axum = "0.6.2"
 axum-extra = { version = "0.4.2", features = ["spa"] }
 cookie = "0.16.2"
 deadpool = "0.9.5"

@@ -9,7 +9,7 @@ axum = "0.6.4"
 axum-extra = { version = "0.4.2", features = ["spa"] }
 cookie = "0.16.2"
 deadpool = "0.9.5"
-deadpool-postgres = "0.10.4"
+deadpool-postgres = "0.10.5"
 envy = "0.4.2"
 rand = "0.8.5"
 refinery = { version = "0.8.7", features = ["tokio-postgres"] }

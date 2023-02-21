@@ -22,7 +22,7 @@
     "last 3 iOS versions"
   ],
   "devDependencies": {
-    "@reduxjs/toolkit": "^1.9.2",
+    "@reduxjs/toolkit": "^1.9.3",
     "@types/classnames": "^2.2.10",
     "@types/ramda": "^0.28.23",
     "@types/react": "^18.0.28",

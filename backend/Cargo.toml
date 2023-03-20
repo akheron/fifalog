@@ -7,7 +7,7 @@ edition = "2021"
 async-trait = "0.1.67"
 axum = "0.6.11"
 axum-extra = { version = "0.5.0", features = ["spa"] }
-cookie = "0.16.2"
+cookie = "0.17.0"
 deadpool = "0.9.5"
 deadpool-postgres = "0.10.5"
 envy = "0.4.2"

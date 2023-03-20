@@ -158,6 +158,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "cookie"
+version = "0.17.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7efb37c3e1ccb1ff97164ad95ac1606e8ccd35b3fa0a7d99a304c7f4a428cc24"
+dependencies = [
+ "time",
+ "version_check",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -243,7 +253,7 @@ dependencies = [
  "async-trait",
  "axum",
  "axum-extra",
- "cookie",
+ "cookie 0.17.0",
  "deadpool",
  "deadpool-postgres",
  "envy",
@@ -1126,7 +1136,7 @@ checksum = "4efe6d9c78aae53650a340d0e702e4f103582dce6af6bf897dc1b56c8ed5d4f6"
 dependencies = [
  "async-trait",
  "axum-core",
- "cookie",
+ "cookie 0.16.2",
  "futures-util",
  "http",
  "parking_lot",

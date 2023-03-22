@@ -1,9 +1,9 @@
 use std::net::SocketAddr;
 
 use axum::Router;
-use axum_extra::routing::SpaRouter;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
+use tower_http::services::{ServeDir, ServeFile};
 
 use crate::api_routes::api_routes;
 use crate::api_types::{FinishedType, League, Match, User};
@@ -41,7 +41,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .with_state(())
                 .route_layer(login_required(config.clone())),
         )
-        .merge(SpaRouter::new("/assets", &env.asset_path))
+        .nest_service("/assets", ServeDir::new(&env.asset_path))
+        .nest_service("/", ServeFile::new(env.asset_path + "/index.html"))
         .layer(
             ServiceBuilder::new()
                 .layer(database_layer(dbc_pool))

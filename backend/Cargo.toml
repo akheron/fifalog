@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1.67"
-axum = "0.6.11"
+axum = "0.6.12"
 cookie = "0.17.0"
 deadpool = "0.9.5"
 deadpool-postgres = "0.10.5"

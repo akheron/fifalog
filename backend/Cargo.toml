@@ -11,7 +11,7 @@ deadpool = "0.9.5"
 deadpool-postgres = "0.10.5"
 envy = "0.4.2"
 rand = "0.8.5"
-refinery = { version = "0.8.7", features = ["tokio-postgres"] }
+refinery = { version = "0.8.8", features = ["tokio-postgres"] }
 serde = { version = "1.0.160", features = ["derive"] }
 time = { version = "0.3.20", features = ["formatting"] }
 tokio = { version = "1.28.0", features = ["full"] }

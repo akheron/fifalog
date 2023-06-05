@@ -11,6 +11,7 @@ use crate::auth::{auth_routes, login_required};
 use crate::config::Config;
 use crate::db::{database_layer, database_pool, Database};
 use crate::env::Env;
+use crate::otel::otel_layer;
 use crate::randomize::{get_random_match_from_all, get_random_match_from_leagues, RandomMatch};
 use crate::utils::GenericResponse;
 
@@ -20,6 +21,7 @@ mod auth;
 mod config;
 mod db;
 mod env;
+mod otel;
 mod randomize;
 mod sql;
 mod utils;
@@ -33,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let dbc_pool = database_pool(&env.database_url, env.database_pool_size.unwrap_or(10))?;
     migrations::run(dbc_pool.clone()).await?;
 
-    let app = Router::new()
+    let mut app = Router::new()
         .nest("/auth", auth_routes())
         .nest(
             "/api",
@@ -49,6 +51,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .layer(CookieManagerLayer::new()),
         )
         .with_state(config);
+
+    if let Some(api_key) = env.honeycomb_api_key {
+        app = app.layer(otel_layer(&api_key, &env.env)?);
+    }
 
     let bind: SocketAddr = env.bind.unwrap_or_else(|| "0.0.0.0:8080".parse().unwrap());
     println!("Starting server on {}", &bind);

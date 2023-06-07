@@ -1,7 +1,7 @@
+use crate::db::Database;
 use crate::sql::sql_types::{LeagueId, TeamId};
 use serde::Deserialize;
 use tokio_postgres::types::Json;
-use tokio_postgres::Client;
 
 #[derive(Deserialize)]
 pub struct Team {
@@ -30,11 +30,12 @@ impl Row {
 }
 
 pub async fn leagues(
-    dbc: &Client,
+    dbc: &Database,
     include_disabled: bool,
 ) -> Result<Vec<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
+            "leagues",
             // language=SQL
             format!(
                 r#"

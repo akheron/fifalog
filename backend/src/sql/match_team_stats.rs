@@ -1,5 +1,5 @@
+use crate::db::Database;
 use crate::sql::sql_types::{MatchId, TeamId};
-use tokio_postgres::Client;
 
 pub struct Row(tokio_postgres::Row);
 
@@ -58,11 +58,12 @@ impl Row {
 }
 
 pub async fn match_team_stats(
-    dbc: &Client,
+    dbc: &Database,
     match_id: MatchId,
 ) -> Result<Option<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query_opt(
+            "match_team_stats",
             // language=SQL
             r#"
 WITH total_matches AS (

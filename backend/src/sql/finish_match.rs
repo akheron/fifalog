@@ -1,9 +1,9 @@
 use super::FinishedType;
+use crate::db::Database;
 use crate::sql::sql_types::MatchId;
-use tokio_postgres::Client;
 
 pub async fn finish_match(
-    dbc: &Client,
+    dbc: &Database,
     match_id: MatchId,
     finished_type: FinishedType,
     home_score: Option<i32>,
@@ -12,6 +12,7 @@ pub async fn finish_match(
     away_penalty_goals: Option<i32>,
 ) -> Result<u64, tokio_postgres::Error> {
     dbc.execute(
+        "finish_match",
         // language=SQL
         r#"
 UPDATE match

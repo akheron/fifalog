@@ -1,13 +1,14 @@
+use crate::db::Database;
 use crate::sql::sql_types::LeagueId;
-use tokio_postgres::Client;
 
 pub async fn create_team(
-    dbc: &Client,
+    dbc: &Database,
     league_id: LeagueId,
     name: String,
     disabled: bool,
 ) -> Result<u64, tokio_postgres::Error> {
     dbc.execute(
+        "create_team",
         // language=SQL
         r#"
 INSERT INTO team (league_id, name, disabled)

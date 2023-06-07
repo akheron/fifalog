@@ -1,4 +1,4 @@
-use tokio_postgres::Client;
+use crate::db::Database;
 
 pub struct Row(tokio_postgres::Row);
 
@@ -8,9 +8,10 @@ impl Row {
     }
 }
 
-pub async fn match_count(dbc: &Client) -> Result<Row, tokio_postgres::Error> {
+pub async fn match_count(dbc: &Database) -> Result<Row, tokio_postgres::Error> {
     Ok(Row(dbc
         .query_one(
+            "match_count",
             // language=SQL
             r#"
 SELECT COUNT(*) FROM match

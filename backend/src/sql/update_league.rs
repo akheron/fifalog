@@ -1,13 +1,14 @@
+use crate::db::Database;
 use crate::sql::sql_types::LeagueId;
-use tokio_postgres::Client;
 
 pub async fn update_league(
-    dbc: &Client,
+    dbc: &Database,
     league_id: LeagueId,
     name: String,
     exclude_random_all: bool,
 ) -> Result<u64, tokio_postgres::Error> {
     dbc.execute(
+        "update_league",
         // language=SQL
         r#"
 UPDATE league

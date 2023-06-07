@@ -1,5 +1,5 @@
 use super::sql_types::UserId;
-use tokio_postgres::Client;
+use crate::db::Database;
 
 pub struct Row(tokio_postgres::Row);
 
@@ -12,9 +12,10 @@ impl Row {
     }
 }
 
-pub async fn users(dbc: &Client) -> Result<Vec<Row>, tokio_postgres::Error> {
+pub async fn users(dbc: &Database) -> Result<Vec<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
+            "users",
             // language=SQL
             r#"
 SELECT id, name

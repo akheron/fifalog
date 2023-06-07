@@ -4,13 +4,69 @@ use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::Extension;
 use deadpool_postgres::{Manager, ManagerConfig, Pool, RecyclingMethod};
+use opentelemetry::trace::{Span, Tracer};
+use std::future::Future;
 use std::str::FromStr;
 use tokio_postgres::error::{Error, SqlState};
-use tokio_postgres::NoTls;
+use tokio_postgres::types::ToSql;
+use tokio_postgres::{NoTls, Row};
 
 use crate::utils::internal_error;
 
-pub struct Database(pub deadpool::managed::Object<Manager>);
+pub struct Database(deadpool::managed::Object<Manager>);
+
+impl Database {
+    async fn in_span<F, R>(&self, span_name: &str, f: impl FnOnce() -> F) -> R
+    where
+        F: Future<Output = R>,
+    {
+        let tracer = opentelemetry::global::tracer("db");
+        let mut span = tracer.start(format!("sql:{span_name}"));
+        let result = f().await;
+        span.end();
+        result
+    }
+
+    pub async fn query(
+        &self,
+        statement_name: &str,
+        statement: &str,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<Vec<Row>, tokio_postgres::Error> {
+        self.in_span(statement_name, || self.0.query(statement, params))
+            .await
+    }
+
+    pub async fn query_one(
+        &self,
+        statement_name: &str,
+        statement: &str,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<Row, Error> {
+        self.in_span(statement_name, || self.0.query_one(statement, params))
+            .await
+    }
+
+    pub async fn query_opt(
+        &self,
+        statement_name: &str,
+        statement: &str,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<Option<Row>, Error> {
+        self.in_span(statement_name, || self.0.query_opt(statement, params))
+            .await
+    }
+
+    pub async fn execute(
+        &self,
+        statement_name: &str,
+        statement: &str,
+        params: &[&(dyn ToSql + Sync)],
+    ) -> Result<u64, Error> {
+        self.in_span(statement_name, || self.0.execute(statement, params))
+            .await
+    }
+}
 
 #[async_trait]
 impl<S> FromRequestParts<S> for Database

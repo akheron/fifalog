@@ -1,6 +1,6 @@
 use super::sql_types::{LeagueId, MatchId};
+use crate::db::Database;
 use crate::sql::sql_types::{TeamId, UserId};
-use tokio_postgres::Client;
 
 pub struct Row(tokio_postgres::Row);
 
@@ -11,7 +11,7 @@ impl Row {
 }
 
 pub async fn create_match(
-    dbc: &Client,
+    dbc: &Database,
     league_id: Option<LeagueId>,
     home_id: TeamId,
     away_id: TeamId,
@@ -20,6 +20,7 @@ pub async fn create_match(
 ) -> Result<Row, tokio_postgres::Error> {
     Ok(dbc
         .query(
+            "create_match",
             r#"
 INSERT INTO match (league_id, home_id, away_id, home_user_id, away_user_id)
 VALUES ($1, $2, $3, $4, $5)

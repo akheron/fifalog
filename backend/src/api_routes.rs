@@ -16,7 +16,7 @@ use crate::{
     Match, RandomMatch, User,
 };
 
-async fn leagues(Database(dbc): Database) -> Result<Json<Vec<League>>, GenericResponse> {
+async fn leagues(dbc: Database) -> Result<Json<Vec<League>>, GenericResponse> {
     let rows = sql::leagues(&dbc, true).await?;
     Ok(Json(rows.into_iter().map(League::from).collect()))
 }
@@ -29,7 +29,7 @@ struct LeagueBody {
 }
 
 async fn update_league(
-    Database(dbc): Database,
+    dbc: Database,
     Path(id): Path<LeagueId>,
     Json(body): Json<LeagueBody>,
 ) -> Result<StatusCode, GenericResponse> {
@@ -58,7 +58,7 @@ struct MatchesResult {
 
 async fn matches(
     Query(query): Query<MatchesQuery>,
-    Database(dbc): Database,
+    dbc: Database,
 ) -> Result<Json<MatchesResult>, GenericResponse> {
     let finished_count = finished_match_count(&dbc).await?.count();
     let last10 = finished_count - 9;
@@ -76,7 +76,7 @@ async fn matches(
 }
 
 async fn delete_match(
-    Database(dbc): Database,
+    dbc: Database,
     Path(id): Path<MatchId>,
 ) -> Result<StatusCode, GenericResponse> {
     let result = sql::delete_match(&dbc, id).await?;
@@ -124,7 +124,7 @@ struct MatchStats {
 }
 
 async fn match_team_stats(
-    Database(dbc): Database,
+    dbc: Database,
     Path(id): Path<MatchId>,
 ) -> Result<Json<MatchStats>, GenericResponse> {
     let stats = sql::match_team_stats(&dbc, id)
@@ -173,7 +173,7 @@ struct MatchResultBody {
 }
 
 async fn finish_match(
-    Database(dbc): Database,
+    dbc: Database,
     Path(id): Path<MatchId>,
     Json(match_result): Json<MatchResultBody>,
 ) -> Result<Json<Match>, GenericResponse> {
@@ -216,7 +216,7 @@ struct RandomMatchPairBody {
 }
 
 async fn create_random_match_pair(
-    Database(dbc): Database,
+    dbc: Database,
     Json(body): Json<RandomMatchPairBody>,
 ) -> Result<Json<(Match, Match)>, GenericResponse> {
     if body.user1 == body.user2 {
@@ -275,7 +275,7 @@ async fn create_random_match_pair(
     Ok(Json((match1, match2)))
 }
 
-async fn users(Database(dbc): Database) -> Result<Json<Vec<User>>, GenericResponse> {
+async fn users(dbc: Database) -> Result<Json<Vec<User>>, GenericResponse> {
     let rows = sql::users(&dbc).await?;
     Ok(Json(rows.into_iter().map(User::from).collect()))
 }
@@ -305,7 +305,7 @@ struct CreateTeamBody {
 }
 
 async fn create_team(
-    Database(dbc): Database,
+    dbc: Database,
     Json(body): Json<CreateTeamBody>,
 ) -> Result<StatusCode, GenericResponse> {
     let result = sql::create_team(&dbc, body.league_id, body.name, body.disabled).await?;
@@ -328,7 +328,7 @@ struct UpdateTeamBody {
 }
 
 async fn patch_team(
-    Database(dbc): Database,
+    dbc: Database,
     Path(id): Path<TeamId>,
     Json(body): Json<UpdateTeamBody>,
 ) -> Result<StatusCode, GenericResponse> {
@@ -340,10 +340,7 @@ async fn patch_team(
     }
 }
 
-async fn delete_team(
-    Database(dbc): Database,
-    Path(id): Path<TeamId>,
-) -> Result<StatusCode, GenericResponse> {
+async fn delete_team(dbc: Database, Path(id): Path<TeamId>) -> Result<StatusCode, GenericResponse> {
     sql::delete_team(&dbc, id)
         .await
         .map(|row_count| {
@@ -365,11 +362,11 @@ async fn delete_team(
         })
 }
 
-async fn stats(Database(dbc): Database) -> Result<Json<Vec<Stats>>, GenericResponse> {
-    let last_user_stats = sql::user_stats(&dbc, 10).await?;
-    let last_total_stats = sql::total_stats(&dbc, 10).await?;
-    let user_stats = group_user_stats_by_month(sql::user_stats(&dbc, 0).await?);
-    let total_stats = sql::total_stats(&dbc, 0).await?;
+async fn stats(db2: Database) -> Result<Json<Vec<Stats>>, GenericResponse> {
+    let last_user_stats = sql::user_stats(&db2, 10).await?;
+    let last_total_stats = sql::total_stats(&db2, 10).await?;
+    let user_stats = group_user_stats_by_month(sql::user_stats(&db2, 0).await?);
+    let total_stats = sql::total_stats(&db2, 0).await?;
 
     let mut response: Vec<Stats> = Vec::new();
 

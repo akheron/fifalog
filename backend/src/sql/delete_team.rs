@@ -1,8 +1,9 @@
+use crate::db::Database;
 use crate::sql::sql_types::TeamId;
-use tokio_postgres::Client;
 
-pub async fn delete_team(dbc: &Client, team_id: TeamId) -> Result<u64, tokio_postgres::Error> {
+pub async fn delete_team(dbc: &Database, team_id: TeamId) -> Result<u64, tokio_postgres::Error> {
     dbc.execute(
+        "delete_team",
         // language=SQL
         r#"
 DELETE FROM team

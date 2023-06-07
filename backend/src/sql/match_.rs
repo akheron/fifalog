@@ -1,6 +1,6 @@
 use super::FinishedType;
+use crate::db::Database;
 use crate::sql::sql_types::{LeagueId, MatchId, TeamId, UserId};
-use tokio_postgres::Client;
 
 pub struct Row(tokio_postgres::Row);
 
@@ -61,9 +61,13 @@ impl Row {
     }
 }
 
-pub async fn match_(dbc: &Client, match_id: MatchId) -> Result<Option<Row>, tokio_postgres::Error> {
+pub async fn match_(
+    dbc: &Database,
+    match_id: MatchId,
+) -> Result<Option<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
+            "match",
             // language=SQL
             r#"
 SELECT

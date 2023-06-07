@@ -1,4 +1,4 @@
-use tokio_postgres::Client;
+use crate::db::Database;
 
 pub struct Row(tokio_postgres::Row);
 
@@ -17,9 +17,10 @@ impl Row {
     }
 }
 
-pub async fn total_stats(dbc: &Client, limit: i32) -> Result<Vec<Row>, tokio_postgres::Error> {
+pub async fn total_stats(dbc: &Database, limit: i32) -> Result<Vec<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
+            "total_stats",
             r#"
 WITH result AS (
     SELECT

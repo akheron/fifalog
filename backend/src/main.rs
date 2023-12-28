@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 
 use axum::Router;
+use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
 use tower_http::services::{ServeDir, ServeFile};
@@ -50,10 +51,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .with_state(config);
 
-    let bind: SocketAddr = env.bind.unwrap_or_else(|| "0.0.0.0:8080".parse().unwrap());
-    println!("Starting server on {}", &bind);
-    axum::Server::bind(&bind)
-        .serve(app.into_make_service())
+    let addr: SocketAddr = env.bind.unwrap_or_else(|| "0.0.0.0:8080".parse().unwrap());
+    let listener = TcpListener::bind(&addr).await?;
+
+    println!("Starting server on {}", &addr);
+    axum::serve(listener, app.into_make_service())
         .await
         .unwrap();
 

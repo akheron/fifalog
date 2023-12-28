@@ -8,7 +8,6 @@ pub async fn update_league(
     exclude_random_all: bool,
 ) -> Result<u64, tokio_postgres::Error> {
     dbc.execute(
-        "update_league",
         // language=SQL
         r#"
 UPDATE league

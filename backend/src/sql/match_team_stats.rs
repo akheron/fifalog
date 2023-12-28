@@ -63,7 +63,6 @@ pub async fn match_team_stats(
 ) -> Result<Option<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query_opt(
-            "match_team_stats",
             // language=SQL
             r#"
 WITH total_matches AS (

@@ -11,7 +11,6 @@ impl Row {
 pub async fn finished_match_count(dbc: &Database) -> Result<Row, tokio_postgres::Error> {
     Ok(Row(dbc
         .query_one(
-            "finished_match_count",
             // language=SQL
             r#"
 SELECT COUNT(*) FROM match WHERE finished_type IS NOT NULL

@@ -20,7 +20,6 @@ pub async fn create_match(
 ) -> Result<Row, tokio_postgres::Error> {
     Ok(dbc
         .query(
-            "create_match",
             r#"
 INSERT INTO match (league_id, home_id, away_id, home_user_id, away_user_id)
 VALUES ($1, $2, $3, $4, $5)

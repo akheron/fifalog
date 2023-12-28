@@ -27,7 +27,6 @@ impl Row {
 pub async fn user_stats(dbc: &Database, limit: i32) -> Result<Vec<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
-            "user_stats",
             r#"
 WITH result AS (
     SELECT

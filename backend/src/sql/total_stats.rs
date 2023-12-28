@@ -20,7 +20,6 @@ impl Row {
 pub async fn total_stats(dbc: &Database, limit: i32) -> Result<Vec<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
-            "total_stats",
             r#"
 WITH result AS (
     SELECT

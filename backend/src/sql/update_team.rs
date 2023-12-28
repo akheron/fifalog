@@ -9,7 +9,6 @@ pub async fn update_team(
     disabled: Option<bool>,
 ) -> Result<u64, tokio_postgres::Error> {
     dbc.execute(
-        "update_team",
         // language=SQL
         r#"
 UPDATE team

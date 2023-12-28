@@ -15,7 +15,6 @@ impl Row {
 pub async fn users(dbc: &Database) -> Result<Vec<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
-            "users",
             // language=SQL
             r#"
 SELECT id, name

@@ -11,7 +11,6 @@ pub struct Env {
     pub auth_username: String,
     pub auth_password: String,
     pub asset_path: String,
-    pub honeycomb_api_key: Option<String>,
 }
 
 impl Env {

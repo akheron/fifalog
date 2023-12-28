@@ -67,7 +67,6 @@ pub async fn match_(
 ) -> Result<Option<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
-            "match",
             // language=SQL
             r#"
 SELECT

@@ -12,7 +12,6 @@ pub async fn finish_match(
     away_penalty_goals: Option<i32>,
 ) -> Result<u64, tokio_postgres::Error> {
     dbc.execute(
-        "finish_match",
         // language=SQL
         r#"
 UPDATE match

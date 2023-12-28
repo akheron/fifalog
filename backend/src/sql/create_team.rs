@@ -8,7 +8,6 @@ pub async fn create_team(
     disabled: bool,
 ) -> Result<u64, tokio_postgres::Error> {
     dbc.execute(
-        "create_team",
         // language=SQL
         r#"
 INSERT INTO team (league_id, name, disabled)

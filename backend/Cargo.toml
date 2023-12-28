@@ -6,9 +6,6 @@ edition = "2021"
 [dependencies]
 async-trait = "0.1.68"
 axum = "0.6.18"
-opentelemetry = { version = "0.19.0", features = ["trace", "rt-tokio"] }
-opentelemetry-otlp = "0.12.0"
-opentelemetry-semantic-conventions = "0.11.0"
 cookie = "0.17.0"
 deadpool = "0.9.5"
 deadpool-postgres = "0.10.5"
@@ -20,7 +17,6 @@ serde = { version = "1.0.164", features = ["derive"] }
 time = { version = "0.3.22", features = ["formatting"] }
 tokio = { version = "1.29.0", features = ["full"] }
 tokio-postgres = { version = "0.7.8", features = ["with-serde_json-1", "with-time-0_3"] }
-tonic = { version = "*", features = ["tls", "tls-roots", "tls-webpki-roots"] }
 tower = "0.4.13"
 tower-cookies = { version = "0.9.0", features = ["signed"] }
 tower-http = { version = "0.4.0", features = ["fs", "trace"] }

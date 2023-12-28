@@ -35,7 +35,6 @@ pub async fn leagues(
 ) -> Result<Vec<Row>, tokio_postgres::Error> {
     Ok(dbc
         .query(
-            "leagues",
             // language=SQL
             format!(
                 r#"

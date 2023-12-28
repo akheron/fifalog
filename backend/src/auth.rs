@@ -1,7 +1,7 @@
 use crate::utils::generic_error;
 use crate::{Config, GenericResponse};
 use async_trait::async_trait;
-use axum::extract::{FromRequestParts, State};
+use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::http::StatusCode;
 use axum::middleware::FromExtractorLayer;
@@ -31,7 +31,7 @@ struct LoginBody {
 }
 
 async fn login(
-    State(config): State<Config>,
+    Extension(config): Extension<Config>,
     cookies: Cookies,
     Json(body): Json<LoginBody>,
 ) -> Result<StatusCode, GenericResponse> {
@@ -55,7 +55,7 @@ async fn login(
     }
 }
 
-async fn logout(State(config): State<Config>, cookies: Cookies) -> StatusCode {
+async fn logout(Extension(config): Extension<Config>, cookies: Cookies) -> StatusCode {
     let signed = cookies.signed(&config.secret);
     let cookie_opt = signed.get(COOKIE_NAME);
     if let Some(mut cookie) = cookie_opt {
@@ -65,7 +65,7 @@ async fn logout(State(config): State<Config>, cookies: Cookies) -> StatusCode {
     StatusCode::NO_CONTENT
 }
 
-pub fn auth_routes() -> Router<Config> {
+pub fn auth_routes() -> Router {
     Router::new()
         .route("/login", post(login))
         .route("/logout", get(logout))
@@ -75,14 +75,14 @@ pub fn auth_routes() -> Router<Config> {
 pub struct IsLoggedIn(pub bool);
 
 #[async_trait]
-impl FromRequestParts<Config> for IsLoggedIn {
+impl FromRequestParts<()> for IsLoggedIn {
     type Rejection = Infallible;
 
-    async fn from_request_parts(
-        parts: &mut Parts,
-        config: &Config,
-    ) -> Result<Self, Self::Rejection> {
-        let Extension(cookies) = Extension::<Cookies>::from_request_parts(parts, config)
+    async fn from_request_parts(parts: &mut Parts, state: &()) -> Result<Self, Self::Rejection> {
+        let Extension(config) = Extension::<Config>::from_request_parts(parts, state)
+            .await
+            .unwrap();
+        let Extension(cookies) = Extension::<Cookies>::from_request_parts(parts, state)
             .await
             .unwrap();
         let cookie = cookies.signed(&config.secret).get(COOKIE_NAME);
@@ -108,14 +108,11 @@ impl FromRequestParts<Config> for IsLoggedIn {
 pub struct LoginRequired;
 
 #[async_trait]
-impl FromRequestParts<Config> for LoginRequired {
+impl FromRequestParts<()> for LoginRequired {
     type Rejection = StatusCode;
 
-    async fn from_request_parts(
-        parts: &mut Parts,
-        config: &Config,
-    ) -> Result<Self, Self::Rejection> {
-        let IsLoggedIn(is_logged_in) = IsLoggedIn::from_request_parts(parts, config).await.unwrap();
+    async fn from_request_parts(parts: &mut Parts, state: &()) -> Result<Self, Self::Rejection> {
+        let IsLoggedIn(is_logged_in) = IsLoggedIn::from_request_parts(parts, state).await.unwrap();
         if is_logged_in {
             Ok(Self)
         } else {
@@ -124,6 +121,6 @@ impl FromRequestParts<Config> for LoginRequired {
     }
 }
 
-pub fn login_required(config: Config) -> FromExtractorLayer<LoginRequired, Config> {
-    axum::middleware::from_extractor_with_state::<LoginRequired, Config>(config)
+pub fn login_required() -> FromExtractorLayer<LoginRequired, ()> {
+    axum::middleware::from_extractor::<LoginRequired>()
 }

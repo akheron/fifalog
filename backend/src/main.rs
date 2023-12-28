@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 
-use axum::Router;
+use axum::{Extension, Router};
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
@@ -36,20 +36,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = Router::new()
         .nest("/auth", auth_routes())
-        .nest(
-            "/api",
-            api_routes()
-                .with_state(())
-                .route_layer(login_required(config.clone())),
-        )
+        .nest("/api", api_routes().route_layer(login_required()))
         .nest_service("/assets", ServeDir::new(&env.asset_path))
         .nest_service("/", ServeFile::new(env.asset_path + "/index.html"))
         .layer(
             ServiceBuilder::new()
+                .layer(Extension(config))
                 .layer(database_layer(dbc_pool))
                 .layer(CookieManagerLayer::new()),
-        )
-        .with_state(config);
+        );
 
     let addr: SocketAddr = env.bind.unwrap_or_else(|| "0.0.0.0:8080".parse().unwrap());
     let listener = TcpListener::bind(&addr).await?;

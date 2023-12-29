@@ -12,8 +12,8 @@ pub struct User {
 impl From<sql::users::Row> for User {
     fn from(row: sql::users::Row) -> Self {
         Self {
-            id: row.id(),
-            name: row.name(),
+            id: row.id,
+            name: row.name,
         }
     }
 }
@@ -39,11 +39,11 @@ pub struct League {
 impl From<sql::leagues::Row> for League {
     fn from(row: sql::leagues::Row) -> Self {
         Self {
-            id: row.id(),
-            name: row.name(),
-            exclude_random_all: row.exclude_random_all(),
+            id: row.id,
+            name: row.name,
+            exclude_random_all: row.exclude_random_all,
             teams: row
-                .teams()
+                .teams
                 .into_iter()
                 .map(|team| Team {
                     id: team.id,
@@ -77,44 +77,43 @@ pub struct Match {
     pub result: Option<MatchResult>, // None means not finished
 }
 
-const DATE_FORMAT: &[time::format_description::FormatItem] =
-    time::macros::format_description!("[weekday] [year]-[month]-[day]");
+const DATE_FORMAT: &str = "%a %Y-%m-%d";
 
 impl From<sql::matches::Row> for Match {
     fn from(row: sql::matches::Row) -> Self {
         Self {
-            id: row.match_id(),
-            index: row.finished_type().map(|_| row.index()),
-            league_id: row.league_id(),
-            league_name: row.league_name(),
+            id: row.match_id,
+            index: row.finished_type.as_ref().map(|_| row.index),
+            league_id: row.league_id,
+            league_name: row.league_name,
             home: TeamStub {
-                id: row.home_id(),
-                name: row.home_name(),
+                id: row.home_id,
+                name: row.home_name,
             },
             away: TeamStub {
-                id: row.away_id(),
-                name: row.away_name(),
+                id: row.away_id,
+                name: row.away_name,
             },
             home_user: User {
-                id: row.home_user_id(),
-                name: row.home_user_name(),
+                id: row.home_user_id,
+                name: row.home_user_name,
             },
             away_user: User {
-                id: row.away_user_id(),
-                name: row.away_user_name(),
+                id: row.away_user_id,
+                name: row.away_user_name,
             },
-            result: row.finished_type().map(|finished_type| MatchResult {
-                home_score: row.home_score().unwrap(),
-                away_score: row.away_score().unwrap(),
+            result: row.finished_type.map(|finished_type| MatchResult {
+                home_score: row.home_score.unwrap(),
+                away_score: row.away_score.unwrap(),
                 finished_type: match finished_type {
                     sql::FinishedType::FullTime => FinishedType::FullTime,
                     sql::FinishedType::OverTime => FinishedType::OverTime,
                     sql::FinishedType::Penalties => FinishedType::Penalties {
-                        home_goals: row.home_penalty_goals().unwrap(),
-                        away_goals: row.away_penalty_goals().unwrap(),
+                        home_goals: row.home_penalty_goals.unwrap(),
+                        away_goals: row.away_penalty_goals.unwrap(),
                     },
                 },
-                finished_date: row.finished_time().unwrap().format(DATE_FORMAT).unwrap(),
+                finished_date: row.finished_time.unwrap().format(DATE_FORMAT).to_string(),
             }),
         }
     }
@@ -123,38 +122,38 @@ impl From<sql::matches::Row> for Match {
 impl From<sql::match_::Row> for Match {
     fn from(row: sql::match_::Row) -> Self {
         Self {
-            id: row.match_id(),
-            index: row.finished_type().map(|_| row.index()),
-            league_id: row.league_id(),
-            league_name: row.league_name(),
+            id: row.match_id,
+            index: row.finished_type.as_ref().map(|_| row.index),
+            league_id: row.league_id,
+            league_name: row.league_name,
             home: TeamStub {
-                id: row.home_id(),
-                name: row.home_name(),
+                id: row.home_id,
+                name: row.home_name,
             },
             away: TeamStub {
-                id: row.away_id(),
-                name: row.away_name(),
+                id: row.away_id,
+                name: row.away_name,
             },
             home_user: User {
-                id: row.home_user_id(),
-                name: row.home_user_name(),
+                id: row.home_user_id,
+                name: row.home_user_name,
             },
             away_user: User {
-                id: row.away_user_id(),
-                name: row.away_user_name(),
+                id: row.away_user_id,
+                name: row.away_user_name,
             },
-            result: row.finished_type().map(|finished_type| MatchResult {
-                home_score: row.home_score().unwrap(),
-                away_score: row.away_score().unwrap(),
+            result: row.finished_type.map(|finished_type| MatchResult {
+                home_score: row.home_score.unwrap(),
+                away_score: row.away_score.unwrap(),
                 finished_type: match finished_type {
                     sql::FinishedType::FullTime => FinishedType::FullTime,
                     sql::FinishedType::OverTime => FinishedType::OverTime,
                     sql::FinishedType::Penalties => FinishedType::Penalties {
-                        home_goals: row.home_penalty_goals().unwrap(),
-                        away_goals: row.away_penalty_goals().unwrap(),
+                        home_goals: row.home_penalty_goals.unwrap(),
+                        away_goals: row.away_penalty_goals.unwrap(),
                     },
                 },
-                finished_date: row.finished_time().unwrap().format(DATE_FORMAT).unwrap(),
+                finished_date: row.finished_time.unwrap().format(DATE_FORMAT).to_string(),
             }),
         }
     }
@@ -204,12 +203,12 @@ impl From<sql::user_stats::Row> for UserStats {
     fn from(row: sql::user_stats::Row) -> Self {
         Self {
             user: User {
-                id: row.user_id(),
-                name: row.user_name(),
+                id: row.user_id,
+                name: row.user_name,
             },
-            wins: row.win_count(),
-            over_time_wins: row.overtime_win_count(),
-            goals_for: row.goals_for(),
+            wins: row.win_count,
+            over_time_wins: row.overtime_win_count,
+            goals_for: row.goals_for,
         }
     }
 }

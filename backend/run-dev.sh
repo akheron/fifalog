@@ -3,7 +3,7 @@
 # Set to prod to enable secure cookies
 export ENV=dev
 
-export DATABASE_URL="host=localhost user=fifalog dbname=fifalog"
+export DATABASE_URL="postgres://fifalog@localhost/fifalog"
 
 # Set to a 64 byte random string in prod
 export SECRET="0123456789012345678901234567890123456789012345678901234567890123"

@@ -6,14 +6,18 @@ pub async fn create_team(
     league_id: LeagueId,
     name: String,
     disabled: bool,
-) -> Result<u64, tokio_postgres::Error> {
-    dbc.execute(
+) -> Result<bool, sqlx::Error> {
+    sqlx::query(
         // language=SQL
         r#"
 INSERT INTO team (league_id, name, disabled)
 VALUES ($1, $2, $3)
 "#,
-        &[&league_id, &name, &disabled],
     )
+    .bind(league_id)
+    .bind(name)
+    .bind(disabled)
+    .execute(dbc)
     .await
+    .map(|r| r.rows_affected() == 1)
 }

@@ -1,14 +1,8 @@
 use super::sql_types::{LeagueId, MatchId};
 use crate::db::Database;
 use crate::sql::sql_types::{TeamId, UserId};
-
-pub struct Row(tokio_postgres::Row);
-
-impl Row {
-    pub fn id(&self) -> MatchId {
-        self.0.get(0)
-    }
-}
+use sqlx::postgres::PgRow;
+use sqlx::Row;
 
 pub async fn create_match(
     dbc: &Database,
@@ -17,19 +11,20 @@ pub async fn create_match(
     away_id: TeamId,
     home_user_id: UserId,
     away_user_id: UserId,
-) -> Result<Row, tokio_postgres::Error> {
-    Ok(dbc
-        .query(
-            r#"
+) -> Result<MatchId, sqlx::Error> {
+    sqlx::query(
+        r#"
 INSERT INTO match (league_id, home_id, away_id, home_user_id, away_user_id)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING id
 "#,
-            &[&league_id, &home_id, &away_id, &home_user_id, &away_user_id],
-        )
-        .await?
-        .into_iter()
-        .map(Row)
-        .next()
-        .unwrap())
+    )
+    .bind(league_id)
+    .bind(home_id)
+    .bind(away_id)
+    .bind(home_user_id)
+    .bind(away_user_id)
+    .map(|row: PgRow| row.get(0))
+    .fetch_one(dbc)
+    .await
 }

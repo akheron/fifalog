@@ -1,26 +1,16 @@
 use crate::db::Database;
 
-pub struct Row(tokio_postgres::Row);
-
-impl Row {
-    pub fn month(&self) -> String {
-        self.0.get(0)
-    }
-    pub fn match_count(&self) -> i32 {
-        self.0.get(1)
-    }
-    pub fn tie_count(&self) -> i32 {
-        self.0.get(2)
-    }
-    pub fn goal_count(&self) -> i32 {
-        self.0.get(3)
-    }
+#[derive(sqlx::FromRow)]
+pub struct Row {
+    pub month: String,
+    pub match_count: i32,
+    pub tie_count: i32,
+    pub goal_count: i32,
 }
 
-pub async fn total_stats(dbc: &Database, limit: i32) -> Result<Vec<Row>, tokio_postgres::Error> {
-    Ok(dbc
-        .query(
-            r#"
+pub async fn total_stats(dbc: &Database, limit: i32) -> Result<Vec<Row>, sqlx::Error> {
+    sqlx::query_as::<_, Row>(
+        r#"
 WITH result AS (
     SELECT
         id,
@@ -50,10 +40,8 @@ FROM result
 GROUP BY month
 ORDER BY month DESC
 "#,
-            &[&limit],
-        )
-        .await?
-        .into_iter()
-        .map(Row)
-        .collect())
+    )
+    .bind(limit)
+    .fetch_all(dbc)
+    .await
 }

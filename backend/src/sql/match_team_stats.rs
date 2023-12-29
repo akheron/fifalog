@@ -1,70 +1,34 @@
 use crate::db::Database;
 use crate::sql::sql_types::{MatchId, TeamId};
 
-pub struct Row(tokio_postgres::Row);
-
-impl Row {
-    pub fn home_id(&self) -> TeamId {
-        self.0.get(0)
-    }
-    pub fn away_id(&self) -> TeamId {
-        self.0.get(1)
-    }
-    pub fn total_matches_home(&self) -> Option<i64> {
-        self.0.get(2)
-    }
-    pub fn total_wins_home(&self) -> Option<i64> {
-        self.0.get(3)
-    }
-    pub fn total_losses_home(&self) -> Option<i64> {
-        self.0.get(4)
-    }
-    pub fn total_goals_for_home(&self) -> Option<i64> {
-        self.0.get(5)
-    }
-    pub fn total_goals_against_home(&self) -> Option<i64> {
-        self.0.get(6)
-    }
-    pub fn total_matches_away(&self) -> Option<i64> {
-        self.0.get(7)
-    }
-    pub fn total_wins_away(&self) -> Option<i64> {
-        self.0.get(8)
-    }
-    pub fn total_losses_away(&self) -> Option<i64> {
-        self.0.get(9)
-    }
-    pub fn total_goals_for_away(&self) -> Option<i64> {
-        self.0.get(10)
-    }
-    pub fn total_goals_against_away(&self) -> Option<i64> {
-        self.0.get(11)
-    }
-    pub fn pair_matches(&self) -> Option<i64> {
-        self.0.get(12)
-    }
-    pub fn pair_wins_home(&self) -> Option<i64> {
-        self.0.get(13)
-    }
-    pub fn pair_losses_home(&self) -> Option<i64> {
-        self.0.get(14)
-    }
-    pub fn pair_wins_away(&self) -> Option<i64> {
-        self.0.get(15)
-    }
-    pub fn pair_losses_away(&self) -> Option<i64> {
-        self.0.get(16)
-    }
+#[derive(sqlx::FromRow)]
+pub struct Row {
+    pub home_id: TeamId,
+    pub away_id: TeamId,
+    pub total_matches_home: Option<i64>,
+    pub total_wins_home: Option<i64>,
+    pub total_losses_home: Option<i64>,
+    pub total_goals_for_home: Option<i64>,
+    pub total_goals_against_home: Option<i64>,
+    pub total_matches_away: Option<i64>,
+    pub total_wins_away: Option<i64>,
+    pub total_losses_away: Option<i64>,
+    pub total_goals_for_away: Option<i64>,
+    pub total_goals_against_away: Option<i64>,
+    pub pair_matches: Option<i64>,
+    pub pair_wins_home: Option<i64>,
+    pub pair_losses_home: Option<i64>,
+    pub pair_wins_away: Option<i64>,
+    pub pair_losses_away: Option<i64>,
 }
 
 pub async fn match_team_stats(
     dbc: &Database,
     match_id: MatchId,
-) -> Result<Option<Row>, tokio_postgres::Error> {
-    Ok(dbc
-        .query_opt(
-            // language=SQL
-            r#"
+) -> Result<Option<Row>, sqlx::Error> {
+    sqlx::query_as::<_, Row>(
+        // language=SQL
+        r#"
 WITH total_matches AS (
     SELECT
         home_id AS team_id,
@@ -157,8 +121,8 @@ LEFT JOIN team_stats ts2 ON ts2.team_id = match.away_id
 LEFT JOIN pair_stats ps ON ps.team_1 = match.home_id AND ps.team_2 = match.away_id
 WHERE match.id = $1
     "#,
-            &[&match_id],
-        )
-        .await?
-        .map(Row))
+    )
+    .bind(match_id)
+    .fetch_optional(dbc)
+    .await
 }

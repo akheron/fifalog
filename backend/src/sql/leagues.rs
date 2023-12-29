@@ -1,7 +1,9 @@
 use crate::db::Database;
 use crate::sql::sql_types::{LeagueId, TeamId};
 use serde::Deserialize;
-use tokio_postgres::types::Json;
+use sqlx::postgres::PgRow;
+use sqlx::types::Json;
+use sqlx::Row as _;
 
 #[derive(Deserialize)]
 pub struct Team {
@@ -11,33 +13,18 @@ pub struct Team {
     pub match_count: i32,
 }
 
-pub struct Row(tokio_postgres::Row);
-
-impl Row {
-    pub fn id(&self) -> LeagueId {
-        self.0.get(0)
-    }
-    pub fn name(&self) -> String {
-        self.0.get(1)
-    }
-    pub fn exclude_random_all(&self) -> bool {
-        self.0.get(2)
-    }
-    pub fn teams(&self) -> Vec<Team> {
-        let Json(teams) = self.0.get(3);
-        teams
-    }
+pub struct Row {
+    pub id: LeagueId,
+    pub name: String,
+    pub exclude_random_all: bool,
+    pub teams: Vec<Team>,
 }
 
-pub async fn leagues(
-    dbc: &Database,
-    include_disabled: bool,
-) -> Result<Vec<Row>, tokio_postgres::Error> {
-    Ok(dbc
-        .query(
-            // language=SQL
-            format!(
-                r#"
+pub async fn leagues(dbc: &Database, include_disabled: bool) -> Result<Vec<Row>, sqlx::Error> {
+    sqlx::query(
+        // language=SQL
+        &format!(
+            r#"
 SELECT
     league.id,
     league.name,
@@ -63,17 +50,19 @@ LEFT JOIN team ON team.league_id = league.id
 GROUP BY league.id, league.name, league.exclude_random_all
 ORDER BY league.name
 "#,
-                if include_disabled {
-                    ""
-                } else {
-                    "WHERE NOT team.disabled"
-                }
-            )
-            .as_str(),
-            &[],
-        )
-        .await?
-        .into_iter()
-        .map(Row)
-        .collect())
+            if include_disabled {
+                ""
+            } else {
+                "WHERE NOT team.disabled"
+            }
+        ),
+    )
+    .map(|row: PgRow| Row {
+        id: row.get(0),
+        name: row.get(1),
+        exclude_random_all: row.get(2),
+        teams: row.get::<Json<Vec<Team>>, _>(3).0,
+    })
+    .fetch_all(dbc)
+    .await
 }

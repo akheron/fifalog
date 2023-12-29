@@ -10,8 +10,8 @@ pub async fn finish_match(
     away_score: Option<i32>,
     home_penalty_goals: Option<i32>,
     away_penalty_goals: Option<i32>,
-) -> Result<u64, tokio_postgres::Error> {
-    dbc.execute(
+) -> Result<bool, sqlx::Error> {
+    sqlx::query(
         // language=SQL
         r#"
 UPDATE match
@@ -25,14 +25,14 @@ SET
 WHERE
     id = $6
 "#,
-        &[
-            &home_score,
-            &away_score,
-            &finished_type,
-            &home_penalty_goals,
-            &away_penalty_goals,
-            &match_id,
-        ],
     )
+    .bind(home_score)
+    .bind(away_score)
+    .bind(finished_type)
+    .bind(home_penalty_goals)
+    .bind(away_penalty_goals)
+    .bind(match_id)
+    .execute(dbc)
     .await
+    .map(|r| r.rows_affected() == 1)
 }

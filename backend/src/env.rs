@@ -5,7 +5,7 @@ use std::net::SocketAddr;
 pub struct Env {
     pub env: String,
     pub database_url: String,
-    pub database_pool_size: Option<usize>,
+    pub database_pool_size: Option<u32>,
     pub bind: Option<SocketAddr>,
     pub secret: String,
     pub auth_username: String,

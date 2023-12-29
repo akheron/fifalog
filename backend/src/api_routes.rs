@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use axum::extract::{Path, Query};
 use axum::http::StatusCode;
 use axum::routing::{delete, get, patch, post, put};
-use axum::{Json, Router};
+use axum::{Extension, Json, Router};
 use serde::{Deserialize, Serialize};
 
 use crate::api_types::{Stats, UserStats};
@@ -16,7 +16,9 @@ use crate::{
     Match, RandomMatch, User,
 };
 
-async fn leagues(dbc: Database) -> Result<Json<Vec<League>>, GenericResponse> {
+async fn leagues(
+    Extension(dbc): Extension<Database>,
+) -> Result<Json<Vec<League>>, GenericResponse> {
     let rows = sql::leagues(&dbc, true).await?;
     Ok(Json(rows.into_iter().map(League::from).collect()))
 }
@@ -29,12 +31,12 @@ struct LeagueBody {
 }
 
 async fn update_league(
-    dbc: Database,
+    Extension(dbc): Extension<Database>,
     Path(id): Path<LeagueId>,
     Json(body): Json<LeagueBody>,
 ) -> Result<StatusCode, GenericResponse> {
     let result = sql::update_league(&dbc, id, body.name, body.exclude_random_all).await?;
-    if result == 1 {
+    if result {
         Ok(StatusCode::OK)
     } else {
         Err(generic_error(StatusCode::NOT_FOUND, "No such league"))
@@ -57,16 +59,16 @@ struct MatchesResult {
 }
 
 async fn matches(
+    Extension(dbc): Extension<Database>,
     Query(query): Query<MatchesQuery>,
-    dbc: Database,
 ) -> Result<Json<MatchesResult>, GenericResponse> {
-    let finished_count = finished_match_count(&dbc).await?.count();
+    let finished_count = finished_match_count(&dbc).await?;
     let last10 = finished_count - 9;
 
     let rows = sql::matches(&dbc, query.page.unwrap_or(1), query.page_size.unwrap_or(20)).await?;
     let data = rows.into_iter().map(Match::from).collect();
 
-    let total = sql::match_count(&dbc).await?.count();
+    let total = sql::match_count(&dbc).await?;
 
     Ok(Json(MatchesResult {
         data,
@@ -76,11 +78,11 @@ async fn matches(
 }
 
 async fn delete_match(
-    dbc: Database,
+    Extension(dbc): Extension<Database>,
     Path(id): Path<MatchId>,
 ) -> Result<StatusCode, GenericResponse> {
     let result = sql::delete_match(&dbc, id).await?;
-    if result == 1 {
+    if result {
         Ok(StatusCode::NO_CONTENT)
     } else {
         Err(generic_error(
@@ -124,7 +126,7 @@ struct MatchStats {
 }
 
 async fn match_team_stats(
-    dbc: Database,
+    Extension(dbc): Extension<Database>,
     Path(id): Path<MatchId>,
 ) -> Result<Json<MatchStats>, GenericResponse> {
     let stats = sql::match_team_stats(&dbc, id)
@@ -132,33 +134,33 @@ async fn match_team_stats(
         .ok_or_else(|| generic_error(StatusCode::NOT_FOUND, "No such match"))?;
     Ok(Json(MatchStats {
         home: MatchTeamStats {
-            team_id: stats.home_id(),
-            total: stats.total_wins_home().map(|wins| TeamTotalStats {
+            team_id: stats.home_id,
+            total: stats.total_wins_home.map(|wins| TeamTotalStats {
                 wins,
-                losses: stats.total_losses_home().unwrap(),
-                matches: stats.total_matches_home().unwrap(),
-                goals_for: stats.total_goals_for_home().unwrap(),
-                goals_against: stats.total_goals_against_home().unwrap(),
+                losses: stats.total_losses_home.unwrap(),
+                matches: stats.total_matches_home.unwrap(),
+                goals_for: stats.total_goals_for_home.unwrap(),
+                goals_against: stats.total_goals_against_home.unwrap(),
             }),
-            pair: stats.pair_wins_home().map(|wins| TeamPairStats {
+            pair: stats.pair_wins_home.map(|wins| TeamPairStats {
                 wins,
-                losses: stats.pair_losses_home().unwrap(),
-                matches: stats.pair_matches().unwrap(),
+                losses: stats.pair_losses_home.unwrap(),
+                matches: stats.pair_matches.unwrap(),
             }),
         },
         away: MatchTeamStats {
-            team_id: stats.away_id(),
-            total: stats.total_wins_away().map(|wins| TeamTotalStats {
+            team_id: stats.away_id,
+            total: stats.total_wins_away.map(|wins| TeamTotalStats {
                 wins,
-                losses: stats.total_losses_away().unwrap(),
-                matches: stats.total_matches_away().unwrap(),
-                goals_for: stats.total_goals_for_away().unwrap(),
-                goals_against: stats.total_goals_against_away().unwrap(),
+                losses: stats.total_losses_away.unwrap(),
+                matches: stats.total_matches_away.unwrap(),
+                goals_for: stats.total_goals_for_away.unwrap(),
+                goals_against: stats.total_goals_against_away.unwrap(),
             }),
-            pair: stats.pair_wins_away().map(|wins| TeamPairStats {
+            pair: stats.pair_wins_away.map(|wins| TeamPairStats {
                 wins,
-                losses: stats.pair_losses_away().unwrap(),
-                matches: stats.pair_matches().unwrap(),
+                losses: stats.pair_losses_away.unwrap(),
+                matches: stats.pair_matches.unwrap(),
             }),
         },
     }))
@@ -173,7 +175,7 @@ struct MatchResultBody {
 }
 
 async fn finish_match(
-    dbc: Database,
+    Extension(dbc): Extension<Database>,
     Path(id): Path<MatchId>,
     Json(match_result): Json<MatchResultBody>,
 ) -> Result<Json<Match>, GenericResponse> {
@@ -200,7 +202,7 @@ async fn finish_match(
     )
     .await?;
 
-    if result == 1 {
+    if result {
         Ok(Json(sql::match_(&dbc, id).await?.map(Match::from).unwrap()))
     } else {
         Err(generic_error(StatusCode::NOT_FOUND, "No such match"))
@@ -216,7 +218,7 @@ struct RandomMatchPairBody {
 }
 
 async fn create_random_match_pair(
-    dbc: Database,
+    Extension(dbc): Extension<Database>,
     Json(body): Json<RandomMatchPairBody>,
 ) -> Result<Json<(Match, Match)>, GenericResponse> {
     if body.user1 == body.user2 {
@@ -229,8 +231,8 @@ async fn create_random_match_pair(
     let matches = sql::matches(&dbc, 1, 10).await?;
     let last_teams = matches
         .iter()
-        .map(|m| m.home_id())
-        .chain(matches.iter().map(|m| m.away_id()))
+        .map(|m| m.home_id)
+        .chain(matches.iter().map(|m| m.away_id))
         .collect::<HashSet<_>>();
 
     let leagues = sql::leagues(&dbc, false)
@@ -256,12 +258,10 @@ async fn create_random_match_pair(
         )
     })?;
 
-    let match1_id = sql::create_match(&dbc, league_id, home_id, away_id, body.user1, body.user2)
-        .await?
-        .id();
-    let match2_id = sql::create_match(&dbc, league_id, home_id, away_id, body.user2, body.user1)
-        .await?
-        .id();
+    let match1_id =
+        sql::create_match(&dbc, league_id, home_id, away_id, body.user1, body.user2).await?;
+    let match2_id =
+        sql::create_match(&dbc, league_id, home_id, away_id, body.user2, body.user1).await?;
 
     let match1 = sql::match_(&dbc, match1_id)
         .await?
@@ -275,7 +275,7 @@ async fn create_random_match_pair(
     Ok(Json((match1, match2)))
 }
 
-async fn users(dbc: Database) -> Result<Json<Vec<User>>, GenericResponse> {
+async fn users(Extension(dbc): Extension<Database>) -> Result<Json<Vec<User>>, GenericResponse> {
     let rows = sql::users(&dbc).await?;
     Ok(Json(rows.into_iter().map(User::from).collect()))
 }
@@ -284,7 +284,7 @@ fn group_user_stats_by_month(rows: Vec<sql::user_stats::Row>) -> Vec<Vec<UserSta
     let mut user_stats_by_month: Vec<Vec<UserStats>> = Vec::new();
     let mut curr: Option<String> = None;
     for row in rows {
-        let month = row.month();
+        let month = row.month.clone();
         let user_stats = UserStats::from(row);
         if user_stats_by_month.is_empty() || &month != curr.as_ref().unwrap() {
             user_stats_by_month.push(vec![user_stats]);
@@ -305,11 +305,11 @@ struct CreateTeamBody {
 }
 
 async fn create_team(
-    dbc: Database,
+    Extension(dbc): Extension<Database>,
     Json(body): Json<CreateTeamBody>,
 ) -> Result<StatusCode, GenericResponse> {
     let result = sql::create_team(&dbc, body.league_id, body.name, body.disabled).await?;
-    if result == 1 {
+    if result {
         Ok(StatusCode::OK)
     } else {
         Err(generic_error(
@@ -328,23 +328,26 @@ struct UpdateTeamBody {
 }
 
 async fn patch_team(
-    dbc: Database,
+    Extension(dbc): Extension<Database>,
     Path(id): Path<TeamId>,
     Json(body): Json<UpdateTeamBody>,
 ) -> Result<StatusCode, GenericResponse> {
     let result = sql::update_team(&dbc, id, body.league_id, body.name, body.disabled).await?;
-    if result == 1 {
+    if result {
         Ok(StatusCode::OK)
     } else {
         Err(generic_error(StatusCode::NOT_FOUND, "No such team"))
     }
 }
 
-async fn delete_team(dbc: Database, Path(id): Path<TeamId>) -> Result<StatusCode, GenericResponse> {
+async fn delete_team(
+    Extension(dbc): Extension<Database>,
+    Path(id): Path<TeamId>,
+) -> Result<StatusCode, GenericResponse> {
     sql::delete_team(&dbc, id)
         .await
-        .map(|row_count| {
-            if row_count == 1 {
+        .map(|success| {
+            if success {
                 StatusCode::OK
             } else {
                 StatusCode::NOT_FOUND
@@ -362,21 +365,21 @@ async fn delete_team(dbc: Database, Path(id): Path<TeamId>) -> Result<StatusCode
         })
 }
 
-async fn stats(db2: Database) -> Result<Json<Vec<Stats>>, GenericResponse> {
-    let last_user_stats = sql::user_stats(&db2, 10).await?;
-    let last_total_stats = sql::total_stats(&db2, 10).await?;
-    let user_stats = group_user_stats_by_month(sql::user_stats(&db2, 0).await?);
-    let total_stats = sql::total_stats(&db2, 0).await?;
+async fn stats(Extension(dbc): Extension<Database>) -> Result<Json<Vec<Stats>>, GenericResponse> {
+    let last_user_stats = sql::user_stats(&dbc, 10).await?;
+    let last_total_stats = sql::total_stats(&dbc, 10).await?;
+    let user_stats = group_user_stats_by_month(sql::user_stats(&dbc, 0).await?);
+    let total_stats = sql::total_stats(&dbc, 0).await?;
 
     let mut response: Vec<Stats> = Vec::new();
 
     if !last_total_stats.is_empty() {
         let last = last_total_stats.last().unwrap();
         response.push(Stats {
-            month: last.month(),
-            ties: last.tie_count(),
-            matches: last.match_count(),
-            goals: last.goal_count(),
+            month: last.month.clone(),
+            ties: last.tie_count,
+            matches: last.match_count,
+            goals: last.goal_count,
             user_stats: last_user_stats.into_iter().map(UserStats::from).collect(),
         });
     }
@@ -386,10 +389,10 @@ async fn stats(db2: Database) -> Result<Json<Vec<Stats>>, GenericResponse> {
         .zip(user_stats.into_iter())
         .for_each(|(total, user_stats)| {
             response.push(Stats {
-                month: total.month(),
-                ties: total.tie_count(),
-                matches: total.match_count(),
-                goals: total.goal_count(),
+                month: total.month,
+                ties: total.tie_count,
+                matches: total.match_count,
+                goals: total.goal_count,
                 user_stats,
             });
         });

@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 
 use axum::{Extension, Router};
+use sqlx::postgres::PgPoolOptions;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
@@ -10,7 +11,7 @@ use crate::api_routes::api_routes;
 use crate::api_types::{FinishedType, League, Match, User};
 use crate::auth::{auth_routes, login_required};
 use crate::config::Config;
-use crate::db::{database_layer, database_pool, Database};
+use crate::db::Database;
 use crate::env::Env;
 use crate::randomize::{get_random_match_from_all, get_random_match_from_leagues, RandomMatch};
 use crate::utils::GenericResponse;
@@ -31,8 +32,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = Config::from_env(&env);
 
     println!("Running migrations...");
-    let dbc_pool = database_pool(&env.database_url, env.database_pool_size.unwrap_or(10))?;
-    migrations::run(dbc_pool.clone()).await?;
+    let dbc_pool = PgPoolOptions::new()
+        .max_connections(env.database_pool_size.unwrap_or(5))
+        .connect(&env.database_url)
+        .await?;
+    // migrations::run(dbc_pool.clone()).await?;
 
     let app = Router::new()
         .nest("/auth", auth_routes())
@@ -42,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .layer(
             ServiceBuilder::new()
                 .layer(Extension(config))
-                .layer(database_layer(dbc_pool))
+                .layer(Extension(dbc_pool))
                 .layer(CookieManagerLayer::new()),
         );
 
@@ -57,17 +61,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-mod migrations {
-    use deadpool_postgres::Pool;
-    use refinery::embed_migrations;
-
-    embed_migrations!();
-
-    pub async fn run(pool: Pool) -> Result<(), Box<dyn std::error::Error>> {
-        let mut dbc = pool.get().await?;
-        self::migrations::runner()
-            .run_async(&mut dbc as &mut tokio_postgres::Client)
-            .await?;
-        Ok(())
-    }
-}
+// TODO
+//
+// mod migrations {
+//     use deadpool_postgres::Pool;
+//     use refinery::embed_migrations;
+//
+//     embed_migrations!();
+//
+//     pub async fn run(pool: Pool) -> Result<(), Box<dyn std::error::Error>> {
+//         let mut dbc = pool.get().await?;
+//         self::migrations::runner()
+//             .run_async(&mut dbc as &mut tokio_postgres::Client)
+//             .await?;
+//         Ok(())
+//     }
+// }

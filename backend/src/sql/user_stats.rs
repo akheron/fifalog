@@ -1,33 +1,20 @@
 use crate::db::Database;
 use crate::sql::sql_types::UserId;
 
-pub struct Row(tokio_postgres::Row);
-
-impl Row {
-    pub fn month(&self) -> String {
-        self.0.get(0)
-    }
-    pub fn user_id(&self) -> UserId {
-        self.0.get(1)
-    }
-    pub fn user_name(&self) -> String {
-        self.0.get(2)
-    }
-    pub fn win_count(&self) -> i32 {
-        self.0.get(3)
-    }
-    pub fn overtime_win_count(&self) -> i32 {
-        self.0.get(4)
-    }
-    pub fn goals_for(&self) -> i32 {
-        self.0.get(5)
-    }
+#[derive(sqlx::FromRow)]
+pub struct Row {
+    pub month: String,
+    pub user_id: UserId,
+    pub user_name: String,
+    pub win_count: i32,
+    pub overtime_win_count: i32,
+    pub goals_for: i32,
 }
 
-pub async fn user_stats(dbc: &Database, limit: i32) -> Result<Vec<Row>, tokio_postgres::Error> {
-    Ok(dbc
-        .query(
-            r#"
+pub async fn user_stats(dbc: &Database, limit: i32) -> Result<Vec<Row>, sqlx::Error> {
+    sqlx::query_as::<_, Row>(
+        // language=SQL
+        r#"
 WITH result AS (
     SELECT
         finished_time,
@@ -76,10 +63,8 @@ JOIN result ON (result.user_id = "user".id)
 GROUP BY month, "user".id, "user".name
 ORDER BY month DESC, win_count ASC
 "#,
-            &[&limit],
-        )
-        .await?
-        .into_iter()
-        .map(Row)
-        .collect())
+    )
+    .bind(limit)
+    .fetch_all(dbc)
+    .await
 }

@@ -1,74 +1,34 @@
 use super::FinishedType;
 use crate::db::Database;
 use crate::sql::sql_types::{LeagueId, MatchId, TeamId, UserId};
+use sqlx::types::chrono::{DateTime, Local};
 
-pub struct Row(tokio_postgres::Row);
-
-impl Row {
-    pub fn match_id(&self) -> MatchId {
-        self.0.get(0)
-    }
-    pub fn league_id(&self) -> Option<LeagueId> {
-        self.0.get(1)
-    }
-    pub fn league_name(&self) -> Option<String> {
-        self.0.get(2)
-    }
-    pub fn home_id(&self) -> TeamId {
-        self.0.get(3)
-    }
-    pub fn home_name(&self) -> String {
-        self.0.get(4)
-    }
-    pub fn away_id(&self) -> TeamId {
-        self.0.get(5)
-    }
-    pub fn away_name(&self) -> String {
-        self.0.get(6)
-    }
-    pub fn home_user_id(&self) -> UserId {
-        self.0.get(7)
-    }
-    pub fn home_user_name(&self) -> String {
-        self.0.get(8)
-    }
-    pub fn away_user_id(&self) -> UserId {
-        self.0.get(9)
-    }
-    pub fn away_user_name(&self) -> String {
-        self.0.get(10)
-    }
-    pub fn home_score(&self) -> Option<i32> {
-        self.0.get(11)
-    }
-    pub fn away_score(&self) -> Option<i32> {
-        self.0.get(12)
-    }
-    pub fn finished_type(&self) -> Option<FinishedType> {
-        self.0.get(13)
-    }
-    pub fn home_penalty_goals(&self) -> Option<i32> {
-        self.0.get(14)
-    }
-    pub fn away_penalty_goals(&self) -> Option<i32> {
-        self.0.get(15)
-    }
-    pub fn finished_time(&self) -> Option<time::OffsetDateTime> {
-        self.0.get(16)
-    }
-    pub fn index(&self) -> i64 {
-        self.0.get(17)
-    }
+#[derive(sqlx::FromRow)]
+pub struct Row {
+    pub match_id: MatchId,
+    pub league_id: Option<LeagueId>,
+    pub league_name: Option<String>,
+    pub home_id: TeamId,
+    pub home_name: String,
+    pub away_id: TeamId,
+    pub away_name: String,
+    pub home_user_id: UserId,
+    pub home_user_name: String,
+    pub away_user_id: UserId,
+    pub away_user_name: String,
+    pub home_score: Option<i32>,
+    pub away_score: Option<i32>,
+    pub finished_type: Option<FinishedType>,
+    pub home_penalty_goals: Option<i32>,
+    pub away_penalty_goals: Option<i32>,
+    pub finished_time: Option<DateTime<Local>>,
+    pub index: i64,
 }
 
-pub async fn match_(
-    dbc: &Database,
-    match_id: MatchId,
-) -> Result<Option<Row>, tokio_postgres::Error> {
-    Ok(dbc
-        .query(
-            // language=SQL
-            r#"
+pub async fn match_(dbc: &Database, match_id: MatchId) -> Result<Option<Row>, sqlx::Error> {
+    sqlx::query_as::<_, Row>(
+        // language=SQL
+        r#"
 SELECT
     match.id as match_id,
     league.id as league_id,
@@ -95,12 +55,9 @@ JOIN team AS away ON away.id = away_id
 JOIN "user" AS home_user ON home_user.id = home_user_id
 JOIN "user" AS away_user ON away_user.id = away_user_id
 WHERE match.id = $1
-LIMIT 1
 "#,
-            &[&match_id],
-        )
-        .await?
-        .into_iter()
-        .map(Row)
-        .next())
+    )
+    .bind(match_id)
+    .fetch_optional(dbc)
+    .await
 }

@@ -16,8 +16,8 @@ impl IntoResponse for GenericResponse {
     }
 }
 
-impl From<tokio_postgres::Error> for GenericResponse {
-    fn from(error: tokio_postgres::Error) -> Self {
+impl From<sqlx::Error> for GenericResponse {
+    fn from(error: sqlx::Error) -> Self {
         internal_error(error)
     }
 }

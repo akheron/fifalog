@@ -6,15 +6,19 @@ pub async fn update_league(
     league_id: LeagueId,
     name: String,
     exclude_random_all: bool,
-) -> Result<u64, tokio_postgres::Error> {
-    dbc.execute(
+) -> Result<bool, sqlx::Error> {
+    sqlx::query(
         // language=SQL
         r#"
 UPDATE league
 SET name = $2, exclude_random_all = $3
 WHERE id = $1
 "#,
-        &[&league_id, &name, &exclude_random_all],
     )
+    .bind(league_id)
+    .bind(name)
+    .bind(exclude_random_all)
+    .execute(dbc)
     .await
+    .map(|r| r.rows_affected() == 1)
 }

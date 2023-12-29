@@ -1,3 +1,4 @@
+use eyre::Result;
 use serde::Deserialize;
 use std::net::SocketAddr;
 
@@ -14,7 +15,7 @@ pub struct Env {
 }
 
 impl Env {
-    pub fn read() -> Result<Env, Box<dyn std::error::Error>> {
+    pub fn read() -> Result<Env> {
         Ok(envy::from_env::<Self>()?)
     }
 }

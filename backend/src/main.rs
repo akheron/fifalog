@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 
 use axum::{Extension, Router};
+use eyre::{Context, Result};
 use sqlx::postgres::PgPoolOptions;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
@@ -27,7 +28,7 @@ mod sql;
 mod utils;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     let env = Env::read()?;
     let config = Config::from_env(&env);
 
@@ -35,8 +36,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let dbc_pool = PgPoolOptions::new()
         .max_connections(env.database_pool_size.unwrap_or(5))
         .connect(&env.database_url)
-        .await?;
-    // migrations::run(dbc_pool.clone()).await?;
+        .await
+        .wrap_err("Connecting to database failed")?;
+    sqlx::migrate!()
+        .run(&dbc_pool)
+        .await
+        .wrap_err("Running migrations failed")?;
 
     let app = Router::new()
         .nest("/auth", auth_routes())
@@ -60,20 +65,3 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-
-// TODO
-//
-// mod migrations {
-//     use deadpool_postgres::Pool;
-//     use refinery::embed_migrations;
-//
-//     embed_migrations!();
-//
-//     pub async fn run(pool: Pool) -> Result<(), Box<dyn std::error::Error>> {
-//         let mut dbc = pool.get().await?;
-//         self::migrations::runner()
-//             .run_async(&mut dbc as &mut tokio_postgres::Client)
-//             .await?;
-//         Ok(())
-//     }
-// }

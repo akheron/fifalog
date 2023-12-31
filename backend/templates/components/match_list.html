@@ -1,0 +1,177 @@
+<div>
+  {% for match_day in match_days %}
+  <div class="match-day">
+    <div class="date">
+      {% match match_day.date %}
+        {% when Some(date) %}{{ date.format("%a %Y-%m-%d") }}
+        {% when None %}Not played yet
+      {% endmatch %}
+    </div>
+    {% for match in match_day.matches %}
+    <div class="match">
+      {% match match.index %}
+        {% when Some(index) %}<div class="index">Match {{ index }}</div>
+        {% when None %}
+      {% endmatch %}
+      <div class="row">
+        <div>{{ match.home.name }}</div>
+        <div>
+          <div class="score">
+            {% match match.result %}
+              {% when Some(result) %}
+                <strong>{{ result.home_score }}</strong> - <strong>{{ result.away_score }}</strong>
+              {% when None %}
+                -
+            {% endmatch %}
+          </div>
+        </div>
+        <div>
+          {{ match.away.name }}
+        </div>
+      </div>
+      <div class="row">
+        <div class="player">{{ match|home_player|safe }}</div>
+        <div class="overtime">{{ match|overtime_result }}</div>
+        <div class="player">{{ match|away_player|safe }}</div>
+      </div>
+      {% if match.result.is_none() %}
+      <div class="vgap-s"></div>
+      <div class="buttons" hx-disabled-elt="button">
+        <button>
+          stats ▽ <!--△-->
+        </button>
+        <span class="hgap-s"></span>
+        <button>
+          edit
+        </button>
+        <span class="hgap-s"></span>
+        <button
+          hx-delete="/match/{{ match.id }}"
+          hx-target="closest .match"
+          hx-swap="delete"
+          hx-confirm="Really?"
+        >
+          x
+        </button>
+      </div>
+      {% endif %}
+    </div>
+    {% if match.index.is_some() && match.index.unwrap() == last10 %}
+    <div class="last10"></div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% endfor %}
+  <style>
+    me {
+      position: relative;
+
+      .loadingOverlay {
+        position: absolute;
+        z-index: 100;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+
+      .pagination {
+        display: flex;
+        justify-content: center;
+        margin: 10px 0;
+      }
+
+      .match-day:not(:first-child) {
+        border-top: 1px solid #ccc;
+      }
+
+      .date {
+        padding: 15px 0 20px 0;
+        text-align: center;
+        font-size: 13px;
+        text-decoration: underline;
+      }
+
+      .last10 {
+        padding-bottom: 10px;
+      }
+
+      .last10::before {
+        content: "";
+        display: block;
+        margin: 0 auto;
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 10px solid #ffa500;
+      }
+
+      .match {
+        padding-bottom: 25px;
+      }
+
+      .index {
+        text-align: center;
+        font-size: 13px;
+        color: #999;
+        padding-bottom: 4px;
+      }
+
+      .row {
+        display: flex;
+      }
+
+      .row > :nth-child(1) {
+        width: 40%;
+        text-align: right;
+      }
+
+      .row > :nth-child(2) {
+        text-align: center;
+        width: 20%;
+      }
+
+      .row > :nth-child(3) {
+        width: 40%;
+      }
+
+      .score {
+        font-size: 18px;
+      }
+
+      .overtime {
+        font-size: 13px;
+      }
+
+      .player {
+        font-size: 13px;
+        color: #999;
+      }
+
+      .player strong {
+        color: #008000;
+      }
+
+      .buttons {
+        text-align: center;
+      }
+
+      .buttons button {
+        font-size: 12px;
+        line-height: 12px;
+      }
+
+      .stats {
+        font-size: 13px;
+      }
+
+      .stats span.dimmed {
+        display: inline-block;
+        margin: 0 6px;
+        color: #999;
+      }
+    }
+  </style>
+</div>

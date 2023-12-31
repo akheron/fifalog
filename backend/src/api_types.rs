@@ -1,6 +1,7 @@
 use crate::sql;
 use crate::sql::sql_types::{LeagueId, MatchId, TeamId, UserId};
 use serde::{Deserialize, Serialize};
+use sqlx::types::chrono::{DateTime, Local};
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -63,8 +64,6 @@ pub struct TeamStub {
     pub name: String,
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct Match {
     pub id: MatchId,
     pub index: Option<i64>,
@@ -76,8 +75,6 @@ pub struct Match {
     pub away_user: User,
     pub result: Option<MatchResult>, // None means not finished
 }
-
-const DATE_FORMAT: &str = "%a %Y-%m-%d";
 
 impl From<sql::matches::Row> for Match {
     fn from(row: sql::matches::Row) -> Self {
@@ -113,7 +110,7 @@ impl From<sql::matches::Row> for Match {
                         away_goals: row.away_penalty_goals.unwrap(),
                     },
                 },
-                finished_date: row.finished_time.unwrap().format(DATE_FORMAT).to_string(),
+                finished_time: row.finished_time.unwrap(),
             }),
         }
     }
@@ -153,16 +150,14 @@ impl From<sql::match_::Row> for Match {
                         away_goals: row.away_penalty_goals.unwrap(),
                     },
                 },
-                finished_date: row.finished_time.unwrap().format(DATE_FORMAT).to_string(),
+                finished_time: row.finished_time.unwrap(),
             }),
         }
     }
 }
 
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct MatchResult {
-    pub finished_date: String,
+    pub finished_time: DateTime<Local>,
     pub home_score: i32,
     pub away_score: i32,
     pub finished_type: FinishedType,

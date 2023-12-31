@@ -1,21 +1,22 @@
+use derive_more::Display;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Deserialize, Serialize, sqlx::Type)]
+#[derive(Debug, Display, Clone, Copy, Hash, PartialEq, Eq, Deserialize, Serialize, sqlx::Type)]
 #[sqlx(transparent)]
 #[serde(transparent)]
 pub struct MatchId(pub i32);
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Deserialize, Serialize, sqlx::Type)]
+#[derive(Debug, Display, Clone, Copy, Hash, PartialEq, Eq, Deserialize, Serialize, sqlx::Type)]
 #[sqlx(transparent)]
 #[serde(transparent)]
 pub struct TeamId(pub i32);
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Deserialize, Serialize, sqlx::Type)]
+#[derive(Debug, Display, Clone, Copy, Hash, PartialEq, Eq, Deserialize, Serialize, sqlx::Type)]
 #[sqlx(transparent)]
 #[serde(transparent)]
 pub struct LeagueId(pub i32);
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Deserialize, Serialize, sqlx::Type)]
+#[derive(Debug, Display, Clone, Copy, Hash, PartialEq, Eq, Deserialize, Serialize, sqlx::Type)]
 #[sqlx(transparent)]
 #[serde(transparent)]
 pub struct UserId(pub i32);

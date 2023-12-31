@@ -15,4 +15,4 @@ export AUTH_PASSWORD=mypass
 # Not needed when parcel serves assets, otherwise set to parcel output dir (../frontend/dist)
 export ASSET_PATH=
 
-exec cargo run
+exec cargo watch -x run

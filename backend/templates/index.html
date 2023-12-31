@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div>
+  {% include "components/menu.html" %}
+  <h2>Stats</h2>
+  {{ stats|safe }}
+
+  <h2>Latest matches</h2>
+  {% match create_match_pair %}
+    {% when Some(c) %}{{ c|safe }}
+    {% when None %}
+  {% endmatch %}
+  {{ match_list|safe }}
+
+  <style>
+    me {
+      max-width: 375px;
+      margin: 0 auto;
+    }
+  </style>
+</div>
+{% endblock %}

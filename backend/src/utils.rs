@@ -1,6 +1,7 @@
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use axum::Json;
+use maud::{html, Markup, PreEscaped};
 use serde::Serialize;
 
 pub struct GenericResponse(StatusCode, String);
@@ -30,4 +31,10 @@ pub fn internal_error<E: std::error::Error>(err: E) -> GenericResponse {
     let err_string = err.to_string();
     println!("ERROR: {}", err_string);
     generic_error(StatusCode::INTERNAL_SERVER_ERROR, err_string)
+}
+
+pub fn style(s: &str) -> Markup {
+    html! {
+        style { (PreEscaped(s)) }
+    }
 }

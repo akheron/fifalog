@@ -1,9 +1,11 @@
+use std::cmp::min;
 use std::collections::HashSet;
 
-use axum::extract::{Path, Query};
+use axum::extract::Path;
 use axum::http::StatusCode;
 use axum::routing::{delete, get, patch, post, put};
 use axum::{Extension, Json, Router};
+use eyre::Result;
 use serde::{Deserialize, Serialize};
 
 use crate::api_types::{Stats, UserStats};
@@ -43,38 +45,30 @@ async fn update_league(
     }
 }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct MatchesQuery {
+pub struct MatchesResult {
+    pub data: Vec<Match>,
+    pub last10: i64,
+    pub total: i64,
+}
+
+pub async fn matches(
+    dbc: &Database,
     page: Option<i64>,
     page_size: Option<i64>,
-}
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct MatchesResult {
-    data: Vec<Match>,
-    last10: i64,
-    total: i64,
-}
-
-async fn matches(
-    Extension(dbc): Extension<Database>,
-    Query(query): Query<MatchesQuery>,
-) -> Result<Json<MatchesResult>, GenericResponse> {
-    let finished_count = finished_match_count(&dbc).await?;
+) -> Result<MatchesResult> {
+    let finished_count = finished_match_count(dbc).await?;
     let last10 = finished_count - 9;
 
-    let rows = sql::matches(&dbc, query.page.unwrap_or(1), query.page_size.unwrap_or(20)).await?;
+    let rows = sql::matches(&dbc, page.unwrap_or(1), page_size.unwrap_or(20)).await?;
     let data = rows.into_iter().map(Match::from).collect();
 
     let total = sql::match_count(&dbc).await?;
 
-    Ok(Json(MatchesResult {
+    Ok(MatchesResult {
         data,
         last10,
         total,
-    }))
+    })
 }
 
 async fn delete_match(
@@ -365,17 +359,18 @@ async fn delete_team(
         })
 }
 
-async fn stats(Extension(dbc): Extension<Database>) -> Result<Json<Vec<Stats>>, GenericResponse> {
-    let last_user_stats = sql::user_stats(&dbc, 10).await?;
-    let last_total_stats = sql::total_stats(&dbc, 10).await?;
-    let user_stats = group_user_stats_by_month(sql::user_stats(&dbc, 0).await?);
-    let total_stats = sql::total_stats(&dbc, 0).await?;
+pub async fn stats(dbc: &Database, limit: usize) -> Result<(Vec<Stats>, usize)> {
+    let last_user_stats = sql::user_stats(dbc, 10).await?;
+    let last_total_stats = sql::total_stats(dbc, 10).await?;
+    let user_stats = group_user_stats_by_month(sql::user_stats(dbc, 0).await?);
+    let total_stats = sql::total_stats(dbc, 0).await?;
 
-    let mut response: Vec<Stats> = Vec::new();
+    let total_count = total_stats.len() + if last_total_stats.is_empty() { 0 } else { 1 };
+    let mut result: Vec<Stats> = Vec::with_capacity(min(total_count, limit));
 
     if !last_total_stats.is_empty() {
         let last = last_total_stats.last().unwrap();
-        response.push(Stats {
+        result.push(Stats {
             month: last.month.clone(),
             ties: last.tie_count,
             matches: last.match_count,
@@ -387,8 +382,9 @@ async fn stats(Extension(dbc): Extension<Database>) -> Result<Json<Vec<Stats>>, 
     total_stats
         .into_iter()
         .zip(user_stats.into_iter())
+        .take(limit)
         .for_each(|(total, user_stats)| {
-            response.push(Stats {
+            result.push(Stats {
                 month: total.month,
                 ties: total.tie_count,
                 matches: total.match_count,
@@ -397,21 +393,21 @@ async fn stats(Extension(dbc): Extension<Database>) -> Result<Json<Vec<Stats>>, 
             });
         });
 
-    Ok(Json(response))
+    Ok((result, total_count))
 }
 
 pub fn api_routes() -> Router {
     Router::new()
         .route("/leagues", get(leagues))
         .route("/leagues/:id", put(update_league))
-        .route("/matches", get(matches))
-        .route("/matches/random_pair", post(create_random_match_pair))
+        // .route("/matches", get(matches))
+        // .route("/matches/random_pair", post(create_random_match_pair))
         .route("/matches/:id", delete(delete_match))
         .route("/matches/:id/team-stats", get(match_team_stats))
-        .route("/matches/:id/finish", post(finish_match))
+        // .route("/matches/:id/finish", post(finish_match))
         .route("/teams", post(create_team))
         .route("/teams/:id", patch(patch_team))
         .route("/teams/:id", delete(delete_team))
-        .route("/stats", get(stats))
+        // .route("/stats", get(stats))
         .route("/users", get(users))
 }

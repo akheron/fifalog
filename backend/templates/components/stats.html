@@ -1,0 +1,83 @@
+<div>
+  <table>
+    <thead>
+      <tr>
+        <th></th>
+        <th></th>
+        <th>W</th>
+        <th></th>
+        <th>G</th>
+      </tr>
+    </thead>
+    {% for row in stats %}
+    <tbody>
+      {% for user in row.user_stats %}
+      <tr>
+        <td>{% if loop.first %}{{ row.month }}{% endif %}</td>
+        <td>{{ user.user.name }}</td>
+        <td>{{ user.wins }}</td>
+        <td>({{ user.over_time_wins }} OT)</td>
+        <td>{{ user.goals_for }}</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <td></td>
+        <td>Total</td>
+        <td>{{ row.matches }}</td>
+        <td>({{ row.ties }} tied)</td>
+        <td>{{ row.goals }}</td>
+      </tr>
+    </tbody>
+    {% endfor %}
+  </table>
+  <div class="vgap-s"></div>
+  {% if more > 0 %}
+  <form hx-get="/stats" hx-target="closest div" hx-swap="outerHTML" hx-disabled-elt="button">
+    <input type="hidden" name="expanded" value="{% if expanded %}false{% else %}true{% endif %}">
+    <button>
+      show {{ more }} {% if expanded %}less{% else %}more{% endif %}
+    </button>
+  </form>
+  {% endif %}
+
+  <style>
+    me > table {
+      font-size: 13px;
+      width: 100%;
+      border-spacing: 0;
+      border-collapse: collapse;
+
+      thead th {
+        text-align: left;
+      }
+
+      tbody:not(:last-child) {
+        border-bottom: 1px solid #999;
+      }
+
+      tr:first-child td {
+        padding-top: 8px;
+      }
+
+      tr:last-child td {
+        padding-bottom: 8px;
+      }
+
+      td:first-child {
+        font-weight: bold;
+        width: 1px;
+        white-space: nowrap;
+        padding-right: 10px;
+        border-right: 1px solid #999;
+      }
+
+      td:nth-child(2) {
+        padding-left: 10px;
+      }
+
+      td {
+        padding-bottom: 3px;
+      }
+    }
+  </style>
+</div>

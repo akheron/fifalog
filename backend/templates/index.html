@@ -7,7 +7,10 @@
   {{ stats|safe }}
 
   <h2>Latest matches</h2>
-  <!--<CreateRandomMatchPair users={users} />-->
+  {% match create_match_pair %}
+    {% when Some(c) %}{{ c|safe }}
+    {% when None %}
+  {% endmatch %}
   {{ match_list|safe }}
 
   <style>

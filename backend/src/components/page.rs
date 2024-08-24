@@ -9,7 +9,7 @@ pub fn page(content: Markup) -> Markup {
                 title { "FIFA log" }
                 meta charset="utf-8";
                 meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1";
-                script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous" {}
+                script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous" {}
                 script src="https://cdn.jsdelivr.net/gh/gnat/css-scope-inline/script.js" {}
                 (style(r#"
                     * {

@@ -7,21 +7,13 @@ use crate::utils::style;
 use itertools::Itertools;
 use maud::{html, Markup, PreEscaped};
 use sqlx::types::chrono::NaiveDate;
+use std::cmp::{max, min};
 
+#[derive(Default)]
 pub struct LatestMatches {
     pub create_match_pair_error: Option<&'static str>,
     pub page: Option<i64>,
     pub per_page: Option<i64>,
-}
-
-impl Default for LatestMatches {
-    fn default() -> Self {
-        Self {
-            create_match_pair_error: None,
-            page: None,
-            per_page: None,
-        }
-    }
 }
 
 impl LatestMatches {
@@ -32,27 +24,42 @@ impl LatestMatches {
         }
     }
 
+    pub fn with_pagination(self, page: i64, per_page: i64) -> Self {
+        Self {
+            page: Some(page),
+            per_page: Some(per_page),
+            ..self
+        }
+    }
+
     pub async fn render(self, dbc: &Database) -> Result<Markup> {
         latest_matches(dbc, self).await
     }
 }
 
 async fn latest_matches(dbc: &Database, params: LatestMatches) -> Result<Markup> {
-    let users = users(&dbc)
+    let users = users(dbc)
         .await?
         .into_iter()
         .map(User::from)
         .collect::<Vec<_>>();
-    let matches = matches(&dbc, params.page, params.per_page).await?;
+    let matches = matches(dbc, params.page, params.per_page).await?;
 
     let create_match_pair = create_match_pair(&users, params.create_match_pair_error);
+    let total_matches = matches.total;
     let match_list = match_list(matches);
+    let pagination = pagination(
+        params.page.unwrap_or(1),
+        params.per_page.unwrap_or(10),
+        total_matches,
+    );
 
     Ok(html! {
         div #latest-matches {
             h2 { "Latest matches" }
             @if let Some(c) = create_match_pair { (c) }
             (match_list)
+            @if let Some(pagination) = pagination { (pagination) }
         }
     })
 }
@@ -143,9 +150,8 @@ fn match_list(matches: MatchesResult) -> Markup {
                     }
                     @for match_ in match_day.matches {
                         div .match {
-                            @match match_.index {
-                                Some(index) => { div .index { "Match " (index) } }
-                                None => {}
+                            @if let Some(index) = match_.index {
+                                div .index { "Match " (index) }
                             }
                             div .row {
                                 div { (match_.home.name) }
@@ -352,4 +358,104 @@ pub fn overtime_result(match_: &Match) -> Markup {
     } else {
         html! {}
     }
+}
+
+enum ListElem {
+    Page(i64),
+    Ellipsis,
+    Nothing,
+}
+
+fn pagination(page: i64, page_size: i64, total: i64) -> Option<Markup> {
+    let adjacent = 2;
+
+    let total_pages = (total + page_size - 1) / page_size;
+    if total_pages == 1 {
+        return None;
+    }
+
+    let start = max(1, page - adjacent);
+    let end = min(total_pages, page + adjacent);
+
+    use ListElem::*;
+    let mut pages = vec![
+        if 1 < page - adjacent {
+            Page(1)
+        } else {
+            Nothing
+        },
+        if 2 < page - adjacent - 1 {
+            Ellipsis
+        } else {
+            Nothing
+        },
+        if 2 == page - adjacent - 1 {
+            Page(2)
+        } else {
+            Nothing
+        },
+    ];
+    pages.extend((start..=end).map(Page));
+    pages.extend([
+        if page + adjacent + 1 == total_pages - 1 {
+            Page(total_pages - 1)
+        } else {
+            Nothing
+        },
+        if page + adjacent + 1 < total_pages - 1 {
+            Ellipsis
+        } else {
+            Nothing
+        },
+        if page + adjacent < total_pages {
+            Page(total_pages)
+        } else {
+            Nothing
+        },
+    ]);
+
+    Some(html! {
+        div {
+            @for (i, p) in pages.iter().enumerate() {
+                @match p {
+                    Page(p) => {
+                        @if p == &page {
+                            span { (p) }
+                        } @else {
+                            button hx-get=(format!("/?page={p}")) hx-target="body" hx-swap="show:#latest-matches:top" { (p) }
+                        }
+                        @if i != pages.len() - 1 {
+                            span .hgap-s {}
+                        }
+                    }
+                    Ellipsis => {
+                        "..."
+                        @if i != pages.len() - 1 {
+                            span .hgap-s {}
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            (style(r#"
+                me {
+                    display: flex;
+                    justify-content: center;
+                    margin: 10px 0;
+
+                    button {
+                        background: none;
+                        border: none;
+                        outline: none;
+                        margin: 0;
+                        padding: 0;
+                        font-size: inherit;
+                        color: #0000ee;
+                        cursor: pointer;
+                        text-decoration: underline;
+                    }
+                }
+            "#))
+        }
+    })
 }

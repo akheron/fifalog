@@ -2,9 +2,11 @@ use crate::components;
 use crate::db::Database;
 use crate::result::Result;
 use crate::utils::style;
+use axum::extract::Query;
 use axum::response::IntoResponse;
 use axum::Extension;
 use maud::{html, Markup};
+use serde::Deserialize;
 
 fn index(stats: Markup, latest_matches: Markup) -> Markup {
     html! {
@@ -51,9 +53,20 @@ fn menu() -> Markup {
     }
 }
 
-pub async fn index_route(Extension(dbc): Extension<Database>) -> Result<impl IntoResponse> {
+#[derive(Deserialize)]
+pub struct IndexQuery {
+    pub page: Option<i64>,
+}
+
+pub async fn index_route(
+    Extension(dbc): Extension<Database>,
+    Query(query): Query<IndexQuery>,
+) -> Result<impl IntoResponse> {
     Ok(components::page(index(
         components::stats(&dbc, false).await?,
-        components::LatestMatches::default().render(&dbc).await?,
+        components::LatestMatches::default()
+            .with_pagination(query.page.unwrap_or(1), 20)
+            .render(&dbc)
+            .await?,
     )))
 }

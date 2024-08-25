@@ -123,9 +123,7 @@ async fn match_team_stats(
     Extension(dbc): Extension<Database>,
     Path(id): Path<MatchId>,
 ) -> Result<Json<MatchStats>, GenericResponse> {
-    let stats = sql::match_team_stats(&dbc, id)
-        .await?
-        .ok_or_else(|| generic_error(StatusCode::NOT_FOUND, "No such match"))?;
+    let stats = sql::match_team_stats(&dbc, id).await?;
     Ok(Json(MatchStats {
         home: MatchTeamStats {
             team_id: stats.home_id,

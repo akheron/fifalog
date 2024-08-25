@@ -1,10 +1,11 @@
 use crate::api_types::League;
+use crate::components::MatchActionsMode;
 use crate::db::Database;
 use crate::randomize::{get_random_match_from_all, get_random_match_from_leagues, RandomMatch};
 use crate::result::Result;
 use crate::sql::sql_types::{MatchId, UserId};
-use crate::{components, sql};
-use axum::extract::Path;
+use crate::{components, domain, sql};
+use axum::extract::{Path, Query};
 use axum::{Extension, Form};
 use maud::Markup;
 use serde::Deserialize;
@@ -66,6 +67,30 @@ pub async fn create_random_match_pair(
     sql::create_match(&dbc, league_id, home_id, away_id, body.user2, body.user1).await?;
 
     components::LatestMatches::default().render(&dbc).await
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Mode {
+    Stats,
+    Edit,
+}
+
+#[derive(Deserialize)]
+pub struct MatchActionsQuery {
+    pub mode: Option<Mode>,
+}
+
+pub async fn match_actions_route(
+    Extension(dbc): Extension<Database>,
+    Path(id): Path<MatchId>,
+    Query(query): Query<MatchActionsQuery>,
+) -> Result<Markup> {
+    let mode = match query.mode {
+        Some(Mode::Stats) => MatchActionsMode::Stats(domain::match_stats(&dbc, id).await?),
+        _ => MatchActionsMode::Blank,
+    };
+    Ok(components::match_actions(id, mode))
 }
 
 pub async fn delete_match_route(

@@ -4,6 +4,7 @@ mod auth;
 mod components;
 mod config;
 mod db;
+mod domain;
 mod env;
 mod randomize;
 mod result;

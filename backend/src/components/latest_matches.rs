@@ -1,5 +1,7 @@
 use crate::api_routes::{matches, MatchesResult};
 use crate::api_types::{FinishedType, Match, User};
+use crate::components;
+use crate::components::MatchActionsMode;
 use crate::db::Database;
 use crate::result::Result;
 use crate::sql::users;
@@ -109,9 +111,9 @@ fn create_match_pair(users: &[User], error: Option<&'static str>) -> Option<Mark
                 "#))
             }
             span .hgap-s {}
-            button hx-post="/match/randomize" hx-vals="{\"respectLeagues\": false}" { "Randomize" }
+            button hx-post="/match/randomize" hx-vals=r#"{"respectLeagues": false}"# hx-disabled-elt="this" { "Randomize" }
             span .hgap-s {}
-            button hx-post="/match/randomize" hx-vals="{\"respectLeagues\": true}" { "In leagues" }
+            button hx-post="/match/randomize" hx-vals=r#"{"respectLeagues": true}"# hx-disabled-elt="this" { "In leagues" }
         }
         @if let Some(error) = error {
             div .error {
@@ -173,13 +175,7 @@ fn match_list(matches: MatchesResult) -> Markup {
                             }
                             @if match_.result.is_none() {
                                 div .vgap-s {}
-                                div .buttons hx-disabled-elt="button" {
-                                    button { "stats ▽" }
-                                    span .hgap-s {}
-                                    button { "edit" }
-                                    span .hgap-s {}
-                                    button hx-delete=(format!("/match/{}", match_.id)) hx-target="#latest-matches" hx-confirm="Really?" { "x" }
-                                }
+                                (components::match_actions(match_.id, MatchActionsMode::Blank))
                             }
                             @if match_.index.is_some() && match_.index.unwrap() == matches.last10 {
                                 div .last10 {}
@@ -191,16 +187,6 @@ fn match_list(matches: MatchesResult) -> Markup {
             (style(r#"
                 me {
                   position: relative;
-
-                  .loadingOverlay {
-                    position: absolute;
-                    z-index: 100;
-                    top: 0;
-                    right: 0;
-                    bottom: 0;
-                    left: 0;
-                    background-color: rgba(0, 0, 0, 0.1);
-                  }
 
                   .pagination {
                     display: flex;
@@ -422,7 +408,13 @@ fn pagination(page: i64, page_size: i64, total: i64) -> Option<Markup> {
                         @if p == &page {
                             span { (p) }
                         } @else {
-                            button hx-get=(format!("/?page={p}")) hx-target="body" hx-swap="show:#latest-matches:top" { (p) }
+                            button
+                                hx-get=(format!("/?page={p}"))
+                                hx-target="body"
+                                hx-swap="show:#latest-matches:top"
+                                hx-disabled-elt="this" {
+                                    (p)
+                            }
                         }
                         @if i != pages.len() - 1 {
                             span .hgap-s {}

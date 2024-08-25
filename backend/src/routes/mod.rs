@@ -10,5 +10,6 @@ pub fn routes() -> Router {
         .route("/", get(index::index_route))
         .route("/match/randomize", post(match_::create_random_match_pair))
         .route("/match/:id", delete(match_::delete_match_route))
+        .route("/match/:id/actions", get(match_::match_actions_route))
         .route("/stats", get(stats::stats_route))
 }

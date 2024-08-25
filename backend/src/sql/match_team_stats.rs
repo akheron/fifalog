@@ -22,10 +22,7 @@ pub struct Row {
     pub pair_losses_away: Option<i64>,
 }
 
-pub async fn match_team_stats(
-    dbc: &Database,
-    match_id: MatchId,
-) -> Result<Option<Row>, sqlx::Error> {
+pub async fn match_team_stats(dbc: &Database, match_id: MatchId) -> Result<Row, sqlx::Error> {
     sqlx::query_as::<_, Row>(
         // language=SQL
         r#"
@@ -123,6 +120,6 @@ WHERE match.id = $1
     "#,
     )
     .bind(match_id)
-    .fetch_optional(dbc)
+    .fetch_one(dbc)
     .await
 }

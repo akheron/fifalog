@@ -46,11 +46,13 @@ pub async fn stats(dbc: &Database, expanded: bool) -> Result<Markup> {
                 }
                 div .vgap-s {}
                 @if more > 0 {
-                    form hx-get="/stats" hx-target="#stats" hx-disabled-elt="button" {
-                        input type="hidden" name="expanded" value=(if expanded { "false" } else { "true" });
-                        button {
+                    button
+                        hx-get="/stats"
+                        hx-target="#stats"
+                        hx-disabled-elt="this"
+                        hx-vals=(if expanded { r#"{ "expanded": false }"# } else { r#"{ "expanded": true }"# })
+                        hx-swap=[if expanded { Some("show:top") } else { None }] {
                             "show " (more) " " (if expanded { "less" } else { "more" })
-                        }
                     }
                 }
 

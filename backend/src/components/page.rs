@@ -1,5 +1,5 @@
-use crate::utils::style;
-use maud::{html, Markup, DOCTYPE};
+use crate::style::STYLE_SCRIPT;
+use maud::{html, Markup, PreEscaped, DOCTYPE};
 
 pub fn page(content: Markup) -> Markup {
     html! {
@@ -9,9 +9,8 @@ pub fn page(content: Markup) -> Markup {
                 title { "FIFA log" }
                 meta charset="utf-8";
                 meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1";
-                script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous" {}
-                script src="https://cdn.jsdelivr.net/gh/gnat/css-scope-inline/script.js" {}
-                (style(r#"
+                script defer src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous" {}
+                style { (PreEscaped(r#"
                     * {
                       box-sizing: border-box;
                     }
@@ -68,10 +67,11 @@ pub fn page(content: Markup) -> Markup {
                       cursor: pointer;
                       text-decoration: underline;
                     }
-                "#))
+                "#)) }
             }
             body {
                 (content)
+                (STYLE_SCRIPT)
             }
         }
     }

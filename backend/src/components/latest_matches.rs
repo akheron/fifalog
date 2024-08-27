@@ -5,7 +5,7 @@ use crate::components::MatchActionsMode;
 use crate::db::Database;
 use crate::result::Result;
 use crate::sql::users;
-use crate::utils::style;
+use crate::style::Style;
 use itertools::Itertools;
 use maud::{html, Markup, PreEscaped};
 use sqlx::types::chrono::NaiveDate;
@@ -116,10 +116,11 @@ fn create_match_pair(users: &[User], error: Option<&'static str>) -> Option<Mark
             button hx-post="/match/randomize" hx-vals=r#"{"respectLeagues": true}"# hx-disabled-elt="this" { "In leagues" }
         }
         @if let Some(error) = error {
-            div .error {
+            @let style = Style::new("color: red;");
+            div class=(style.class()) {
                 (error)
-                (style(r#"me { color: red; }"#))
             }
+            (style.as_comment())
         }
     })
 }
@@ -140,8 +141,92 @@ fn match_list(matches: MatchesResult) -> Markup {
             matches: matches.collect(),
         })
         .collect::<Vec<_>>();
+
+    let style = Style::new(
+        r#"
+            position: relative;
+
+            .pagination {
+                display: flex;
+                justify-content: center;
+                margin: 10px 0;
+            }
+
+            .match-day:not(:first-child) {
+                border-top: 1px solid #ccc;
+            }
+
+            .date {
+                padding: 15px 0 20px 0;
+                text-align: center;
+                font-size: 13px;
+                text-decoration: underline;
+            }
+
+            .last10 {
+                padding-bottom: 10px;
+            }
+
+            .last10::before {
+                content: "";
+                display: block;
+                margin: 0 auto;
+                width: 0;
+                height: 0;
+                border-left: 10px solid transparent;
+                border-right: 10px solid transparent;
+                border-bottom: 10px solid #ffa500;
+            }
+
+            .match {
+                padding-bottom: 25px;
+            }
+
+            .index {
+                text-align: center;
+                font-size: 13px;
+                color: #999;
+                padding-bottom: 4px;
+            }
+
+            .row {
+                display: flex;
+            }
+
+            .row > :nth-child(1) {
+                width: 40%;
+                text-align: right;
+            }
+
+            .row > :nth-child(2) {
+                text-align: center;
+                width: 20%;
+            }
+
+            .row > :nth-child(3) {
+                width: 40%;
+            }
+
+            .score {
+                font-size: 18px;
+            }
+
+            .overtime {
+                font-size: 13px;
+            }
+
+            .player {
+                font-size: 13px;
+                color: #999;
+            }
+
+            .player strong {
+                color: #008000;
+            }
+        "#,
+    );
     html! {
-        div {
+        div class=(style.class()) {
             @for match_day in match_days {
                 div .match-day {
                     div .date {
@@ -177,116 +262,15 @@ fn match_list(matches: MatchesResult) -> Markup {
                                 div .vgap-s {}
                                 (components::match_actions(match_.id, MatchActionsMode::Blank))
                             }
-                            @if match_.index.is_some() && match_.index.unwrap() == matches.last10 {
-                                div .last10 {}
-                            }
+                        }
+                        @if match_.index == Some(matches.last10) {
+                            div .last10 {}
                         }
                     }
                 }
             }
-            (style(r#"
-                me {
-                  position: relative;
-
-                  .pagination {
-                    display: flex;
-                    justify-content: center;
-                    margin: 10px 0;
-                  }
-
-                  .match-day:not(:first-child) {
-                    border-top: 1px solid #ccc;
-                  }
-
-                  .date {
-                    padding: 15px 0 20px 0;
-                    text-align: center;
-                    font-size: 13px;
-                    text-decoration: underline;
-                  }
-
-                  .last10 {
-                    padding-bottom: 10px;
-                  }
-
-                  .last10::before {
-                    content: "";
-                    display: block;
-                    margin: 0 auto;
-                    width: 0;
-                    height: 0;
-                    border-left: 10px solid transparent;
-                    border-right: 10px solid transparent;
-                    border-bottom: 10px solid #ffa500;
-                  }
-
-                  .match {
-                    padding-bottom: 25px;
-                  }
-
-                  .index {
-                    text-align: center;
-                    font-size: 13px;
-                    color: #999;
-                    padding-bottom: 4px;
-                  }
-
-                  .row {
-                    display: flex;
-                  }
-
-                  .row > :nth-child(1) {
-                    width: 40%;
-                    text-align: right;
-                  }
-
-                  .row > :nth-child(2) {
-                    text-align: center;
-                    width: 20%;
-                  }
-
-                  .row > :nth-child(3) {
-                    width: 40%;
-                  }
-
-                  .score {
-                    font-size: 18px;
-                  }
-
-                  .overtime {
-                    font-size: 13px;
-                  }
-
-                  .player {
-                    font-size: 13px;
-                    color: #999;
-                  }
-
-                  .player strong {
-                    color: #008000;
-                  }
-
-                  .buttons {
-                    text-align: center;
-                  }
-
-                  .buttons button {
-                    font-size: 12px;
-                    line-height: 12px;
-                  }
-
-                  .stats {
-                    font-size: 13px;
-                  }
-
-                  .stats span.dimmed {
-                    display: inline-block;
-                    margin: 0 6px;
-                    color: #999;
-                  }
-                }
-            "#))
         }
+        (style.as_comment())
     }
 }
 
@@ -400,8 +384,15 @@ fn pagination(page: i64, page_size: i64, total: i64) -> Option<Markup> {
         },
     ]);
 
+    let style = Style::new(
+        r#"
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        "#,
+    );
     Some(html! {
-        div {
+        div class=(style.class()) {
             @for (i, p) in pages.iter().enumerate() {
                 @match p {
                     Page(p) => {
@@ -409,6 +400,7 @@ fn pagination(page: i64, page_size: i64, total: i64) -> Option<Markup> {
                             span { (p) }
                         } @else {
                             button
+                                .text
                                 hx-get=(format!("/?page={p}"))
                                 hx-target="body"
                                 hx-swap="show:#latest-matches:top"
@@ -429,25 +421,7 @@ fn pagination(page: i64, page_size: i64, total: i64) -> Option<Markup> {
                     _ => {}
                 }
             }
-            (style(r#"
-                me {
-                    display: flex;
-                    justify-content: center;
-                    margin: 10px 0;
-
-                    button {
-                        background: none;
-                        border: none;
-                        outline: none;
-                        margin: 0;
-                        padding: 0;
-                        font-size: inherit;
-                        color: #0000ee;
-                        cursor: pointer;
-                        text-decoration: underline;
-                    }
-                }
-            "#))
         }
+        (style.as_comment())
     })
 }

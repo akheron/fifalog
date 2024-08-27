@@ -1,7 +1,7 @@
 use crate::components;
 use crate::db::Database;
 use crate::result::Result;
-use crate::utils::style;
+use crate::style::Style;
 use axum::extract::Query;
 use axum::response::IntoResponse;
 use axum::Extension;
@@ -9,47 +9,44 @@ use maud::{html, Markup};
 use serde::Deserialize;
 
 fn index(stats: Markup, latest_matches: Markup) -> Markup {
+    let style = Style::new(r#"max-width: 375px; margin: 0 auto;"#);
     html! {
-        div {
+        div class=(style.class()) {
             (menu())
             (stats)
             (latest_matches)
-            (style(r#"
-                me {
-                    max-width: 375px;
-                    margin: 0 auto;
-                }
-            "#))
         }
+        (style.as_comment())
     }
 }
 
 fn menu() -> Markup {
+    let style = Style::new(
+        r#"
+            font-size: 13px;
+            display: flex;
+
+            a {
+                flex: 0 0 auto;
+                color: #0000ee;
+                &:visited {
+                    color: #0000ee;
+                }
+            }
+            .logout {
+                flex: 0 0 auto;
+            }
+        "#,
+    );
     html! {
-        div {
+        div class=(style.class()) {
             a href="/" { "Home" }
             div .hgap-m {}
             a href="/teams" { "Teams" }
             div .filler {}
-            button .text .logout { "Logout" }
-            (style(r#"
-                me {
-                    font-size: 13px;
-                    display: flex;
-      
-                    a {
-                        flex: 0 0 auto;
-                        color: #0000ee;
-                        &:visited {
-                            color: #0000ee;
-                        }
-                    }
-                    .logout {
-                        flex: 0 0 auto;
-                    }
-                }
-            "#)) 
+            button .text .logout { "Sign out" }
         }
+        (style.as_comment())
     }
 }
 

@@ -88,6 +88,7 @@ pub async fn match_actions_route(
 ) -> Result<Markup> {
     let mode = match query.mode {
         Some(Mode::Stats) => MatchActionsMode::Stats(domain::match_stats(&dbc, id).await?),
+        Some(Mode::Edit) => MatchActionsMode::Edit,
         _ => MatchActionsMode::Blank,
     };
     Ok(components::match_actions(id, mode))

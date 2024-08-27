@@ -10,6 +10,7 @@ mod randomize;
 mod result;
 mod routes;
 mod sql;
+mod style;
 mod utils;
 
 use std::net::SocketAddr;

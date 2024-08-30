@@ -30,7 +30,6 @@ use crate::config::Config;
 use crate::db::Database;
 use crate::env::Env;
 use crate::randomize::{get_random_match_from_all, get_random_match_from_leagues, RandomMatch};
-use crate::utils::GenericResponse;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -51,7 +50,7 @@ async fn main() -> Result<()> {
     let app = Router::new()
         .nest("/auth", auth_routes())
         .nest("/api", api_routes().route_layer(login_required()))
-        .nest("/", routes::routes())
+        .nest("/", routes::routes().route_layer(login_required()))
         .nest_service("/assets", ServeDir::new(&env.asset_path))
         .layer(
             ServiceBuilder::new()

@@ -65,7 +65,7 @@ fn menu() -> Markup {
             div .hgap-m {}
             a href="/teams" { "Teams" }
             div .filler {}
-            button .text .logout { "Sign out" }
+            a .logout href="/auth/logout" { "Sign out" }
         }
         (style.as_comment())
     }

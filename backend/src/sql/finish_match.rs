@@ -6,8 +6,8 @@ pub async fn finish_match(
     dbc: &Database,
     match_id: MatchId,
     finished_type: FinishedType,
-    home_score: Option<i32>,
-    away_score: Option<i32>,
+    home_score: i32,
+    away_score: i32,
     home_penalty_goals: Option<i32>,
     away_penalty_goals: Option<i32>,
 ) -> Result<bool, sqlx::Error> {

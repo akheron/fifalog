@@ -57,10 +57,10 @@ pub fn match_actions(match_id: MatchId, mode: MatchActionsMode) -> Markup {
     html! {
         div id=(id) class=(style.class()) hx-target="this" hx-swap="outerHTML" {
             @if let MatchActionsMode::Edit = mode {
-                div .edit {
-                    input name="homeScore" inputMode="numeric" {}
+                form .edit hx-post=(format!("/match/{}/finish", match_id)) hx-target="body" hx-swap="outerHTML" {
+                    input name="homeScore" type="number" required {}
                     " - "
-                    input name="awayScore" inputMode="numeric" {}
+                    input name="awayScore" type="number" required {}
                     span .hgap-s {}
                     select name="finishedType" {
                         option value="fullTime" { "full time" }
@@ -70,9 +70,9 @@ pub fn match_actions(match_id: MatchId, mode: MatchActionsMode) -> Markup {
                     " "
                     span .penalties {
                         " ("
-                        input name="homePenaltyGoals" inputMode="numeric" {}
+                        input name="homePenaltyGoals" type="number" required {}
                         " - "
-                        input name="awayPenaltyGoals" inputMode="numeric" {}
+                        input name="awayPenaltyGoals" type="number" required {}
                         " P)"
                     }
                     script {
@@ -80,7 +80,11 @@ pub fn match_actions(match_id: MatchId, mode: MatchActionsMode) -> Markup {
                             const select = document.querySelector('#{id} .edit select[name="finishedType"]');
                             const onFinishedTypeChange = (e) => {{
                                 const penalties = document.querySelector('#{id} .edit .penalties');
-                                penalties.style.display = select.value === 'penalties' ? 'inline' : 'none';
+                                const show = select.value === 'penalties';
+                                penalties.style.display = show ? 'inline' : 'none';
+                                document.querySelectorAll('#{id} .edit .penalties input').forEach((input) => {{
+                                    input.required = show;
+                                }});
                             }}
                             select.addEventListener('change', onFinishedTypeChange);
                             onFinishedTypeChange();
@@ -89,7 +93,7 @@ pub fn match_actions(match_id: MatchId, mode: MatchActionsMode) -> Markup {
                     span .hgap-s {}
                     button { "save" }
                     " "
-                    button hx-get=(format!("/match/{}/actions", match_id)) { "cancel" }
+                    button hx-get=(format!("/match/{}/actions", match_id)) hx-target=(format!("#{id}")) { "cancel" }
                 }
             }
             @else {
@@ -111,6 +115,7 @@ pub fn match_actions(match_id: MatchId, mode: MatchActionsMode) -> Markup {
                     button
                         hx-delete=(format!("/match/{}", match_id))
                         hx-target="#latest-matches"
+                        hx-swap="outerHTML"
                         hx-confirm="Really?" { "x" }
                 }
                 @if let MatchActionsMode::Stats(match_stats) = mode {

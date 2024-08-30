@@ -1,22 +1,39 @@
 use crate::components;
+use crate::components::page;
 use crate::db::Database;
 use crate::result::Result;
 use crate::style::Style;
 use axum::extract::Query;
-use axum::response::IntoResponse;
 use axum::Extension;
 use maud::{html, Markup};
 use serde::Deserialize;
 
-fn index(stats: Markup, latest_matches: Markup) -> Markup {
-    let style = Style::new(r#"max-width: 375px; margin: 0 auto;"#);
-    html! {
-        div class=(style.class()) {
-            (menu())
-            (stats)
-            (latest_matches)
-        }
-        (style.as_comment())
+#[derive(Default)]
+pub struct Index {
+    page: Option<i64>,
+}
+
+impl Index {
+    pub fn with_page(self, page: i64) -> Self {
+        Self { page: Some(page) }
+    }
+
+    pub async fn render(&self, dbc: &Database) -> Result<Markup> {
+        let style = Style::new(r#"max-width: 375px; margin: 0 auto;"#);
+        let stats = components::stats(&dbc, false).await?;
+        let latest_matches = components::LatestMatches::default()
+            .with_pagination(self.page.unwrap_or(1), 20)
+            .render(&dbc)
+            .await?;
+
+        Ok(html! {
+            div class=(style.class()) {
+                (menu())
+                (stats)
+                (latest_matches)
+            }
+            (style.as_comment())
+        })
     }
 }
 
@@ -58,12 +75,10 @@ pub struct IndexQuery {
 pub async fn index_route(
     Extension(dbc): Extension<Database>,
     Query(query): Query<IndexQuery>,
-) -> Result<impl IntoResponse> {
-    Ok(components::page(index(
-        components::stats(&dbc, false).await?,
-        components::LatestMatches::default()
-            .with_pagination(query.page.unwrap_or(1), 20)
-            .render(&dbc)
-            .await?,
-    )))
+) -> Result<Markup> {
+    let index = Index::default()
+        .with_page(query.page.unwrap_or(1))
+        .render(&dbc)
+        .await?;
+    Ok(page(index))
 }

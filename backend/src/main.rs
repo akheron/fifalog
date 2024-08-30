@@ -24,7 +24,7 @@ use tower_cookies::CookieManagerLayer;
 use tower_http::services::ServeDir;
 
 use crate::api_routes::api_routes;
-use crate::api_types::{FinishedType, League, Match, User};
+use crate::api_types::{League, Match, User};
 use crate::auth::{auth_routes, login_required};
 use crate::config::Config;
 use crate::db::Database;

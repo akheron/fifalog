@@ -14,8 +14,8 @@ use crate::sql::finished_match_count;
 use crate::sql::sql_types::{LeagueId, MatchId, TeamId, UserId};
 use crate::utils::{generic_error, GenericResponse};
 use crate::{
-    get_random_match_from_all, get_random_match_from_leagues, sql, Database, FinishedType, League,
-    Match, RandomMatch, User,
+    get_random_match_from_all, get_random_match_from_leagues, sql, Database, League, Match,
+    RandomMatch, User,
 };
 
 async fn leagues(
@@ -158,48 +158,48 @@ async fn match_team_stats(
     }))
 }
 
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct MatchResultBody {
-    home_score: i32,
-    away_score: i32,
-    finished_type: FinishedType,
-}
-
-async fn finish_match(
-    Extension(dbc): Extension<Database>,
-    Path(id): Path<MatchId>,
-    Json(match_result): Json<MatchResultBody>,
-) -> Result<Json<Match>, GenericResponse> {
-    let (finished_type, home_penalty_goals, away_penalty_goals) = match match_result.finished_type {
-        FinishedType::FullTime => (sql::FinishedType::FullTime, None, None),
-        FinishedType::OverTime => (sql::FinishedType::OverTime, None, None),
-        FinishedType::Penalties {
-            home_goals,
-            away_goals,
-        } => (
-            sql::FinishedType::Penalties,
-            Some(home_goals),
-            Some(away_goals),
-        ),
-    };
-    let result = sql::finish_match(
-        &dbc,
-        id,
-        finished_type,
-        Some(match_result.home_score),
-        Some(match_result.away_score),
-        home_penalty_goals,
-        away_penalty_goals,
-    )
-    .await?;
-
-    if result {
-        Ok(Json(sql::match_(&dbc, id).await?.map(Match::from).unwrap()))
-    } else {
-        Err(generic_error(StatusCode::NOT_FOUND, "No such match"))
-    }
-}
+// #[derive(Deserialize)]
+// #[serde(rename_all = "camelCase")]
+// struct MatchResultBody {
+//     home_score: i32,
+//     away_score: i32,
+//     finished_type: FinishedType,
+// }
+//
+// async fn finish_match(
+//     Extension(dbc): Extension<Database>,
+//     Path(id): Path<MatchId>,
+//     Json(match_result): Json<MatchResultBody>,
+// ) -> Result<Json<Match>, GenericResponse> {
+//     let (finished_type, home_penalty_goals, away_penalty_goals) = match match_result.finished_type {
+//         FinishedType::FullTime => (sql::FinishedType::FullTime, None, None),
+//         FinishedType::OverTime => (sql::FinishedType::OverTime, None, None),
+//         FinishedType::Penalties {
+//             home_goals,
+//             away_goals,
+//         } => (
+//             sql::FinishedType::Penalties,
+//             Some(home_goals),
+//             Some(away_goals),
+//         ),
+//     };
+//     let result = sql::finish_match(
+//         &dbc,
+//         id,
+//         finished_type,
+//         Some(match_result.home_score),
+//         Some(match_result.away_score),
+//         home_penalty_goals,
+//         away_penalty_goals,
+//     )
+//     .await?;
+//
+//     if result {
+//         Ok(Json(sql::match_(&dbc, id).await?.map(Match::from).unwrap()))
+//     } else {
+//         Err(generic_error(StatusCode::NOT_FOUND, "No such match"))
+//     }
+// }
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]

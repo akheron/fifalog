@@ -3,12 +3,14 @@ use crate::components::MatchActionsMode;
 use crate::db::Database;
 use crate::randomize::{get_random_match_from_all, get_random_match_from_leagues, RandomMatch};
 use crate::result::Result;
+use crate::routes::index::Index;
 use crate::sql::sql_types::{MatchId, UserId};
 use crate::{components, domain, sql};
 use axum::extract::{Path, Query};
 use axum::{Extension, Form};
 use maud::Markup;
 use serde::Deserialize;
+use serde_with::{serde_as, NoneAsEmptyString};
 use std::collections::HashSet;
 
 #[derive(Deserialize)]
@@ -92,6 +94,55 @@ pub async fn match_actions_route(
         _ => MatchActionsMode::Blank,
     };
     Ok(components::match_actions(id, mode))
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum FinishedType {
+    FullTime,
+    OverTime,
+    Penalties,
+}
+
+#[serde_as]
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MatchResultBody {
+    home_score: i32,
+    away_score: i32,
+    finished_type: FinishedType,
+    #[serde_as(as = "NoneAsEmptyString")]
+    home_penalty_goals: Option<i32>,
+    #[serde_as(as = "NoneAsEmptyString")]
+    away_penalty_goals: Option<i32>,
+}
+
+pub async fn finish_match_route(
+    Extension(dbc): Extension<Database>,
+    Path(id): Path<MatchId>,
+    Form(match_result): Form<MatchResultBody>,
+) -> Result<Markup> {
+    let (finished_type, home_penalty_goals, away_penalty_goals) = match match_result.finished_type {
+        FinishedType::FullTime => (sql::FinishedType::FullTime, None, None),
+        FinishedType::OverTime => (sql::FinishedType::OverTime, None, None),
+        FinishedType::Penalties => (
+            sql::FinishedType::Penalties,
+            match_result.home_penalty_goals,
+            match_result.away_penalty_goals,
+        ),
+    };
+    sql::finish_match(
+        &dbc,
+        id,
+        finished_type,
+        match_result.home_score,
+        match_result.away_score,
+        home_penalty_goals,
+        away_penalty_goals,
+    )
+    .await?;
+
+    Index::default().render(&dbc).await
 }
 
 pub async fn delete_match_route(

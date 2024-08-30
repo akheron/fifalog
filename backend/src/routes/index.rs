@@ -29,8 +29,12 @@ impl Index {
         Ok(html! {
             div class=(style.class()) {
                 (menu())
-                (stats)
-                (latest_matches)
+                div #stats {
+                    (stats)
+                }
+                div #latest-matches {
+                    (latest_matches)
+                }
             }
             (style.as_comment())
         })

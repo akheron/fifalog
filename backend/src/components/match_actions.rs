@@ -55,9 +55,9 @@ pub fn match_actions(match_id: MatchId, mode: MatchActionsMode) -> Markup {
     );
 
     html! {
-        div id=(id) class=(style.class()) hx-target="this" hx-swap="outerHTML" {
+        div id=(id) class=(style.class()) hx-target="this" {
             @if let MatchActionsMode::Edit = mode {
-                form .edit hx-post=(format!("/match/{}/finish", match_id)) hx-target="body" hx-swap="outerHTML" {
+                form .edit hx-post=(format!("/match/{}/finish", match_id)) hx-target="body" {
                     input name="homeScore" type="number" required {}
                     " - "
                     input name="awayScore" type="number" required {}
@@ -115,7 +115,6 @@ pub fn match_actions(match_id: MatchId, mode: MatchActionsMode) -> Markup {
                     button
                         hx-delete=(format!("/match/{}", match_id))
                         hx-target="#latest-matches"
-                        hx-swap="outerHTML"
                         hx-confirm="Really?" { "x" }
                 }
                 @if let MatchActionsMode::Stats(match_stats) = mode {

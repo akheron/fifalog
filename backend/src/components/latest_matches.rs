@@ -52,12 +52,10 @@ impl LatestMatches {
         );
 
         Ok(html! {
-            div #latest-matches {
-                h2 { "Latest matches" }
-                @if let Some(c) = create_match_pair { (c) }
-                (match_list)
-                @if let Some(pagination) = pagination { (pagination) }
-            }
+            h2 { "Latest matches" }
+            @if let Some(c) = create_match_pair { (c) }
+            (match_list)
+            @if let Some(pagination) = pagination { (pagination) }
         })
     }
 }
@@ -69,7 +67,7 @@ fn create_match_pair(users: &[User], error: Option<&'static str>) -> Option<Mark
     let user1 = users[0].id;
     let user2 = users[1].id;
     Some(html! {
-        form hx-target="#latest-matches" hx-swap="outerHTML" {
+        form hx-target="#latest-matches" {
             select name="user1" {
                 @for user in users {
                     option value=(user.id) selected[user.id == user1] {

@@ -54,50 +54,48 @@ pub async fn stats(dbc: &Database, expanded: bool) -> Result<Markup> {
     );
 
     Ok(html! {
-        div #stats class=(style.class()) {
-            h2 { "Stats" }
-            div {
-                table {
-                    thead {
-                        tr {
-                            th {}
-                            th {}
-                            th { "W" }
-                            th {}
-                            th { "G" }
-                        }
+        h2 { "Stats" }
+        div class=(style.class()) {
+            table {
+                thead {
+                    tr {
+                        th {}
+                        th {}
+                        th { "W" }
+                        th {}
+                        th { "G" }
                     }
-                    @for row in stats {
-                        tbody {
-                            @for (i, user) in row.user_stats.iter().enumerate() {
-                                tr {
-                                    td { @if i == 0 { (row.month) } }
-                                    td { (user.user.name) }
-                                    td { (user.wins) }
-                                    td { "(" (user.over_time_wins) " OT)" }
-                                    td { (user.goals_for) }
-                                }
-                            }
+                }
+                @for row in stats {
+                    tbody {
+                        @for (i, user) in row.user_stats.iter().enumerate() {
                             tr {
-                                td {}
-                                td { "Total" }
-                                td { (row.matches) }
-                                td { "(" (row.ties) " tied)" }
-                                td { (row.goals) }
+                                td { @if i == 0 { (row.month) } }
+                                td { (user.user.name) }
+                                td { (user.wins) }
+                                td { "(" (user.over_time_wins) " OT)" }
+                                td { (user.goals_for) }
                             }
+                        }
+                        tr {
+                            td {}
+                            td { "Total" }
+                            td { (row.matches) }
+                            td { "(" (row.ties) " tied)" }
+                            td { (row.goals) }
                         }
                     }
                 }
-                div .vgap-s {}
-                @if more > 0 {
-                    button
-                        hx-get="/stats"
-                        hx-target="#stats"
-                        hx-disabled-elt="this"
-                        hx-vals=(if expanded { r#"{ "expanded": false }"# } else { r#"{ "expanded": true }"# })
-                        hx-swap=[if expanded { Some("show:top") } else { None }] {
-                            "show " (more) " " (if expanded { "less" } else { "more" })
-                    }
+            }
+            div .vgap-s {}
+            @if more > 0 {
+                button
+                    hx-get="/stats"
+                    hx-target="#stats"
+                    hx-disabled-elt="this"
+                    hx-vals=(if expanded { r#"{ "expanded": false }"# } else { r#"{ "expanded": true }"# })
+                    hx-swap=[if expanded { Some("show:top") } else { None }] {
+                        "show " (more) " " (if expanded { "less" } else { "more" })
                 }
             }
         }

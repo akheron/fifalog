@@ -1,4 +1,4 @@
-use crate::components::page;
+use crate::components::{document, page};
 use crate::style::Style;
 use crate::Config;
 use async_trait::async_trait;
@@ -54,7 +54,7 @@ impl LoginForm {
             }
         "#,
         );
-        page(html! {
+        document(html! {
             h2 { "Login" }
             form class=(style.class()) method="POST" {
                 div class="row" {

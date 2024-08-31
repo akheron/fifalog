@@ -5,5 +5,5 @@ mod stats;
 
 pub use latest_matches::LatestMatches;
 pub use match_actions::{match_actions, MatchActionsMode};
-pub use page::page;
+pub use page::{document, page};
 pub use stats::stats;

@@ -1,7 +1,7 @@
-use crate::style::STYLE_SCRIPT;
+use crate::style::{Style, STYLE_SCRIPT};
 use maud::{html, Markup, PreEscaped, DOCTYPE};
 
-pub fn page(content: Markup) -> Markup {
+pub fn document(content: Markup) -> Markup {
     html! {
         (DOCTYPE)
         html lang="en" {
@@ -67,6 +67,10 @@ pub fn page(content: Markup) -> Markup {
                       cursor: pointer;
                       text-decoration: underline;
                     }
+
+                    body > .page {
+                        max-width: 375px; margin: 0 auto;
+                    }
                 "#)) }
             }
             body {
@@ -74,5 +78,44 @@ pub fn page(content: Markup) -> Markup {
                 (STYLE_SCRIPT)
             }
         }
+    }
+}
+
+pub fn page(content: Markup) -> Markup {
+    document(html! {
+        div .page {
+            (menu())
+            (content)
+        }
+    })
+}
+
+fn menu() -> Markup {
+    let style = Style::new(
+        r#"
+            font-size: 13px;
+            display: flex;
+
+            a {
+                flex: 0 0 auto;
+                color: #0000ee;
+                &:visited {
+                    color: #0000ee;
+                }
+            }
+            .logout {
+                flex: 0 0 auto;
+            }
+        "#,
+    );
+    html! {
+        div class=(style.class()) {
+            a href="/" { "Home" }
+            div .hgap-m {}
+            a href="/teams" { "Teams" }
+            div .filler {}
+            a .logout href="/auth/logout" { "Sign out" }
+        }
+        (style.as_comment())
     }
 }

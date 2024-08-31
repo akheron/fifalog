@@ -19,7 +19,6 @@ impl Index {
     }
 
     pub async fn render(&self, dbc: &Database) -> Result<Markup> {
-        let style = Style::new(r#"max-width: 375px; margin: 0 auto;"#);
         let stats = components::stats(&dbc, false).await?;
         let latest_matches = components::LatestMatches::default()
             .with_pagination(self.page.unwrap_or(1), 20)
@@ -27,47 +26,13 @@ impl Index {
             .await?;
 
         Ok(html! {
-            div class=(style.class()) {
-                (menu())
-                div #stats {
-                    (stats)
-                }
-                div #latest-matches {
-                    (latest_matches)
-                }
+            div #stats {
+                (stats)
             }
-            (style.as_comment())
+            div #latest-matches {
+                (latest_matches)
+            }
         })
-    }
-}
-
-fn menu() -> Markup {
-    let style = Style::new(
-        r#"
-            font-size: 13px;
-            display: flex;
-
-            a {
-                flex: 0 0 auto;
-                color: #0000ee;
-                &:visited {
-                    color: #0000ee;
-                }
-            }
-            .logout {
-                flex: 0 0 auto;
-            }
-        "#,
-    );
-    html! {
-        div class=(style.class()) {
-            a href="/" { "Home" }
-            div .hgap-m {}
-            a href="/teams" { "Teams" }
-            div .filler {}
-            a .logout href="/auth/logout" { "Sign out" }
-        }
-        (style.as_comment())
     }
 }
 

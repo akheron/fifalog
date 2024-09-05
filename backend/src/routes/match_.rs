@@ -1,4 +1,3 @@
-use crate::api_types::League;
 use crate::components::MatchActionsMode;
 use crate::db::Database;
 use crate::randomize::{get_random_match_from_all, get_random_match_from_leagues, RandomMatch};
@@ -40,12 +39,7 @@ pub async fn create_random_match_pair(
             .chain(matches.iter().map(|m| m.away_id))
             .collect::<HashSet<_>>();
 
-        let leagues = sql::leagues(&dbc, false)
-            .await?
-            .into_iter()
-            .map(League::from)
-            .collect::<Vec<_>>();
-
+        let leagues = sql::leagues(&dbc, false).await?;
         if body.respect_leagues {
             get_random_match_from_leagues(&leagues, &last_teams)
         } else {

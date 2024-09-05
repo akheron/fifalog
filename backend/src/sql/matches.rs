@@ -1,17 +1,15 @@
 use super::FinishedType;
 use crate::db::Database;
-use crate::sql::sql_types::{LeagueId, MatchId, TeamId, UserId};
+use crate::sql::sql_types::{MatchId, TeamId, UserId};
 use sqlx::types::chrono::{DateTime, Local};
 
 #[derive(sqlx::FromRow)]
 pub struct Row {
     pub match_id: MatchId,
-    pub league_id: Option<LeagueId>,
-    pub league_name: Option<String>,
     pub home_id: TeamId,
-    pub home_name: String,
+    pub home_team: String,
     pub away_id: TeamId,
-    pub away_name: String,
+    pub away_team: String,
     pub home_user_id: UserId,
     pub home_user_name: String,
     pub away_user_id: UserId,
@@ -31,12 +29,10 @@ pub async fn matches(dbc: &Database, page: i64, count: i64) -> Result<Vec<Row>, 
         r#"
 SELECT
     match.id as match_id,
-    league.id as league_id,
-    league.name as league_name,
     home.id as home_id,
-    home.name as home_name,
+    home.name as home_team,
     away.id as away_id,
-    away.name as away_name,
+    away.name as away_team,
     home_user.id as home_user_id,
     home_user.name as home_user_name,
     away_user.id as away_user_id,

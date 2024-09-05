@@ -2,7 +2,6 @@ use crate::components;
 use crate::components::page;
 use crate::db::Database;
 use crate::result::Result;
-use crate::style::Style;
 use axum::extract::Query;
 use axum::Extension;
 use maud::{html, Markup};

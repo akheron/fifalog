@@ -1,10 +1,8 @@
 use crate::db::Database;
-use crate::sql::sql_types::UserId;
 
 #[derive(sqlx::FromRow)]
 pub struct Row {
     pub month: String,
-    pub user_id: UserId,
     pub user_name: String,
     pub win_count: i32,
     pub overtime_win_count: i32,
@@ -53,7 +51,6 @@ SELECT
         THEN to_char(result.finished_time, 'YYYY-MM')
         ELSE 'Last ' || $1
     END AS month,
-    "user".id AS user_id,
     "user".name AS user_name,
     sum(result.win::integer)::integer as win_count,
     sum(result.overtime_win::integer)::integer as overtime_win_count,

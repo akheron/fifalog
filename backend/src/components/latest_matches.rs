@@ -1,14 +1,12 @@
-use crate::api_routes::{matches, MatchesResult};
-use crate::api_types::{FinishedType, Match, User};
-use crate::components;
 use crate::components::MatchActionsMode;
 use crate::db::Database;
 use crate::result::Result;
-use crate::sql::users;
+use crate::sql::sql_types::{MatchId, UserId};
 use crate::style::Style;
+use crate::{components, sql};
 use itertools::Itertools;
 use maud::{html, Markup, PreEscaped};
-use sqlx::types::chrono::NaiveDate;
+use sqlx::types::chrono::{DateTime, Local, NaiveDate};
 use std::cmp::{max, min};
 
 #[derive(Default)]
@@ -35,7 +33,7 @@ impl LatestMatches {
     }
 
     pub async fn render(self, dbc: &Database) -> Result<Markup> {
-        let users = users(dbc)
+        let users = sql::users(dbc)
             .await?
             .into_iter()
             .map(User::from)
@@ -235,7 +233,7 @@ fn match_list(matches: MatchesResult) -> Markup {
                                 div .index { "Match " (index) }
                             }
                             div .row {
-                                div { (match_.home.name) }
+                                div { (match_.home_team) }
                                 div {
                                     div .score {
                                         @if let Some(result) = &match_.result {
@@ -245,7 +243,7 @@ fn match_list(matches: MatchesResult) -> Markup {
                                         }
                                     }
                                 }
-                                div { (match_.away.name) }
+                                div { (match_.away_team) }
                             }
                             div .row {
                                 div .player { (highlight_winner(&match_, Team::Home)) }
@@ -274,14 +272,6 @@ enum Team {
     Away,
 }
 
-fn home_player(match_: &Match) -> Markup {
-    highlight_winner(match_, Team::Home)
-}
-
-fn away_player(match_: &Match) -> Markup {
-    highlight_winner(match_, Team::Away)
-}
-
 fn highlight_winner(match_: &Match, team: Team) -> Markup {
     let user = match team {
         Team::Home => &match_.home_user.name,
@@ -307,7 +297,7 @@ fn highlight_winner(match_: &Match, team: Team) -> Markup {
     }
 }
 
-pub fn overtime_result(match_: &Match) -> Markup {
+fn overtime_result(match_: &Match) -> Markup {
     if let Some(result) = &match_.result {
         match &result.finished_type {
             FinishedType::FullTime => html! {},
@@ -418,4 +408,99 @@ fn pagination(page: i64, page_size: i64, total: i64) -> Option<Markup> {
         }
         (style.as_comment())
     })
+}
+
+struct MatchesResult {
+    data: Vec<Match>,
+    last10: i64,
+    total: i64,
+}
+
+async fn matches(
+    dbc: &Database,
+    page: Option<i64>,
+    page_size: Option<i64>,
+) -> Result<MatchesResult> {
+    let finished_count = sql::finished_match_count(dbc).await?;
+    let last10 = finished_count - 9;
+
+    let rows = sql::matches(dbc, page.unwrap_or(1), page_size.unwrap_or(20)).await?;
+    let data = rows.into_iter().map(Match::from).collect();
+
+    let total = sql::match_count(dbc).await?;
+
+    Ok(MatchesResult {
+        data,
+        last10,
+        total,
+    })
+}
+
+enum FinishedType {
+    FullTime,
+    OverTime,
+    Penalties { home_goals: i32, away_goals: i32 },
+}
+
+struct Match {
+    pub id: MatchId,
+    pub index: Option<i64>,
+    pub home_team: String,
+    pub away_team: String,
+    pub home_user: User,
+    pub away_user: User,
+    pub result: Option<MatchResult>, // None means not finished
+}
+
+impl From<sql::matches::Row> for Match {
+    fn from(row: sql::matches::Row) -> Self {
+        Self {
+            id: row.match_id,
+            index: row.finished_type.as_ref().map(|_| row.index),
+            home_team: row.home_team,
+            away_team: row.away_team,
+            home_user: User {
+                id: row.home_user_id,
+                name: row.home_user_name,
+            },
+            away_user: User {
+                id: row.away_user_id,
+                name: row.away_user_name,
+            },
+            result: row.finished_type.map(|finished_type| MatchResult {
+                home_score: row.home_score.unwrap(),
+                away_score: row.away_score.unwrap(),
+                finished_type: match finished_type {
+                    sql::FinishedType::FullTime => FinishedType::FullTime,
+                    sql::FinishedType::OverTime => FinishedType::OverTime,
+                    sql::FinishedType::Penalties => FinishedType::Penalties {
+                        home_goals: row.home_penalty_goals.unwrap(),
+                        away_goals: row.away_penalty_goals.unwrap(),
+                    },
+                },
+                finished_time: row.finished_time.unwrap(),
+            }),
+        }
+    }
+}
+
+struct MatchResult {
+    pub finished_time: DateTime<Local>,
+    pub home_score: i32,
+    pub away_score: i32,
+    pub finished_type: FinishedType,
+}
+
+pub struct User {
+    pub id: UserId,
+    pub name: String,
+}
+
+impl From<sql::users::Row> for User {
+    fn from(row: sql::users::Row) -> Self {
+        Self {
+            id: row.id,
+            name: row.name,
+        }
+    }
 }

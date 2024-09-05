@@ -1,4 +1,3 @@
-use crate::api_types::League;
 use crate::components::page;
 use crate::db::{is_integrity_error, Database};
 use crate::result::Result;
@@ -13,11 +12,7 @@ use maud::{html, Markup};
 use serde::Deserialize;
 
 async fn teams_page(dbc: &Database) -> Result<Markup> {
-    let leagues = sql::leagues(&dbc, true)
-        .await?
-        .into_iter()
-        .map(League::from)
-        .collect::<Vec<_>>();
+    let leagues = sql::leagues(&dbc, true).await?;
 
     let style = Style::new(
         r#"

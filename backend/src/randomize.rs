@@ -1,8 +1,7 @@
+use crate::sql::leagues::League;
+use crate::sql::sql_types::{LeagueId, TeamId};
 use rand::Rng;
 use std::collections::HashSet;
-
-use crate::sql::sql_types::{LeagueId, TeamId};
-use crate::League;
 
 pub struct RandomMatch {
     pub league_id: Option<LeagueId>,

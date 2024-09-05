@@ -13,14 +13,41 @@ pub struct Team {
     pub match_count: i32,
 }
 
-pub struct Row {
+pub struct League {
     pub id: LeagueId,
     pub name: String,
     pub exclude_random_all: bool,
     pub teams: Vec<Team>,
 }
 
-pub async fn leagues(dbc: &Database, include_disabled: bool) -> Result<Vec<Row>, sqlx::Error> {
+struct Row {
+    pub id: LeagueId,
+    pub name: String,
+    pub exclude_random_all: bool,
+    pub teams: Vec<Team>,
+}
+
+impl From<Row> for League {
+    fn from(row: Row) -> Self {
+        Self {
+            id: row.id,
+            name: row.name,
+            exclude_random_all: row.exclude_random_all,
+            teams: row
+                .teams
+                .into_iter()
+                .map(|team| Team {
+                    id: team.id,
+                    name: team.name,
+                    disabled: team.disabled,
+                    match_count: team.match_count,
+                })
+                .collect(),
+        }
+    }
+}
+
+async fn league_rows(dbc: &Database, include_disabled: bool) -> Result<Vec<Row>, sqlx::Error> {
     sqlx::query(
         // language=SQL
         &format!(
@@ -65,4 +92,12 @@ ORDER BY league.name
     })
     .fetch_all(dbc)
     .await
+}
+
+pub async fn leagues(dbc: &Database, include_disabled: bool) -> Result<Vec<League>, sqlx::Error> {
+    Ok(league_rows(&dbc, include_disabled)
+        .await?
+        .into_iter()
+        .map(League::from)
+        .collect::<Vec<_>>())
 }

@@ -1,11 +1,10 @@
-use crate::components;
-use crate::components::page;
 use crate::db::Database;
+use crate::matches::latest_matches::LatestMatches;
 use crate::result::Result;
-use axum::extract::Query;
-use axum::Extension;
+use crate::stats::Stats;
 use maud::{html, Markup};
-use serde::Deserialize;
+
+pub mod routes;
 
 #[derive(Default)]
 pub struct Index {
@@ -18,8 +17,8 @@ impl Index {
     }
 
     pub async fn render(&self, dbc: &Database) -> Result<Markup> {
-        let stats = components::stats(&dbc, false).await?;
-        let latest_matches = components::LatestMatches::default()
+        let stats = Stats::default().render(&dbc).await?;
+        let latest_matches = LatestMatches::default()
             .with_pagination(self.page.unwrap_or(1), 20)
             .render(&dbc)
             .await?;
@@ -33,20 +32,4 @@ impl Index {
             }
         })
     }
-}
-
-#[derive(Deserialize)]
-pub struct IndexQuery {
-    pub page: Option<i64>,
-}
-
-pub async fn index_route(
-    Extension(dbc): Extension<Database>,
-    Query(query): Query<IndexQuery>,
-) -> Result<Markup> {
-    let index = Index::default()
-        .with_page(query.page.unwrap_or(1))
-        .render(&dbc)
-        .await?;
-    Ok(page(index))
 }

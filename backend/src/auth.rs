@@ -1,4 +1,4 @@
-use crate::components::document;
+use crate::page::document;
 use crate::style::Style;
 use crate::Config;
 use async_trait::async_trait;

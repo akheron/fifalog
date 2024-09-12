@@ -1,5 +1,5 @@
-use crate::components::page;
 use crate::db::{is_integrity_error, Database};
+use crate::page::page;
 use crate::result::Result;
 use crate::sql;
 use crate::sql::sql_types::{LeagueId, TeamId};

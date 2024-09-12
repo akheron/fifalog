@@ -1,9 +1,9 @@
-use crate::components::MatchActionsMode;
 use crate::db::Database;
+use crate::matches::match_actions::{MatchActions, MatchActionsMode};
 use crate::result::Result;
+use crate::sql;
 use crate::sql::sql_types::{MatchId, UserId};
 use crate::style::Style;
-use crate::{components, sql};
 use itertools::Itertools;
 use maud::{html, Markup, PreEscaped};
 use sqlx::types::chrono::{DateTime, Local, NaiveDate};
@@ -252,7 +252,7 @@ fn match_list(matches: MatchesResult) -> Markup {
                             }
                             @if match_.result.is_none() {
                                 div .vgap-s {}
-                                (components::match_actions(match_.id, MatchActionsMode::Blank))
+                                (MatchActions::new(match_.id, MatchActionsMode::Blank).render())
                             }
                         }
                         @if match_.index == Some(matches.last10) {

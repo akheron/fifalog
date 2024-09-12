@@ -1,18 +1,23 @@
 mod auth;
-mod components;
 mod config;
 mod db;
-mod domain;
 mod env;
-mod randomize;
+mod index;
+mod matches;
+mod page;
 mod result;
-mod routes;
 mod sql;
+mod stats;
 mod style;
+mod teams;
 mod utils;
 
 use std::net::SocketAddr;
 
+use crate::auth::{auth_routes, login_required};
+use crate::config::Config;
+use crate::env::Env;
+use axum::routing::{delete, get, post, put};
 use axum::{Extension, Router};
 use eyre::{Context, Result};
 use sqlx::postgres::PgPoolOptions;
@@ -20,10 +25,6 @@ use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
 use tower_http::services::ServeDir;
-
-use crate::auth::{auth_routes, login_required};
-use crate::config::Config;
-use crate::env::Env;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -42,8 +43,19 @@ async fn main() -> Result<()> {
         .wrap_err("Running migrations failed")?;
 
     let app = Router::new()
+        .route("/", get(index::routes::index_route))
+        .route("/teams", get(teams::teams_route))
+        .route("/league/:id", put(teams::update_league_route))
+        .route("/team", post(teams::create_team_route))
+        .route("/team/:id", put(teams::update_team_route))
+        .route("/team/:id/enable", post(teams::enable_team_route))
+        .route("/team/:id/disable", post(teams::disable_team_route))
+        .route("/team/:id/move", post(teams::move_team_route))
+        .route("/team/:id", delete(teams::delete_team_route))
+        .nest("/match", matches::routes())
+        .nest("/stats", stats::routes())
+        .route_layer(login_required())
         .nest("/auth", auth_routes())
-        .nest("/", routes::routes().route_layer(login_required()))
         .nest_service("/assets", ServeDir::new(&env.asset_path))
         .layer(
             ServiceBuilder::new()

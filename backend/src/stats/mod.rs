@@ -1,17 +1,34 @@
 use crate::db::Database;
-use crate::result::Result;
-use crate::sql;
 use crate::style::Style;
+use crate::{result, sql};
+use axum::routing::get;
+use axum::Router;
 use maud::{html, Markup};
 use std::cmp::{max, min};
 
-pub async fn stats(dbc: &Database, expanded: bool) -> Result<Markup> {
-    let limit = if expanded { usize::MAX } else { 5 };
-    let (stats, total_count) = compute_stats(dbc, limit).await?;
-    let more = max(0, total_count as i32 - 5);
+pub mod routes;
 
-    let style = Style::new(
-        r#"
+pub fn routes() -> Router {
+    Router::new().route("/", get(routes::stats))
+}
+
+#[derive(Default)]
+pub struct Stats {
+    expanded: bool,
+}
+
+impl Stats {
+    pub fn with_expanded(self, expanded: bool) -> Self {
+        Self { expanded }
+    }
+
+    pub async fn render(&self, dbc: &Database) -> result::Result<Markup> {
+        let limit = if self.expanded { usize::MAX } else { 5 };
+        let (stats_rows, total_count) = compute_stats(dbc, limit).await?;
+        let more = max(0, total_count as i32 - 5);
+
+        let style = Style::new(
+            r#"
             table {
                 font-size: 13px;
                 width: 100%;
@@ -51,70 +68,71 @@ pub async fn stats(dbc: &Database, expanded: bool) -> Result<Markup> {
                 }
             }
         "#,
-    );
+        );
 
-    Ok(html! {
-        h2 { "Stats" }
-        div class=(style.class()) {
-            table {
-                thead {
-                    tr {
-                        th {}
-                        th {}
-                        th { "W" }
-                        th {}
-                        th { "G" }
+        Ok(html! {
+            h2 { "Stats" }
+            div class=(style.class()) {
+                table {
+                    thead {
+                        tr {
+                            th {}
+                            th {}
+                            th { "W" }
+                            th {}
+                            th { "G" }
+                        }
                     }
-                }
-                @for row in stats {
-                    tbody {
-                        @for (i, user) in row.user_stats.iter().enumerate() {
+                    @for row in stats_rows {
+                        tbody {
+                            @for (i, user) in row.user_stats.iter().enumerate() {
+                                tr {
+                                    td { @if i == 0 { (row.month) } }
+                                    td { (user.name) }
+                                    td { (user.wins) }
+                                    td { "(" (user.over_time_wins) " OT)" }
+                                    td { (user.goals_for) }
+                                }
+                            }
                             tr {
-                                td { @if i == 0 { (row.month) } }
-                                td { (user.name) }
-                                td { (user.wins) }
-                                td { "(" (user.over_time_wins) " OT)" }
-                                td { (user.goals_for) }
+                                td {}
+                                td { "Total" }
+                                td { (row.matches) }
+                                td { "(" (row.ties) " tied)" }
+                                td { (row.goals) }
                             }
                         }
-                        tr {
-                            td {}
-                            td { "Total" }
-                            td { (row.matches) }
-                            td { "(" (row.ties) " tied)" }
-                            td { (row.goals) }
-                        }
+                    }
+                }
+                div .vgap-s {}
+                @if more > 0 {
+                    button
+                        hx-get="/stats"
+                        hx-target="#stats"
+                        hx-disabled-elt="this"
+                        hx-vals=(if self.expanded { r#"{ "expanded": false }"# } else { r#"{ "expanded": true }"# })
+                        hx-swap=[if self.expanded { Some("show:top") } else { None }] {
+                            "show " (more) " " (if self.expanded { "less" } else { "more" })
                     }
                 }
             }
-            div .vgap-s {}
-            @if more > 0 {
-                button
-                    hx-get="/stats"
-                    hx-target="#stats"
-                    hx-disabled-elt="this"
-                    hx-vals=(if expanded { r#"{ "expanded": false }"# } else { r#"{ "expanded": true }"# })
-                    hx-swap=[if expanded { Some("show:top") } else { None }] {
-                        "show " (more) " " (if expanded { "less" } else { "more" })
-                }
-            }
-        }
-        (style.as_comment())
-    })
+            (style.as_comment())
+        })
+    }
 }
 
-async fn compute_stats(dbc: &Database, limit: usize) -> Result<(Vec<Stats>, usize)> {
+async fn compute_stats(dbc: &Database, limit: usize) -> result::Result<(Vec<StatsRow>, usize)> {
     let last_user_stats = sql::user_stats(dbc, 10).await?;
     let last_total_stats = sql::total_stats(dbc, 10).await?;
     let user_stats = group_user_stats_by_month(sql::user_stats(dbc, 0).await?);
     let total_stats = sql::total_stats(dbc, 0).await?;
 
     let total_count = total_stats.len() + if last_total_stats.is_empty() { 0 } else { 1 };
-    let mut result: Vec<Stats> = Vec::with_capacity(min(total_count, limit));
+    let mut result: Vec<StatsRow> = Vec::with_capacity(min(total_count, limit));
 
     if !last_total_stats.is_empty() {
         let last = last_total_stats.last().unwrap();
-        result.push(Stats {
+        result.push(StatsRow {
             month: last.month.clone(),
             ties: last.tie_count,
             matches: last.match_count,
@@ -128,7 +146,7 @@ async fn compute_stats(dbc: &Database, limit: usize) -> Result<(Vec<Stats>, usiz
         .zip(user_stats.into_iter())
         .take(limit)
         .for_each(|(total, user_stats)| {
-            result.push(Stats {
+            result.push(StatsRow {
                 month: total.month,
                 ties: total.tie_count,
                 matches: total.match_count,
@@ -156,7 +174,7 @@ fn group_user_stats_by_month(rows: Vec<sql::user_stats::Row>) -> Vec<Vec<UserSta
     user_stats_by_month
 }
 
-struct Stats {
+struct StatsRow {
     month: String,
     user_stats: Vec<UserStats>,
     ties: i32,

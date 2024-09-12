@@ -1,10 +1,14 @@
-use crate::components::MatchActionsMode;
 use crate::db::Database;
-use crate::randomize::{get_random_match_from_all, get_random_match_from_leagues, RandomMatch};
+use crate::index::Index;
+use crate::matches::latest_matches::LatestMatches;
+use crate::matches::match_actions::{MatchActions, MatchActionsMode};
+use crate::matches::match_stats::match_stats;
+use crate::matches::randomize::{
+    get_random_match_from_all, get_random_match_from_leagues, RandomMatch,
+};
 use crate::result::Result;
-use crate::routes::index::Index;
+use crate::sql;
 use crate::sql::sql_types::{MatchId, UserId};
-use crate::{components, domain, sql};
 use axum::extract::{Path, Query};
 use axum::{Extension, Form};
 use maud::Markup;
@@ -25,7 +29,7 @@ pub async fn create_random_match_pair(
     Form(body): Form<RandomMatchPairBody>,
 ) -> Result<Markup> {
     if body.user1 == body.user2 {
-        return components::LatestMatches::default()
+        return LatestMatches::default()
             .with_create_match_pair_error("User 1 and user 2 cannot be the same")
             .render(&dbc)
             .await;
@@ -53,7 +57,7 @@ pub async fn create_random_match_pair(
         away_id,
     }) = random_match_opt
     else {
-        return components::LatestMatches::default()
+        return LatestMatches::default()
             .with_create_match_pair_error("No teams available to create a match")
             .render(&dbc)
             .await;
@@ -62,7 +66,7 @@ pub async fn create_random_match_pair(
     sql::create_match(&dbc, league_id, home_id, away_id, body.user1, body.user2).await?;
     sql::create_match(&dbc, league_id, home_id, away_id, body.user2, body.user1).await?;
 
-    components::LatestMatches::default().render(&dbc).await
+    LatestMatches::default().render(&dbc).await
 }
 
 #[derive(Deserialize)]
@@ -77,17 +81,17 @@ pub struct MatchActionsQuery {
     pub mode: Option<Mode>,
 }
 
-pub async fn match_actions_route(
+pub async fn match_actions(
     Extension(dbc): Extension<Database>,
     Path(id): Path<MatchId>,
     Query(query): Query<MatchActionsQuery>,
 ) -> Result<Markup> {
     let mode = match query.mode {
-        Some(Mode::Stats) => MatchActionsMode::Stats(domain::match_stats(&dbc, id).await?),
+        Some(Mode::Stats) => MatchActionsMode::Stats(match_stats(&dbc, id).await?),
         Some(Mode::Edit) => MatchActionsMode::Edit,
         _ => MatchActionsMode::Blank,
     };
-    Ok(components::match_actions(id, mode))
+    Ok(MatchActions::new(id, mode).render())
 }
 
 #[derive(Deserialize)]
@@ -111,7 +115,7 @@ pub struct MatchResultBody {
     away_penalty_goals: Option<i32>,
 }
 
-pub async fn finish_match_route(
+pub async fn finish_match(
     Extension(dbc): Extension<Database>,
     Path(id): Path<MatchId>,
     Form(match_result): Form<MatchResultBody>,
@@ -139,16 +143,15 @@ pub async fn finish_match_route(
     Index::default().render(&dbc).await
 }
 
-pub async fn delete_match_route(
+pub async fn delete_match(
     Extension(dbc): Extension<Database>,
     Path(id): Path<MatchId>,
 ) -> Result<Markup> {
     let ok = sql::delete_match(&dbc, id).await?;
     if ok {
-        components::LatestMatches::default()
+        LatestMatches::default()
     } else {
-        components::LatestMatches::default()
-            .with_create_match_pair_error("This match cannot be deleted")
+        LatestMatches::default().with_create_match_pair_error("This match cannot be deleted")
     }
     .render(&dbc)
     .await

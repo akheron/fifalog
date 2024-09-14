@@ -1,7 +1,8 @@
-use crate::style::{Style, STYLE_SCRIPT};
+use crate::style::{Style, StyledMarkup, Unstyled, STYLE_SCRIPT};
 use maud::{html, Markup, PreEscaped, DOCTYPE};
 
-pub fn document(content: Markup) -> Markup {
+pub fn document(content: StyledMarkup) -> Markup {
+    let (content_markup, content_style) = content.into_parts();
     html! {
         (DOCTYPE)
         html lang="en" {
@@ -14,6 +15,10 @@ pub fn document(content: Markup) -> Markup {
                 style { (PreEscaped(r#"
                     * {
                       box-sizing: border-box;
+                    }
+
+                    [x-cloak] {
+                      display: none !important;
                     }
 
                     body {
@@ -74,25 +79,28 @@ pub fn document(content: Markup) -> Markup {
                     }
                 "#)) }
             }
+            (content_style)
             body {
-                (content)
+                (content_markup)
                 (STYLE_SCRIPT)
             }
         }
     }
 }
 
-pub fn page(content: Markup) -> Markup {
-    document(html! {
-        div .page {
-            (menu())
-            (content)
+pub fn page(content: StyledMarkup) -> Markup {
+    document(Unstyled.into_markup(|s| {
+        html! {
+            div .page {
+                (menu().eject_style(s))
+                (content.eject_style(s))
+            }
         }
-    })
+    }))
 }
 
-fn menu() -> Markup {
-    let style = Style::new(
+fn menu() -> StyledMarkup {
+    Style::new(
         r#"
             font-size: 13px;
             display: flex;
@@ -108,15 +116,16 @@ fn menu() -> Markup {
                 flex: 0 0 auto;
             }
         "#,
-    );
-    html! {
-        div class=(style.class()) {
-            a href="/" { "Home" }
-            div .hgap-m {}
-            a href="/teams" { "Teams" }
-            div .filler {}
-            a .logout href="/auth/logout" { "Sign out" }
+    )
+    .into_markup(|class, _s| {
+        html! {
+            div class=(class) {
+                a href="/" { "Home" }
+                div .hgap-m {}
+                a href="/teams" { "Teams" }
+                div .filler {}
+                a .logout href="/auth/logout" { "Sign out" }
+            }
         }
-        (style.as_comment())
-    }
+    })
 }

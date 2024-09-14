@@ -1,6 +1,6 @@
 use lightningcss::printer::PrinterOptions;
 use lightningcss::stylesheet::{ParserOptions, StyleSheet};
-use maud::{Markup, PreEscaped};
+use maud::{html, Markup, PreEscaped};
 use std::hash::{DefaultHasher, Hash, Hasher};
 
 pub struct Style {
@@ -32,7 +32,46 @@ impl Style {
     pub fn as_comment(&self) -> Markup {
         PreEscaped(format!("<!-- css {:x} {} -->", self.hash, self.css))
     }
+
+    pub fn as_style_tag(&self) -> Markup {
+        html! {
+            style data-hash=(format!("{:x}", self.hash)) {
+                (PreEscaped(&self.css))
+            }
+        }
+    }
+
+    pub fn into_markup<Construct>(self, construct: Construct) -> StyledMarkup
+    where
+        Construct: FnOnce(&str, &mut StyleContainer) -> Markup,
+    {
+        let mut container = StyleContainer(vec![]);
+        let markup = construct(&self.class(), &mut container);
+        container.0.push(self);
+        StyledMarkup {
+            markup,
+            styles: container.0,
+        }
+    }
 }
+
+pub struct Unstyled;
+
+impl Unstyled {
+    pub fn into_markup<Construct>(self, construct: Construct) -> StyledMarkup
+    where
+        Construct: FnOnce(&mut StyleContainer) -> Markup,
+    {
+        let mut container = StyleContainer(vec![]);
+        let markup = construct(&mut container);
+        StyledMarkup {
+            markup,
+            styles: container.0,
+        }
+    }
+}
+
+pub struct StyleContainer(Vec<Style>);
 
 fn hash(s: &str) -> u64 {
     let mut hasher = DefaultHasher::new();
@@ -57,7 +96,36 @@ pub const STYLE_SCRIPT: PreEscaped<&'static str> = PreEscaped(
             processCssFromComments(event.detail.xhr.responseText);
         }
     });
-    processCssFromComments(document.body.innerHTML);
 </script>
 "#,
 );
+
+pub struct StyledMarkup {
+    markup: Markup,
+    styles: Vec<Style>,
+}
+
+impl StyledMarkup {
+    pub fn style_as_comment(self) -> Markup {
+        html! {
+            (self.markup)
+            @for style in self.styles {
+                (style.as_comment())
+            }
+        }
+    }
+
+    pub fn eject_style(self, style_container: &mut StyleContainer) -> Markup {
+        style_container.0.extend(self.styles);
+        self.markup
+    }
+
+    pub fn into_parts(self) -> (Markup, Markup) {
+        let style_tags = html! {
+            @for style in self.styles {
+                (style.as_style_tag())
+            }
+        };
+        (self.markup, style_tags)
+    }
+}

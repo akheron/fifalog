@@ -3,7 +3,7 @@ use crate::matches::match_actions::{MatchActions, MatchActionsMode};
 use crate::result::Result;
 use crate::sql;
 use crate::sql::sql_types::{MatchId, UserId};
-use crate::style::Style;
+use crate::style::{Style, StyledMarkup, Unstyled};
 use itertools::Itertools;
 use maud::{html, Markup, PreEscaped};
 use sqlx::types::chrono::{DateTime, Local, NaiveDate};
@@ -32,7 +32,7 @@ impl LatestMatches {
         }
     }
 
-    pub async fn render(self, dbc: &Database) -> Result<Markup> {
+    pub async fn render(self, dbc: &Database) -> Result<StyledMarkup> {
         let users = sql::users(dbc)
             .await?
             .into_iter()
@@ -49,40 +49,43 @@ impl LatestMatches {
             total_matches,
         );
 
-        Ok(html! {
-            h2 { "Latest matches" }
-            @if let Some(c) = create_match_pair { (c) }
-            (match_list)
-            @if let Some(pagination) = pagination { (pagination) }
-        })
+        Ok(Unstyled.into_markup(|s| {
+            html! {
+                h2 { "Latest matches" }
+                @if let Some(c) = create_match_pair { (c.eject_style(s)) }
+                (match_list.eject_style(s))
+                @if let Some(pagination) = pagination { (pagination.eject_style(s)) }
+            }
+        }))
     }
 }
 
-fn create_match_pair(users: &[User], error: Option<&'static str>) -> Option<Markup> {
+fn create_match_pair(users: &[User], error: Option<&'static str>) -> Option<StyledMarkup> {
     if users.len() < 2 {
         return None;
     }
     let user1 = users[0].id;
     let user2 = users[1].id;
-    Some(html! {
-        form hx-target="#latest-matches" {
-            select name="user1" {
-                @for user in users {
-                    option value=(user.id) selected[user.id == user1] {
-                        (user.name)
+    Some(Style::new("color: red;").into_markup(|error_class, _s| {
+        html! {
+            form hx-target="#latest-matches" {
+                select name="user1" {
+                    @for user in users {
+                        option value=(user.id) selected[user.id == user1] {
+                            (user.name)
+                        }
                     }
                 }
-            }
-            " vs. "
-            select name="user2" {
-                @for user in users {
-                    option value=(user.id) selected[user.id == user2] {
-                        (user.name)
+                " vs. "
+                select name="user2" {
+                    @for user in users {
+                        option value=(user.id) selected[user.id == user2] {
+                            (user.name)
+                        }
                     }
                 }
-            }
-            script {
-                (PreEscaped(r#"
+                script {
+                    (PreEscaped(r#"
                     (() => {
                         const user1Select = document.querySelector('select[name="user1"]');
                         const user2Select = document.querySelector('select[name="user2"]');
@@ -101,20 +104,19 @@ fn create_match_pair(users: &[User], error: Option<&'static str>) -> Option<Mark
                         disableSame();
                     })();
                 "#))
+                }
+                span .hgap-s {}
+                button hx-post="/match/randomize" hx-vals=r#"{"respectLeagues": false}"# hx-disabled-elt="this" { "Randomize" }
+                span .hgap-s {}
+                button hx-post="/match/randomize" hx-vals=r#"{"respectLeagues": true}"# hx-disabled-elt="this" { "In leagues" }
             }
-            span .hgap-s {}
-            button hx-post="/match/randomize" hx-vals=r#"{"respectLeagues": false}"# hx-disabled-elt="this" { "Randomize" }
-            span .hgap-s {}
-            button hx-post="/match/randomize" hx-vals=r#"{"respectLeagues": true}"# hx-disabled-elt="this" { "In leagues" }
-        }
-        @if let Some(error) = error {
-            @let style = Style::new("color: red;");
-            div class=(style.class()) {
-                (error)
+            @if let Some(error) = error {
+                div class=(error_class) {
+                    (error)
+                }
             }
-            (style.as_comment())
         }
-    })
+    }))
 }
 
 struct MatchDay {
@@ -122,7 +124,7 @@ struct MatchDay {
     matches: Vec<Match>,
 }
 
-fn match_list(matches: MatchesResult) -> Markup {
+fn match_list(matches: MatchesResult) -> StyledMarkup {
     let match_days = matches
         .data
         .into_iter()
@@ -134,7 +136,7 @@ fn match_list(matches: MatchesResult) -> Markup {
         })
         .collect::<Vec<_>>();
 
-    let style = Style::new(
+    Style::new(
         r#"
             position: relative;
 
@@ -216,54 +218,54 @@ fn match_list(matches: MatchesResult) -> Markup {
                 color: #008000;
             }
         "#,
-    );
-    html! {
-        div class=(style.class()) {
-            @for match_day in match_days {
-                div .match-day {
-                    div .date {
-                        @match match_day.date {
-                            Some(date) => { (date.format("%a %Y-%m-%d")) }
-                            None => { "Not played yet" }
-                        }
-                    }
-                    @for match_ in match_day.matches {
-                        div .match {
-                            @if let Some(index) = match_.index {
-                                div .index { "Match " (index) }
+    ).into_markup(|class, s| {
+        html! {
+            div class=(class) {
+                @for match_day in match_days {
+                    div .match-day {
+                        div .date {
+                            @match match_day.date {
+                                Some(date) => { (date.format("%a %Y-%m-%d")) }
+                                None => { "Not played yet" }
                             }
-                            div .row {
-                                div { (match_.home_team) }
-                                div {
-                                    div .score {
-                                        @if let Some(result) = &match_.result {
-                                            strong { (result.home_score) } " - " strong { (result.away_score) }
-                                        } @else {
-                                            "-"
+                        }
+                        @for match_ in match_day.matches {
+                            div .match {
+                                @if let Some(index) = match_.index {
+                                    div .index { "Match " (index) }
+                                }
+                                div .row {
+                                    div { (match_.home_team) }
+                                    div {
+                                        div .score {
+                                            @if let Some(result) = &match_.result {
+                                                strong { (result.home_score) } " - " strong { (result.away_score) }
+                                            } @else {
+                                                "-"
+                                            }
                                         }
                                     }
+                                    div { (match_.away_team) }
                                 }
-                                div { (match_.away_team) }
+                                div .row {
+                                    div .player { (highlight_winner(&match_, Team::Home)) }
+                                    div .overtime { (overtime_result(&match_)) }
+                                    div .player { (highlight_winner(&match_, Team::Away)) }
+                                }
+                                @if match_.result.is_none() {
+                                    div .vgap-s {}
+                                    (MatchActions::new(match_.id, MatchActionsMode::Blank).render().eject_style(s))
+                                }
                             }
-                            div .row {
-                                div .player { (highlight_winner(&match_, Team::Home)) }
-                                div .overtime { (overtime_result(&match_)) }
-                                div .player { (highlight_winner(&match_, Team::Away)) }
+                            @if match_.index == Some(matches.last10) {
+                                div .last10 {}
                             }
-                            @if match_.result.is_none() {
-                                div .vgap-s {}
-                                (MatchActions::new(match_.id, MatchActionsMode::Blank).render())
-                            }
-                        }
-                        @if match_.index == Some(matches.last10) {
-                            div .last10 {}
                         }
                     }
                 }
             }
         }
-        (style.as_comment())
-    }
+    })
 }
 
 #[derive(PartialEq, Eq)]
@@ -320,7 +322,7 @@ enum ListElem {
     Nothing,
 }
 
-fn pagination(page: i64, page_size: i64, total: i64) -> Option<Markup> {
+fn pagination(page: i64, page_size: i64, total: i64) -> Option<StyledMarkup> {
     let adjacent = 2;
 
     let total_pages = (total + page_size - 1) / page_size;
@@ -368,46 +370,49 @@ fn pagination(page: i64, page_size: i64, total: i64) -> Option<Markup> {
         },
     ]);
 
-    let style = Style::new(
-        r#"
+    Some(
+        Style::new(
+            r#"
             display: flex;
             justify-content: center;
             margin: 10px 0;
         "#,
-    );
-    Some(html! {
-        div class=(style.class()) {
-            @for (i, p) in pages.iter().enumerate() {
-                @match p {
-                    Page(p) => {
-                        @if p == &page {
-                            span { (p) }
-                        } @else {
-                            button
-                                .text
-                                hx-get=(format!("/?page={p}"))
-                                hx-target="body"
-                                hx-swap="show:#latest-matches:top"
-                                hx-disabled-elt="this" {
-                                    (p)
+        )
+        .into_markup(|class, _s| {
+            html! {
+                div class=(class) {
+                    @for (i, p) in pages.iter().enumerate() {
+                        @match p {
+                            Page(p) => {
+                                @if p == &page {
+                                    span { (p) }
+                                } @else {
+                                    button
+                                        .text
+                                        hx-get=(format!("/?page={p}"))
+                                        hx-target="body"
+                                        hx-swap="show:#latest-matches:top"
+                                        hx-disabled-elt="this" {
+                                            (p)
+                                    }
+                                }
+                                @if i != pages.len() - 1 {
+                                    span .hgap-s {}
+                                }
                             }
-                        }
-                        @if i != pages.len() - 1 {
-                            span .hgap-s {}
-                        }
-                    }
-                    Ellipsis => {
-                        "..."
-                        @if i != pages.len() - 1 {
-                            span .hgap-s {}
+                            Ellipsis => {
+                                "..."
+                                @if i != pages.len() - 1 {
+                                    span .hgap-s {}
+                                }
+                            }
+                            _ => {}
                         }
                     }
-                    _ => {}
                 }
             }
-        }
-        (style.as_comment())
-    })
+        }),
+    )
 }
 
 struct MatchesResult {

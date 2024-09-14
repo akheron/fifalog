@@ -32,7 +32,8 @@ pub async fn create_random_match_pair(
         return LatestMatches::default()
             .with_create_match_pair_error("User 1 and user 2 cannot be the same")
             .render(&dbc)
-            .await;
+            .await
+            .map(|markup| markup.style_as_comment());
     }
 
     let random_match_opt = {
@@ -60,13 +61,17 @@ pub async fn create_random_match_pair(
         return LatestMatches::default()
             .with_create_match_pair_error("No teams available to create a match")
             .render(&dbc)
-            .await;
+            .await
+            .map(|markup| markup.style_as_comment());
     };
 
     sql::create_match(&dbc, league_id, home_id, away_id, body.user1, body.user2).await?;
     sql::create_match(&dbc, league_id, home_id, away_id, body.user2, body.user1).await?;
 
-    LatestMatches::default().render(&dbc).await
+    LatestMatches::default()
+        .render(&dbc)
+        .await
+        .map(|markup| markup.style_as_comment())
 }
 
 #[derive(Deserialize)]
@@ -91,7 +96,7 @@ pub async fn match_actions(
         Some(Mode::Edit) => MatchActionsMode::Edit,
         _ => MatchActionsMode::Blank,
     };
-    Ok(MatchActions::new(id, mode).render())
+    Ok(MatchActions::new(id, mode).render().style_as_comment())
 }
 
 #[derive(Deserialize)]
@@ -140,7 +145,10 @@ pub async fn finish_match(
     )
     .await?;
 
-    Index::default().render(&dbc).await
+    Index::default()
+        .render(&dbc)
+        .await
+        .map(|markup| markup.style_as_comment())
 }
 
 pub async fn delete_match(
@@ -155,4 +163,5 @@ pub async fn delete_match(
     }
     .render(&dbc)
     .await
+    .map(|markup| markup.style_as_comment())
 }

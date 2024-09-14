@@ -19,4 +19,5 @@ pub async fn stats(
         .with_expanded(query.expanded.unwrap_or(false))
         .render(&dbc)
         .await
+        .map(|markup| markup.style_as_comment())
 }

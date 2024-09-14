@@ -34,8 +34,9 @@ impl LoginForm {
     }
 
     pub fn render(self) -> Markup {
-        let style = Style::new(
-            r#"
+        document(
+            Style::new(
+                r#"
             .row {
               margin-top: 0.5em;
             }
@@ -53,34 +54,36 @@ impl LoginForm {
               color: #f00;
             }
         "#,
-        );
-        document(html! {
-            h2 { "Login" }
-            form class=(style.class()) method="POST" {
-                div class="row" {
-                    label {
-                        span class="name" { "Username:" }
-                        span class="hgap-s" {}
-                        input type="text" name="username" value=[self.username] required;
+            )
+            .into_markup(|class, _s| {
+                html! {
+                    h2 { "Login" }
+                    form class=(class) method="POST" {
+                        div class="row" {
+                            label {
+                                span class="name" { "Username:" }
+                                span class="hgap-s" {}
+                                input type="text" name="username" value=[self.username] required;
+                            }
+                        }
+                        div class="row" {
+                            label {
+                                span class="name" { "Password:" }
+                                span class="hgap-s" {}
+                                input type="password" name="password" required;
+                            }
+                        }
+                        div class="actions" {
+                            button { "Login" }
+                            span class="hgap-s" {}
+                            @if self.failed {
+                                span class="error" { "Login failed" }
+                            }
+                        }
                     }
                 }
-                div class="row" {
-                    label {
-                        span class="name" { "Password:" }
-                        span class="hgap-s" {}
-                        input type="password" name="password" required;
-                    }
-                }
-                div class="actions" {
-                    button { "Login" }
-                    span class="hgap-s" {}
-                    @if self.failed {
-                        span class="error" { "Login failed" }
-                    }
-                }
-            }
-            (style.as_comment())
-        })
+            }),
+        )
     }
 }
 

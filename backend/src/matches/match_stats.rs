@@ -2,11 +2,11 @@ use crate::db::Database;
 use crate::result::Result;
 use crate::sql;
 use crate::sql::sql_types::MatchId;
-use crate::style::Style;
-use maud::{html, Markup};
+use crate::style::{Style, StyledMarkup};
+use maud::html;
 
-pub fn match_team_stats(stats: &MatchStats) -> Markup {
-    let style = Style::new(
+pub fn match_team_stats(stats: &MatchStats) -> StyledMarkup {
+    Style::new(
         r#"
             padding-top: 8px;
             font-size: 13px;
@@ -52,80 +52,81 @@ pub fn match_team_stats(stats: &MatchStats) -> Markup {
                 color: #008000;
             }
         "#,
-    );
-    html! {
-        div class=(style.class()) {
-            div .row {
-                div {
-                    @if let Some(pair) = &stats.home.pair {
-                        span .dimmed {
-                            (pair.wins) "/" (pair.matches)
-                        }
-                        " "
-                        (percentage(pair.wins, pair.matches))
-                    } @else { "-" }
+    )
+    .into_markup(|class, _s| {
+        html! {
+            div class=(class) {
+                div .row {
+                    div {
+                        @if let Some(pair) = &stats.home.pair {
+                            span .dimmed {
+                                (pair.wins) "/" (pair.matches)
+                            }
+                            " "
+                            (percentage(pair.wins, pair.matches))
+                        } @else { "-" }
+                    }
+                    div { strong { "pair" } }
+                    div {
+                        @if let Some(pair) = &stats.away.pair {
+                            (percentage(pair.wins, pair.matches))
+                            " "
+                            span .dimmed {
+                                (pair.wins) "/" (pair.matches)
+                            }
+                        } @else { "-" }
+                    }
                 }
-                div { strong { "pair" } }
-                div {
-                    @if let Some(pair) = &stats.away.pair {
-                        (percentage(pair.wins, pair.matches))
-                        " "
-                        span .dimmed {
-                            (pair.wins) "/" (pair.matches)
-                        }
-                    } @else { "-" }
+                div .row {
+                    div {
+                        @if let Some(total) = &stats.home.total {
+                            span .dimmed {
+                                (total.wins) "/" (total.matches)
+                            }
+                            " "
+                            (percentage(total.wins, total.matches))
+                        } @else { "-" }
+                    }
+                    div { strong { "total" } }
+                    div {
+                        @if let Some(total) = &stats.away.total {
+                            (percentage(total.wins, total.matches))
+                            " "
+                            span .dimmed {
+                                (total.wins) "/" (total.matches)
+                            }
+                        } @else { "-" }
+                    }
                 }
-            }
-            div .row {
-                div {
-                    @if let Some(total) = &stats.home.total {
-                        span .dimmed {
-                            (total.wins) "/" (total.matches)
-                        }
-                        " "
-                        (percentage(total.wins, total.matches))
-                    } @else { "-" }
+                div .row {
+                    div {
+                        @if let Some(total) = &stats.home.total {
+                            (round(total.goals_for as f64 / total.matches as f64))
+                        } @else { "-" }
+                    }
+                    div { strong { "gf" } }
+                    div {
+                        @if let Some(total) = &stats.away.total {
+                            (round(total.goals_for as f64 / total.matches as f64))
+                        } @else { "-" }
+                    }
                 }
-                div { strong { "total" } }
-                div {
-                    @if let Some(total) = &stats.away.total {
-                        (percentage(total.wins, total.matches))
-                        " "
-                        span .dimmed {
-                            (total.wins) "/" (total.matches)
-                        }
-                    } @else { "-" }
-                }
-            }
-            div .row {
-                div {
-                    @if let Some(total) = &stats.home.total {
-                        (round(total.goals_for as f64 / total.matches as f64))
-                    } @else { "-" }
-                }
-                div { strong { "gf" } }
-                div {
-                    @if let Some(total) = &stats.away.total {
-                        (round(total.goals_for as f64 / total.matches as f64))
-                    } @else { "-" }
-                }
-            }
-            div .row {
-                div {
-                    @if let Some(total) = &stats.home.total {
-                        (round(total.goals_against as f64 / total.matches as f64))
-                    } @else { "-" }
-                }
-                div { strong { "ga" } }
-                div {
-                    @if let Some(total) = &stats.away.total {
-                        (round(total.goals_against as f64 / total.matches as f64))
-                    } @else { "-" }
+                div .row {
+                    div {
+                        @if let Some(total) = &stats.home.total {
+                            (round(total.goals_against as f64 / total.matches as f64))
+                        } @else { "-" }
+                    }
+                    div { strong { "ga" } }
+                    div {
+                        @if let Some(total) = &stats.away.total {
+                            (round(total.goals_against as f64 / total.matches as f64))
+                        } @else { "-" }
+                    }
                 }
             }
         }
-        (style.as_comment())
-    }
+    })
 }
 
 fn percentage(numerator: i64, denominator: i64) -> String {

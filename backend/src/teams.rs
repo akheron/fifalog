@@ -12,9 +12,9 @@ use maud::{html, Markup};
 use serde::Deserialize;
 
 async fn teams_page(dbc: &Database) -> Result<Markup> {
-    let leagues = sql::leagues(&dbc, true).await?;
+    let leagues = sql::leagues(dbc, true).await?;
 
-    let style = Style::new(
+    Ok(page(Style::new(
         r#"
             table th {
                 text-align: left;
@@ -36,127 +36,126 @@ async fn teams_page(dbc: &Database) -> Result<Markup> {
                 color: #f00;
             }
         "#,
-    );
-
-    Ok(page(html! {
-        div class=(style.class()) hx-target="body" {
-            h2 { "Teams" }
-            @for league in &leagues {
-                form x-data="{ editing: false }" hx-put=(format!("/league/{}", league.id)) {
-                    h3 x-show="!editing" {
-                        (league.name)
-                        span .hgap-s {}
-                        button type="button" x-on:click="editing = true" { "E" }
-                    }
-                    h3 x-show="editing" {
-                        input type="text" name="name" value=(league.name);
-                        span .hgap-s {}
-                        button type="submit" { "save" }
-                        span .hgap-s {}
-                        button type="button" x-on:click="editing = false" { "cancel" }
-                    }
-                    p {
-                        "Excluded from randomize: "
-                        span x-show="!editing" {
-                            (if league.exclude_random_all { "Yes" } else { "No" })
+    ).into_markup(|class, _s| {
+        html! {
+            div class=(class) hx-target="body" {
+                h2 { "Teams" }
+                @for league in &leagues {
+                    form x-data="{ editing: false }" hx-put=(format!("/league/{}", league.id)) {
+                        h3 x-show="!editing" {
+                            (league.name)
+                            span .hgap-s {}
+                            button type="button" x-on:click="editing = true" { "E" }
+                        }
+                        h3 x-cloak x-show="editing" {
+                            input type="text" name="name" value=(league.name);
+                            span .hgap-s {}
+                            button type="submit" { "save" }
+                            span .hgap-s {}
+                            button type="button" x-on:click="editing = false" { "cancel" }
+                        }
+                        p {
+                            "Excluded from randomize: "
+                            span x-show="!editing" {
+                                (if league.exclude_random_all { "Yes" } else { "No" })
+                            }
+                            template x-if="editing" {
+                                input type="checkbox" name="exclude_random_all" value="true" checked[league.exclude_random_all];
+                            }
                         }
                         template x-if="editing" {
-                            input type="checkbox" name="exclude_random_all" value="true" checked[league.exclude_random_all];
+                            div .error {}
                         }
                     }
-                    template x-if="editing" {
-                        div .error {}
-                    }
-                }
-                table {
-                    thead {
-                        tr {
-                            th .name { "Name" }
-                            th .matches { "M" }
+                    table {
+                        thead {
+                            tr {
+                                th .name { "Name" }
+                                th .matches { "M" }
+                            }
                         }
-                    }
-                    tbody {
-                        @for team in &league.teams {
-                            tr class=(if team.disabled { "disabled" } else { "" })
-                                    x-data="{ mode: null }" {
+                        tbody {
+                            @for team in &league.teams {
+                                tr class=(if team.disabled { "disabled" } else { "" })
+                                        x-data="{ mode: null }" {
+                                    td {
+                                        span x-show="mode !== 'edit'" { (team.name) }
+                                        template x-if="mode === 'edit'" {
+                                            input type="text" name="name" value=(team.name);
+                                        }
+                                    }
+                                    td { (team.match_count) }
+                                    td x-show="mode === null" {
+                                        button x-on:click="mode = 'edit'" { "E" }
+                                        span .hgap-s {}
+                                        @if team.match_count == 0 {
+                                            button hx-delete=(format!("/team/{}", team.id))
+                                                    hx-confirm="Are you sure?" {
+                                                "x"
+                                            }
+                                        } @else {
+                                            button hx-post=(format!("/team/{}/{}", team.id, if team.disabled { "enable" } else { "disable" })) { "D" }
+                                        }
+                                        span .hgap-s {}
+                                        button x-on:click="mode = 'move'" { "⭢" }
+                                    }
+                                    td x-cloak x-show="mode === 'edit'" {
+                                        div {
+                                            button hx-put=(format!("/team/{}", team.id)) hx-include="closest tr" { "save" }
+                                            span .hgap-s {}
+                                            button x-on:click="mode = null" { "cancel" }
+                                        }
+                                        template x-if="mode === 'edit'" {
+                                            div .error {}
+                                        }
+                                    }
+                                    td x-cloak x-show="mode === 'move'" {
+                                        select name="league_id" {
+                                            @for other_league in leagues.iter().filter(|l| l.id != league.id) {
+                                                option value=(other_league.id) { (other_league.name) }
+                                            }
+                                        }
+                                        div .vgap-s {}
+                                        div {
+                                            button hx-post=(format!("/team/{}/move", team.id)) hx-include="closest td" { "save" }
+                                            span .hgap-s {}
+                                            button x-on:click="mode = null" { "cancel" }
+                                        }
+                                    }
+                                }
+                            }
+                            tr x-data="{ creating: false }" {
                                 td {
-                                    span x-show="mode !== 'edit'" { (team.name) }
-                                    template x-if="mode === 'edit'" {
-                                        input type="text" name="name" value=(team.name);
+                                    button x-show="!creating" x-on:click="creating = true" { "+" }
+                                    input type="hidden" name="league_id" value=(league.id);
+                                    template x-if="creating" {
+                                        input type="text" name="name" required;
                                     }
                                 }
-                                td { (team.match_count) }
-                                td x-show="mode === null" {
-                                    button x-on:click="mode = 'edit'" { "E" }
-                                    span .hgap-s {}
-                                    @if team.match_count == 0 {
-                                        button hx-delete=(format!("/team/{}", team.id))
-                                                hx-confirm="Are you sure?" {
-                                            "x"
-                                        }
-                                    } @else {
-                                        button hx-post=(format!("/team/{}/{}", team.id, if team.disabled { "enable" } else { "disable" })) { "D" }
-                                    }
-                                    span .hgap-s {}
-                                    button x-on:click="mode = 'move'" { "⭢" }
-                                }
-                                td x-show="mode === 'edit'" {
+                                td {}
+                                td x-cloak x-show="creating" {
                                     div {
-                                        button hx-put=(format!("/team/{}", team.id)) hx-include="closest tr" { "save" }
+                                        button type="submit" hx-post="/team" hx-include="closest tr" { "create" }
                                         span .hgap-s {}
-                                        button x-on:click="mode = null" { "cancel" }
+                                        button type="button" x-on:click="creating = false" { "cancel" }
                                     }
-                                    template x-if="mode === 'edit'" {
-                                        div .error {}
-                                    }
+                                    div .error {}
                                 }
-                                td x-show="mode === 'move'" {
-                                    select name="league_id" {
-                                        @for other_league in leagues.iter().filter(|l| l.id != league.id) {
-                                            option value=(other_league.id) { (other_league.name) }
-                                        }
-                                    }
-                                    div .vgap-s {}
-                                    div {
-                                        button hx-post=(format!("/team/{}/move", team.id)) hx-include="closest td" { "save" }
-                                        span .hgap-s {}
-                                        button x-on:click="mode = null" { "cancel" }
-                                    }
-                                }
-                            }
-                        }
-                        tr x-data="{ creating: false }" {
-                            td {
-                                button x-show="!creating" x-on:click="creating = true" { "+" }
-                                input type="hidden" name="league_id" value=(league.id);
-                                template x-if="creating" {
-                                    input type="text" name="name" required;
-                                }
-                            }
-                            td {}
-                            td x-show="creating" {
-                                div {
-                                    button type="submit" hx-post="/team" hx-include="closest tr" { "create" }
-                                    span .hgap-s {}
-                                    button type="button" x-on:click="creating = false" { "cancel" }
-                                }
-                                div .error {}
                             }
                         }
                     }
                 }
-            }
-            div .vgap-m {}
-            div {
-                div { "M = Matches" }
-                div { "E = Edit" }
-                div { "D = Disable/Enable" }
-                div { "x = Delete" }
-                div { "⭢ = Move to another league" }
+                div .vgap-m {}
+                div {
+                    div { "M = Matches" }
+                    div { "E = Edit" }
+                    div { "D = Disable/Enable" }
+                    div { "x = Delete" }
+                    div { "⭢ = Move to another league" }
+                }
             }
         }
-        (style.as_comment())
-    }))
+    })))
 }
 
 pub async fn teams_route(Extension(dbc): Extension<Database>) -> Result<Markup> {

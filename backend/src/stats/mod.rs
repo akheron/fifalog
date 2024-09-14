@@ -1,9 +1,9 @@
 use crate::db::Database;
-use crate::style::Style;
+use crate::style::{Style, StyledMarkup};
 use crate::{result, sql};
 use axum::routing::get;
 use axum::Router;
-use maud::{html, Markup};
+use maud::html;
 use std::cmp::{max, min};
 
 pub mod routes;
@@ -22,12 +22,12 @@ impl Stats {
         Self { expanded }
     }
 
-    pub async fn render(&self, dbc: &Database) -> result::Result<Markup> {
+    pub async fn render(&self, dbc: &Database) -> result::Result<StyledMarkup> {
         let limit = if self.expanded { usize::MAX } else { 5 };
         let (stats_rows, total_count) = compute_stats(dbc, limit).await?;
         let more = max(0, total_count as i32 - 5);
 
-        let style = Style::new(
+        Ok(Style::new(
             r#"
             table {
                 font-size: 13px;
@@ -68,56 +68,55 @@ impl Stats {
                 }
             }
         "#,
-        );
-
-        Ok(html! {
-            h2 { "Stats" }
-            div class=(style.class()) {
-                table {
-                    thead {
-                        tr {
-                            th {}
-                            th {}
-                            th { "W" }
-                            th {}
-                            th { "G" }
+        ).into_markup(|class, _s| {
+            html! {
+                h2 { "Stats" }
+                div class=(class) {
+                    table {
+                        thead {
+                            tr {
+                                th {}
+                                th {}
+                                th { "W" }
+                                th {}
+                                th { "G" }
+                            }
                         }
-                    }
-                    @for row in stats_rows {
-                        tbody {
-                            @for (i, user) in row.user_stats.iter().enumerate() {
+                        @for row in stats_rows {
+                            tbody {
+                                @for (i, user) in row.user_stats.iter().enumerate() {
+                                    tr {
+                                        td { @if i == 0 { (row.month) } }
+                                        td { (user.name) }
+                                        td { (user.wins) }
+                                        td { "(" (user.over_time_wins) " OT)" }
+                                        td { (user.goals_for) }
+                                    }
+                                }
                                 tr {
-                                    td { @if i == 0 { (row.month) } }
-                                    td { (user.name) }
-                                    td { (user.wins) }
-                                    td { "(" (user.over_time_wins) " OT)" }
-                                    td { (user.goals_for) }
+                                    td {}
+                                    td { "Total" }
+                                    td { (row.matches) }
+                                    td { "(" (row.ties) " tied)" }
+                                    td { (row.goals) }
                                 }
                             }
-                            tr {
-                                td {}
-                                td { "Total" }
-                                td { (row.matches) }
-                                td { "(" (row.ties) " tied)" }
-                                td { (row.goals) }
-                            }
                         }
                     }
-                }
-                div .vgap-s {}
-                @if more > 0 {
-                    button
-                        hx-get="/stats"
-                        hx-target="#stats"
-                        hx-disabled-elt="this"
-                        hx-vals=(if self.expanded { r#"{ "expanded": false }"# } else { r#"{ "expanded": true }"# })
-                        hx-swap=[if self.expanded { Some("show:top") } else { None }] {
-                            "show " (more) " " (if self.expanded { "less" } else { "more" })
+                    div .vgap-s {}
+                    @if more > 0 {
+                        button
+                            hx-get="/stats"
+                            hx-target="#stats"
+                            hx-disabled-elt="this"
+                            hx-vals=(if self.expanded { r#"{ "expanded": false }"# } else { r#"{ "expanded": true }"# })
+                            hx-swap=[if self.expanded { Some("show:top") } else { None }] {
+                                "show " (more) " " (if self.expanded { "less" } else { "more" })
+                        }
                     }
                 }
             }
-            (style.as_comment())
-        })
+        }))
     }
 }
 

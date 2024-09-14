@@ -389,7 +389,7 @@ fn pagination(page: i64, page_size: i64, total: i64) -> Option<StyledMarkup> {
                                 } @else {
                                     button
                                         .text
-                                        hx-get=(format!("/?page={p}"))
+                                        hx-get={"/?page=" (p)}
                                         hx-target="body"
                                         hx-swap="show:#latest-matches:top"
                                         hx-disabled-elt="this" {

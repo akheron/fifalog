@@ -41,7 +41,7 @@ async fn teams_page(dbc: &Database) -> Result<Markup> {
             div class=(class) hx-target="body" {
                 h2 { "Teams" }
                 @for league in &leagues {
-                    form x-data="{ editing: false }" hx-put=(format!("/league/{}", league.id)) {
+                    form x-data="{ editing: false }" hx-put={"/league/" (league.id)} {
                         h3 x-show="!editing" {
                             (league.name)
                             span .hgap-s {}
@@ -89,19 +89,19 @@ async fn teams_page(dbc: &Database) -> Result<Markup> {
                                         button x-on:click="mode = 'edit'" { "E" }
                                         span .hgap-s {}
                                         @if team.match_count == 0 {
-                                            button hx-delete=(format!("/team/{}", team.id))
+                                            button hx-delete={"/team/" (team.id)}
                                                     hx-confirm="Are you sure?" {
                                                 "x"
                                             }
                                         } @else {
-                                            button hx-post=(format!("/team/{}/{}", team.id, if team.disabled { "enable" } else { "disable" })) { "D" }
+                                            button hx-post={"/team/" (team.id) "/" (if team.disabled { "enable" } else { "disable" })} { "D" }
                                         }
                                         span .hgap-s {}
                                         button x-on:click="mode = 'move'" { "⭢" }
                                     }
                                     td x-cloak x-show="mode === 'edit'" {
                                         div {
-                                            button hx-put=(format!("/team/{}", team.id)) hx-include="closest tr" { "save" }
+                                            button hx-put={"/team/" (team.id)} hx-include="closest tr" { "save" }
                                             span .hgap-s {}
                                             button x-on:click="mode = null" { "cancel" }
                                         }
@@ -117,7 +117,7 @@ async fn teams_page(dbc: &Database) -> Result<Markup> {
                                         }
                                         div .vgap-s {}
                                         div {
-                                            button hx-post=(format!("/team/{}/move", team.id)) hx-include="closest td" { "save" }
+                                            button hx-post={"/team/" (team.id) "/move"} hx-include="closest td" { "save" }
                                             span .hgap-s {}
                                             button x-on:click="mode = null" { "cancel" }
                                         }

@@ -67,7 +67,7 @@ impl MatchActions {
             html! {
                 div id=(id) class=(class) hx-target="this" {
                     @if let MatchActionsMode::Edit = self.mode {
-                        form .edit hx-post=(format!("/match/{}/finish", self.id)) hx-target="body" {
+                        form .edit hx-post={"/match/" (self.id) "/finish"} hx-target="body" {
                             input name="homeScore" type="number" required {}
                             " - "
                             input name="awayScore" type="number" required {}
@@ -103,27 +103,27 @@ impl MatchActions {
                             span .hgap-s {}
                             button { "save" }
                             " "
-                            button hx-get=(format!("/match/{}/actions", self.id)) hx-target=(format!("#{id}")) { "cancel" }
+                            button hx-get={"/match/" (self.id) "/actions"} hx-target={ "#" (id) } { "cancel" }
                         }
                     }
                     @else {
                         @let show_stats = matches!(self.mode, MatchActionsMode::Stats(_));
                         div .buttons hx-sync="this" {
                             button
-                                hx-get=(format!("/match/{}/actions", self.id))
+                                hx-get={"/match/" (self.id) "/actions"}
                                 hx-vals=[if show_stats { None } else { Some(r#"{ "mode": "stats" }"#) }] {
                                     "stats "
                                     @if show_stats { "△" } @else { "▽" }
                             }
                             span .hgap-s {}
                             button
-                                hx-get=(format!("/match/{}/actions", self.id))
+                                hx-get={"/match/" (self.id) "/actions"}
                                 hx-vals=(r#"{ "mode": "edit" }"#) {
                                     "edit"
                             }
                             span .hgap-s {}
                             button
-                                hx-delete=(format!("/match/{}", self.id))
+                                hx-delete={"/match/" (self.id)}
                                 hx-target="#latest-matches"
                                 hx-confirm="Really?" { "x" }
                         }

@@ -26,11 +26,13 @@ impl Index {
 
         Ok(Unstyled.into_markup(|s| {
             html! {
-                div #stats {
-                    (stats.eject_style(s))
-                }
-                div #latest-matches {
-                    (latest_matches.eject_style(s))
+                div #index {
+                    div #stats {
+                        (stats.eject_style(s))
+                    }
+                    div #latest-matches {
+                        (latest_matches.eject_style(s))
+                    }
                 }
             }
         }))

@@ -67,7 +67,7 @@ impl MatchActions {
             html! {
                 div id=(id) class=(class) hx-target="this" {
                     @if let MatchActionsMode::Edit = self.mode {
-                        form .edit hx-post={"/match/" (self.id) "/finish"} hx-target="body" {
+                        form .edit hx-post={"/match/" (self.id) "/finish"} hx-target="#index" {
                             input name="homeScore" type="number" required {}
                             " - "
                             input name="awayScore" type="number" required {}

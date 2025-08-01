@@ -1,7 +1,6 @@
 use crate::page::document;
 use crate::style::Style;
 use crate::Config;
-use async_trait::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::http::{header, StatusCode};
@@ -138,7 +137,6 @@ pub fn auth_routes() -> Router {
 
 pub struct IsLoggedIn(pub bool);
 
-#[async_trait]
 impl FromRequestParts<()> for IsLoggedIn {
     type Rejection = Infallible;
 
@@ -169,7 +167,6 @@ impl FromRequestParts<()> for IsLoggedIn {
 
 pub struct LoginRequired;
 
-#[async_trait]
 impl FromRequestParts<()> for LoginRequired {
     type Rejection = Response;
 

@@ -13,7 +13,7 @@ pub fn get_random_match_from_leagues(
     leagues: &[League],
     exclude_teams: &HashSet<TeamId>,
 ) -> Option<RandomMatch> {
-    let index = rand::thread_rng().gen_range(0..num_team_pairs(leagues, exclude_teams));
+    let index = rand::rng().random_range(0..num_team_pairs(leagues, exclude_teams));
     nth_match(leagues, exclude_teams, index)
 }
 
@@ -29,10 +29,10 @@ pub fn get_random_match_from_all(
         .collect::<Vec<_>>();
 
     if teams.len() >= exclude_teams.len() + 2 {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         loop {
-            let home_id = teams[rng.gen_range(0..teams.len())];
-            let away_id = teams[rng.gen_range(0..teams.len())];
+            let home_id = teams[rng.random_range(0..teams.len())];
+            let away_id = teams[rng.random_range(0..teams.len())];
             if home_id != away_id
                 && !exclude_teams.contains(&home_id)
                 && !exclude_teams.contains(&away_id)
@@ -92,7 +92,7 @@ fn nth_match(
                     continue;
                 }
                 if num == target {
-                    let swap = rand::thread_rng().gen::<bool>();
+                    let swap = rand::rng().random::<bool>();
                     let (home_id, away_id) = if swap {
                         (teams[j].id, teams[i].id)
                     } else {

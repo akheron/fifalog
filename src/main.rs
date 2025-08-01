@@ -24,7 +24,6 @@ use sqlx::postgres::PgPoolOptions;
 use tokio::net::TcpListener;
 use tower::ServiceBuilder;
 use tower_cookies::CookieManagerLayer;
-use tower_http::services::ServeDir;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -56,7 +55,6 @@ async fn main() -> Result<()> {
         .nest("/stats", stats::routes())
         .route_layer(login_required())
         .nest("/auth", auth_routes())
-        .nest_service("/assets", ServeDir::new(&env.asset_path))
         .layer(
             ServiceBuilder::new()
                 .layer(Extension(config))

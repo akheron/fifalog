@@ -11,7 +11,6 @@ pub struct Env {
     pub secret: String,
     pub auth_username: String,
     pub auth_password: String,
-    pub asset_path: String,
 }
 
 impl Env {

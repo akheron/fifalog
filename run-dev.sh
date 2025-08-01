@@ -12,7 +12,4 @@ export SECRET="0123456789012345678901234567890123456789012345678901234567890123"
 export AUTH_USERNAME=myuser
 export AUTH_PASSWORD=mypass
 
-# Not needed when parcel serves assets, otherwise set to parcel output dir (../frontend/dist)
-export ASSET_PATH=
-
 exec cargo watch -x run

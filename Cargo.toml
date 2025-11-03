@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 axum = "0.8"
-axum-extra = { version = "0.10", features = ["form"] }
+axum-extra = { version = "0.12", features = ["form"] }
 cookie = "0.18"
 derive_more = { version = "2.0", features = ["display"] }
 maud = { version = "0.27", features = ["axum"] }
